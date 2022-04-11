@@ -5,4 +5,4 @@
 2. API reference
 ------------------------------
 ### Apendix
-+ How to compile DSDL for DroneCAN
++ [How to compile DSDL for DroneCAN](https://github.com/aralce/dronecan_with_libcanard/blob/master/docs/compile_DSDL_for_DroneCAN.md)
