@@ -1,6 +1,5 @@
 #include "CppUTest/TestHarness.h"
 #include "DroneCan_service_singleton.h"
-//#include "include/uavcan/uavcan.equipment.power.BatteryInfo.h"
 
 TEST_GROUP(DroneCan_service)
 {
