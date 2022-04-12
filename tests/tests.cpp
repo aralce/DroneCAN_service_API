@@ -1,10 +1,24 @@
 #include "CppUTest/TestHarness.h"
+#include "DroneCan_service_singleton.h"
+//#include "include/uavcan/uavcan.equipment.power.BatteryInfo.h"
 
-TEST_GROUP(FirstTestGroup)
+TEST_GROUP(DroneCan_service)
 {
 };
 
-TEST(FirstTestGroup, FirstTest)
+/*
+- DroneCan_Service_singleton a batteryInfo message is published
+- if a batteryInfo message is published and there is no queue message. The message is dispatched.*/
+
+TEST(DroneCan_service, instance_is_get_from_singleton_twice)
 {
-	FAIL("Test Harness is working");
+	DroneCan_service& droneCan_service = DroneCan_service::getInstance();
+	DroneCan_service& droneCan_service2 = DroneCan_service::getInstance();
+	CHECK_EQUAL(&droneCan_service, &droneCan_service2);
 }
+
+// TEST(DroneCan_service, batteryInfo_message_is_published)
+// {
+// 	DroneCan_service& droneCan_service = DroneCan_service::getInstance();
+// 	CHECK_EQUAL(errorCode::OK, droneCan_service.pusblish())
+// }

@@ -1,0 +1,7 @@
+Test to implement:
+- DroneCan_Service_singleton a batteryInfo message is published
+- if a batteryInfo message is published and there is no queue message. The message is dispatched.
+
+
+Done:
+- DroneCan_Service_singleton if the instance is requested twice, the returned instance is the same.
