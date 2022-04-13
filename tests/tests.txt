@@ -1,7 +1,6 @@
 Test to implement:
-- DroneCan_Service_singleton a batteryInfo message is published
-- if a batteryInfo message is published and there is no queue message. The message is dispatched.
-
+- When DroneCan_service inits the libcanard library is initialized.
+- When DroneCan_service inits the can bus is initialized.
+- batteryInfo message is published once.
 
 Done:
-- DroneCan_Service_singleton if the instance is requested twice, the returned instance is the same.
