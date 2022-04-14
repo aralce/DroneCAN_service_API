@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdio>
 #include <canard.h>
-#include <CAN_bus_interface.h>
+#include <CAN_bus_adaptor.h>
 #include "DroneCAN_service_configuration.h"
 #include <uavcan.equipment.power.BatteryInfo.h>
 

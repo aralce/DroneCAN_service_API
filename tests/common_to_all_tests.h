@@ -5,3 +5,5 @@
 
 #define FAILURE_IN_INITIALIZATION 0
 #define INITIALIZATION_SUCCESSFUL 1
+
+void teardown_mocks();

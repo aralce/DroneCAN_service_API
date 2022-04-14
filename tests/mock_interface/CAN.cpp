@@ -1,6 +1,5 @@
 #include <CAN.h>
-#include "CppUTest/TestHarness.h"
-#include "CppUTestExt/MockSupport.h"
+#include <common_to_all_mocks.h>
 
 int CAN::begin(long baudRate) {
     mock().actualCall("begin").withLongIntParameter("baudRate", baudRate);

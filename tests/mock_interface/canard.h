@@ -320,3 +320,19 @@ struct CanardRxTransfer
 void canardInit(CanardInstance* out_ins, void* mem_arena, size_t mem_arena_size, CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept, void* user_reference);
 
 int16_t canardBroadcast(CanardInstance* ins, uint64_t data_type_signature, uint16_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, const void* payload, uint16_t payload_len);
+
+
+int16_t canardDecodeScalar(const CanardRxTransfer* transfer,    ///< The RX transfer where the data will be copied from
+                           uint32_t bit_offset,                 ///< Offset, in bits, from the beginning of the transfer
+                           uint8_t bit_length,                  ///< Length of the value, in bits; see the table
+                           bool value_is_signed,                ///< True if the value can be negative; see the table
+                           void* out_value);                    ///< Pointer to the output storage; see the table
+
+void canardEncodeScalar(void* destination,
+                        uint32_t bit_offset,
+                        uint8_t bit_length,
+                        const void* value);
+
+float canardConvertFloat16ToNativeFloat(uint16_t value);
+
+uint16_t canardConvertNativeFloatToFloat16(float value);

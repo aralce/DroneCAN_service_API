@@ -22,7 +22,9 @@ bool DroneCAN_service::is_healthy() {
     return _is_healthy;
 }
 
-void DroneCAN_service::publish_message(uavcan_equipment_power_BatteryInfo& battery_info) {
-    canardBroadcast(&canard_instance, 0, 0,
-    canard_transmission_buffer, 0, &battery_info, 0);
+void DroneCAN_service::publish_message(uavcan_equipment_power_BatteryInfo& battery_info) {   
+    uavcan_equipment_power_BatteryInfo_encode(&battery_info, canard_transmission_buffer);
+    canardBroadcast(&canard_instance, UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE, 
+                    UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID, canard_transmission_buffer,
+                    CANARD_TRANSFER_PRIORITY_LOW, &battery_info, 0);
 }

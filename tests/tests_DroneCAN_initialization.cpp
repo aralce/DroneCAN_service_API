@@ -3,9 +3,9 @@
 
 TEST_GROUP(DroneCAN_service_initialization)
 {
-    void teardown() {
-        mock().checkExpectations();
-        mock().clear();
+    void teardown()
+    {
+        teardown_mocks();
     }
 };
 
