@@ -9,7 +9,7 @@ TEST_GROUP(DroneCAN_service_publish_batteryInfo)
     }
 };
 
-static DroneCAN_service get_droneCAN_omiting_mock_calls()
+static DroneCAN_service get_droneCAN_instance_omiting_mock_calls()
 {
     mock().disable();
     DroneCAN_service service;
@@ -19,7 +19,7 @@ static DroneCAN_service get_droneCAN_omiting_mock_calls()
 
 TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_ID_and_signature)
 {
-    DroneCAN_service service = get_droneCAN_omiting_mock_calls();
+    DroneCAN_service service = get_droneCAN_instance_omiting_mock_calls();
 
     mock().expectOneCall("canardBroadcast")
           .withParameter("data_type_signature", UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE)
@@ -33,7 +33,7 @@ TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_
 
 TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_priority)
 {
-    DroneCAN_service service = get_droneCAN_omiting_mock_calls();
+    DroneCAN_service service = get_droneCAN_instance_omiting_mock_calls();
 
     mock().expectOneCall("canardBroadcast")
           .withParameter("priority", CANARD_TRANSFER_PRIORITY_LOW)
@@ -47,7 +47,7 @@ TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_
 
 TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_battery_message)
 {
-    DroneCAN_service service = get_droneCAN_omiting_mock_calls();
+    DroneCAN_service service = get_droneCAN_instance_omiting_mock_calls();
     
     uavcan_equipment_power_BatteryInfo battery_message;
     mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
@@ -56,4 +56,10 @@ TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_batter
     mock().ignoreOtherCalls();
 
     service.publish_message(battery_message);
+}
+
+//- when batteryInfo is published, the canardBroadcast is called with the message and message_length from encodeMessage
+TEST(DroneCAN_service_publish_batteryInfo, canardBroascast_is_called_with_encoded_message)
+{
+    FAIL("Continue from here. Next step: tests for CAN bus write sequence.");
 }

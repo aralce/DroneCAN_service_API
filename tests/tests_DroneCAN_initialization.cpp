@@ -18,11 +18,9 @@ TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized
 TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized) {
     mock().expectOneCall("begin")
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
-          .andReturnValue(INITIALIZATION_SUCCESSFUL);
-    
+          .andReturnValue(INITIALIZATION_SUCCESSFUL);   
     mock().expectOneCall("setPins").withParameter("rx", CAN_BUS_RX_PIN)
-          .withParameter("tx", CAN_BUS_TX_PIN);
-    
+          .withParameter("tx", CAN_BUS_TX_PIN);   
     mock().ignoreOtherCalls();
     DroneCAN_service service;
 }

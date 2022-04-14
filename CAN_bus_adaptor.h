@@ -1,8 +1,12 @@
 #pragma once
 #include <CAN.h>
 
-class CAN_bus_interface {
+class CAN_bus_adaptor {
 public:
+    CAN_bus_adaptor() {
+
+    }
+
     int begin(long baudRate) {
         return can.begin(baudRate);
     }
