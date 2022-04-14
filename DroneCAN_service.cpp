@@ -2,11 +2,7 @@
 #include "DroneCAN_service_configuration.h"
 
 static void on_canardReception_DUMMY(CanardInstance* ins, CanardRxTransfer* transfer) {}
-static bool canardShouldAcceptTransfer_DUMMY(const CanardInstance* ins,
-											 uint64_t* out_data_type_signature,
-											 uint16_t data_type_id,
-											 CanardTransferType transfer_type,
-											 uint8_t source_node_id) {return false;}
+static bool canardShouldAcceptTransfer_DUMMY(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {return false;}
 
 static void initialize_CAN_bus(CAN_bus_interface& can_interface);
 bool is_CAN_bus_initialization_successful = false;
