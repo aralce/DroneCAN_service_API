@@ -5,9 +5,9 @@ UAVCAN_DIR = ../dependencies/dsdlc_generated/include/uavcan
 SUPPORT_DIR = support/
 
 MOCK_DIR = mock_interface/
-MOCK_FILES = $(filter %.cpp, $(notdir $(wildcard $(MOCK_DIR)*)))
+MOCK_FILES = $(filter %.cpp, $(wildcard $(MOCK_DIR)*))
 CPPUTEST_HOME = cpputest
-FILES_TO_TEST = DroneCan_service.cpp
+FILES_TO_TEST = DroneCAN_service.cpp
 
 CXX = g++
 CXXFLAGS  = -I$(SUPPORT_DIR) -I$(MOCK_DIR) -Wall
@@ -24,5 +24,5 @@ LD_LIBRARIES  = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 run: tests
 	./tests.out
 	
-tests: *.cpp $(PROGRAM_DIR)$(FILES_TO_TEST) $(MOCK_DIR)$(MOCK_FILES)
+tests: *.cpp $(PROGRAM_DIR)$(FILES_TO_TEST) $(MOCK_FILES)
 	$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o tests.out	

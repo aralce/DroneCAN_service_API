@@ -1,19 +1,19 @@
-#include "CppUTest/TestHarness.h"
-#include "CppUTestExt/MockSupport.h"
-#include "DroneCan_service.h"
+#include "common_to_all_tests.h"
 
-TEST_GROUP(DroneCan_service)
+TEST_GROUP(DroneCAN_service)
 {
-
+	void teardown()
+	{
+		mock().checkExpectations();
+		mock().clear();
+	}
 };
 
-// - When DroneCan_service inits the libcanard library is initialized.
-// - When DroneCan_service inits the can bus is initialized.
-// - batteryInfo message is publised once.
-
-TEST(DroneCan_service, on_initialization_libcanard_is_initialized) {
-	mock().expectOneCall("initCanard");
+TEST(DroneCAN_service, system_is_healthy) {
+	const int INITIALIZATION_SUCCESSFUL = 1;
+	mock().expectOneCall("begin").withParameter("baudRate", CAN_BUS_BAUDRATE).andReturnValue(INITIALIZATION_SUCCESSFUL);
 	mock().ignoreOtherCalls();
-	DroneCan_service service;
-	mock().checkExpectations();
+	DroneCAN_service service;
+	CHECK_TRUE(service.is_healthy());
 }
+
