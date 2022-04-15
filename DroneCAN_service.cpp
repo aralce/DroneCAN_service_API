@@ -4,18 +4,18 @@
 static void on_canardReception_DUMMY(CanardInstance* ins, CanardRxTransfer* transfer) {}
 static bool canardShouldAcceptTransfer_DUMMY(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {return false;}
 
-static void initialize_CAN_bus(CAN_bus_adaptor& can_interface);
+static void initialize_CAN_bus_driver(CAN_bus_adaptor& can_driver);
 bool is_CAN_bus_initialization_successful = false;
 
 DroneCAN_service::DroneCAN_service() {
     canardInit(&canard_instance, canard_buffer, LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, on_canardReception_DUMMY, canardShouldAcceptTransfer_DUMMY, NULL);
-    initialize_CAN_bus(can_interface);
+    initialize_CAN_bus_driver(can_driver);
     _is_healthy = is_CAN_bus_initialization_successful;
 }
 
-static void initialize_CAN_bus(CAN_bus_adaptor& can_interface) {
-    can_interface.setPins(CAN_BUS_RX_PIN, CAN_BUS_TX_PIN);
-    is_CAN_bus_initialization_successful = can_interface.begin(CAN_BUS_BAUDRATE);
+static void initialize_CAN_bus_driver(CAN_bus_adaptor& can_driver) {
+    can_driver.setPins(CAN_BUS_RX_PIN, CAN_BUS_TX_PIN);
+    is_CAN_bus_initialization_successful = can_driver.begin(CAN_BUS_BAUDRATE);
 }
 
 bool DroneCAN_service::is_healthy() {
