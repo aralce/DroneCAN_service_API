@@ -18,7 +18,7 @@ mock_interface
 Has the interface for files to mock on test  
   
 support  
-Has dummy files to fill dependencies  
+It has useful functions and classes for tests.
   
 test.cpp  
 Has the group of tests  

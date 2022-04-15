@@ -14,7 +14,7 @@ TEST(DroneCAN_service, system_is_healthy) {
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(INITIALIZATION_SUCCESSFUL);
     mock().ignoreOtherCalls();
-    DroneCAN_service service;
+    Spied_droneCAN_service droneCAN_service;
     
-    CHECK_TRUE(service.is_healthy());
+    CHECK_TRUE(droneCAN_service.is_healthy());
 }

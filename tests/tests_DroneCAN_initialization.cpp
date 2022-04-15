@@ -12,7 +12,7 @@ TEST_GROUP(DroneCAN_service_initialization)
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized) {
     mock().expectOneCall("canardInit");
     mock().ignoreOtherCalls();
-    DroneCAN_service service;
+    Spied_droneCAN_service service;
 }
 
 TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized) {
@@ -22,7 +22,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized) 
     mock().expectOneCall("setPins").withParameter("rx", CAN_BUS_RX_PIN)
           .withParameter("tx", CAN_BUS_TX_PIN);   
     mock().ignoreOtherCalls();
-    DroneCAN_service service;
+    Spied_droneCAN_service service;
 }
 
 TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy) {
@@ -30,7 +30,7 @@ TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(FAILURE_IN_INITIALIZATION);
     mock().ignoreOtherCalls();
-    DroneCAN_service service;
+    Spied_droneCAN_service service;
     
     CHECK_FALSE(service.is_healthy());
 }

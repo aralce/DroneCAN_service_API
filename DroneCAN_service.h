@@ -11,7 +11,7 @@ public:
     bool is_healthy();
     void publish_message(uavcan_equipment_power_BatteryInfo& battery_info);
 
-private:
+protected:
     CanardInstance canard_instance;
     uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
     uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
