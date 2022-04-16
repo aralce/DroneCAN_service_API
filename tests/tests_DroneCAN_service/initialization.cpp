@@ -1,5 +1,5 @@
-#include "common_to_all_tests.h"
-#include "DroneCAN_service_configuration.h"
+#include <common_to_all_tests.h>
+#include <DroneCAN_service_configuration.h>
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls() {
     mock().ignoreOtherCalls();

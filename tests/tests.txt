@@ -1,8 +1,8 @@
 Test to implement:
 
 Publish:
-- when batteryInfo is published and CAN_message is sent.
-- when batteryInfo is published CAN_message is sent and beginPacket fails.
-- when batteryInfo is published CAN_message is sent and endPacket fails.
+- when batteryInfo is publish, CAN_message is sent with success
+- batteryInfo is publish, CAN_message has the right parameters
+- when batteryInfo is publish, CAN_message fails to sent it
 
 Initialization
