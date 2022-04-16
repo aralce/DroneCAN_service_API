@@ -54,21 +54,21 @@ TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_batter
     droneCAN_service.publish_message(battery_message);
 }
 
-// - when batteryInfo is published, the canardBroadcast is called with the message and message_length from encodeMessage
-TEST(DroneCAN_service_publish_batteryInfo, canardBroascast_is_called_with_encoded_message)
-{
-    // uavcan_equipment_power_BatteryInfo battery_message;
-    // const uint32_t ENCODED_MESSAGE_LENGTH = 3; 
-    // uint8_t message_buffer[] = {1, 2, 3};
-    // mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
-    //       .withOutputParameterReturning("buffer", message_buffer, sizeof(message_buffer))
-    //       .ignoreOtherParameters()
-    //       .andReturnValue(ENCODED_MESSAGE_LENGTH);
+// TEST(DroneCAN_service_publish_batteryInfo, canardBroascast_is_called_with_encoded_message_and_message_length)
+// {
+//     uavcan_equipment_power_BatteryInfo battery_message;
+//     const uint32_t ENCODED_MESSAGE_LENGTH = 3; 
+//     uint8_t message_buffer[] = {1, 2, 3};
+//     mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
+//           .withOutputParameterReturning("buffer", message_buffer, sizeof(message_buffer))
+//           .ignoreOtherParameters()
+//           .andReturnValue(ENCODED_MESSAGE_LENGTH);
 
-    // mock().expectOneCall("canardBroadcast")
-    //       .withParameter("payload", (void*)message_buffer)
-    //       .withParameter("payload_len", ENCODED_MESSAGE_LENGTH)
-    //       .ignoreOtherParameters();
+//     uint8_t* payload_inputParameter = droneCAN_service.get_ptr_of_canard_transmission_buffer();
+//     mock().expectOneCall("canardBroadcast")
+//           .withParameter("payload", payload_inputParameter)
+//           .withParameter("payload_len", ENCODED_MESSAGE_LENGTH)
+//           .ignoreOtherParameters();
 
-    // droneCAN_service.publish_message(battery_message);
-}
+//     droneCAN_service.publish_message(battery_message);
+// }

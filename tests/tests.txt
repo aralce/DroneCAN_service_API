@@ -1,14 +1,21 @@
 Test to implement:
-- ##batteryInfo message is published once.
 
-- when batteryInfo is published, the canardBroadcast is called with the message and message_length from encodeMessage
-- when batteryInfo is published and the sequence to send CAN_message is called
+test libcanard wrapper:
+
+
+
+- ##batteryInfo message is published once.
+- when batteryInfo is published and CAN_message is sent.
+- when batteryInfo is published CAN_message is sent and beginPacket fails.
+- when batteryInfo is published CAN_message is sent and endPacket fails.
+
 
 
 Done:
 - The user checks if the system is healthy and the system is healthy.
 
 Publish:
+- when batteryInfo is published, the canardBroadcast is called with the message and message_length from encodeMessage
 - when batteryInfo is published, the canard function to encodeMessage is called with batteryInfo message
 - when batteryInfo is published, the canardBroadcast is called with correct ID and signature.
 - when batteryInfo is published, the canardBroadcast is called with the correct priority

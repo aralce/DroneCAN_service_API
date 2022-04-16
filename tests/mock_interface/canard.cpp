@@ -11,7 +11,7 @@ int16_t canardBroadcast(CanardInstance* ins, uint64_t data_type_signature, uint1
           .withParameter("data_type_signature", data_type_signature)
           .withParameter("data_type_id", data_type_id)
           .withParameter("priority", priority)
-          .withParameter("payload", payload)
+          .withPointerParameter("payload", (void*)payload)
           .withParameter("payload_len", payload_len);
     return mock().intReturnValue();
 }

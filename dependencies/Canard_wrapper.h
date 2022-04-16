@@ -1,0 +1,42 @@
+#pragma once
+#include <canard.h>
+
+typedef struct {
+    uint64_t signature;
+    uint16_t id;
+    uint8_t priority;
+}canard_message_type_info_t;
+
+typedef struct {
+    void* ptr;
+    uint16_t length;
+}canard_message_data_t;
+
+template <int LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, int UAVCAN_MAX_BYTES_ON_MESSAGE>
+class Canard {
+public:
+    void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance) {
+        canardInit(&canard_instance,
+                   canard_buffer,
+                   LIBCANARD_ALLOCATION_BUFFER_IN_BYTES,
+                   handle_reception,
+                   handle_acceptance,
+                   NULL);
+    }
+    
+    void broadcast(canard_message_type_info_t type_info, canard_message_data_t data) {
+        canardBroadcast(&canard_instance,
+                        type_info.signature, 
+                        type_info.id,
+                        &canard_transferID,
+                        type_info.priority,
+                        data.ptr,
+                        data.length);
+    }
+    
+private:
+    CanardInstance canard_instance;
+    uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
+    uint8_t canard_transferID;
+    uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
+};
