@@ -1,26 +1,8 @@
 Test to implement:
 
-test libcanard wrapper:
-
-
-
-- ##batteryInfo message is published once.
+Publish:
 - when batteryInfo is published and CAN_message is sent.
 - when batteryInfo is published CAN_message is sent and beginPacket fails.
 - when batteryInfo is published CAN_message is sent and endPacket fails.
 
-
-
-Done:
-- The user checks if the system is healthy and the system is healthy.
-
-Publish:
-- when batteryInfo is published, the canardBroadcast is called with the message and message_length from encodeMessage
-- when batteryInfo is published, the canard function to encodeMessage is called with batteryInfo message
-- when batteryInfo is published, the canardBroadcast is called with correct ID and signature.
-- when batteryInfo is published, the canardBroadcast is called with the correct priority
-
 Initialization
-- The user checks if the system is healthy after a failed initialization.
-- When DroneCan_service inits the libcanard library is initialized.
-- When DroneCan_service inits the can bus is initialized.

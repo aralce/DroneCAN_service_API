@@ -1,46 +1,38 @@
 #include "common_to_all_tests.h"
 #include <uavcan.equipment.power.BatteryInfo.h>
 
-static Spied_droneCAN_service get_droneCAN_instance_omiting_mock_calls()
+static DroneCAN_service get_droneCAN_instance_omiting_mock_calls()
 {
     mock().disable();
-    Spied_droneCAN_service droneCAN_service;
+    DroneCAN_service droneCAN_service;
     mock().enable();
     return droneCAN_service;
 }
 
+void publish_batteryInfo_message(DroneCAN_service &droneCAN_service)
+{
+    uavcan_equipment_power_BatteryInfo batteryInfo;
+    droneCAN_service.publish_message(batteryInfo); 
+}
+
 TEST_GROUP(DroneCAN_service_publish_batteryInfo)
 {
-    Spied_droneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
-    
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    Canard_message_type_info_t_comparator type_info_comparator;
+    Canard_message_data_t_comparator data_comparator;
+
+    void setup()
+    {
+        mock().installComparator("canard_message_type_info_t", type_info_comparator);
+        mock().installComparator("canard_message_data_t", data_comparator);
+    }
+
     void teardown()
     {
         teardown_mocks();
+        mock().removeAllComparatorsAndCopiers();
     }
 };
-
-TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_ID_and_signature)
-{
-    mock().expectOneCall("canardBroadcast")
-          .withParameter("data_type_signature", UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE)
-          .withParameter("data_type_id", UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID)
-          .ignoreOtherParameters();
-    mock().ignoreOtherCalls();
-
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_message(battery_message);
-}
-
-TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_priority)
-{
-    mock().expectOneCall("canardBroadcast")
-          .withParameter("priority", CANARD_TRANSFER_PRIORITY_LOW)
-          .ignoreOtherParameters();
-    mock().ignoreOtherCalls();
-
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_message(battery_message);
-}
 
 
 TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_battery_message)
@@ -54,21 +46,33 @@ TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_batter
     droneCAN_service.publish_message(battery_message);
 }
 
-// TEST(DroneCAN_service_publish_batteryInfo, canardBroascast_is_called_with_encoded_message_and_message_length)
-// {
-//     uavcan_equipment_power_BatteryInfo battery_message;
-//     const uint32_t ENCODED_MESSAGE_LENGTH = 3; 
-//     uint8_t message_buffer[] = {1, 2, 3};
-//     mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
-//           .withOutputParameterReturning("buffer", message_buffer, sizeof(message_buffer))
-//           .ignoreOtherParameters()
-//           .andReturnValue(ENCODED_MESSAGE_LENGTH);
+TEST(DroneCAN_service_publish_batteryInfo, canardBroadcast_is_called_with_right_type_info)
+{
+    canard_message_type_info_t type_info = {.signature = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE,
+                                            .id = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID,
+                                            .priority = CANARD_TRANSFER_PRIORITY_LOW };
+    mock().expectOneCall("broadcast")
+          .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
+          .ignoreOtherParameters();
+    mock().ignoreOtherCalls();
 
-//     uint8_t* payload_inputParameter = droneCAN_service.get_ptr_of_canard_transmission_buffer();
-//     mock().expectOneCall("canardBroadcast")
-//           .withParameter("payload", payload_inputParameter)
-//           .withParameter("payload_len", ENCODED_MESSAGE_LENGTH)
-//           .ignoreOtherParameters();
+    publish_batteryInfo_message(droneCAN_service); 
+}
 
-//     droneCAN_service.publish_message(battery_message);
-// }
+TEST(DroneCAN_service_publish_batteryInfo, canard_broadcast_is_called_with_right_data)
+{
+    const uint32_t ENCODED_MESSAGE_LENGTH = 3; 
+    uint8_t message_buffer[ENCODED_MESSAGE_LENGTH] = {12,13,14};
+    mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
+          .withOutputParameterReturning("buffer", message_buffer, ENCODED_MESSAGE_LENGTH)
+          .ignoreOtherParameters()
+          .andReturnValue(ENCODED_MESSAGE_LENGTH);
+
+    canard_message_data_t data = {.ptr = (void*)message_buffer,
+                                  .length = ENCODED_MESSAGE_LENGTH };
+    mock().expectOneCall("broadcast")
+          .withParameterOfType("canard_message_data_t", "data", (const void*)&data)
+          .ignoreOtherParameters();
+    
+    publish_batteryInfo_message(droneCAN_service);
+}
