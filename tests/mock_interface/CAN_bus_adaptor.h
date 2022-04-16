@@ -1,5 +1,5 @@
 #pragma once
-#include <CAN.h>
+#include <common_to_all_mocks.h>
 
 typedef struct {
     uint8_t* pointer;
@@ -18,17 +18,18 @@ public:
     }
 
     int begin(long baudRate) {
-        return can.begin(baudRate);
+        mock().actualCall("begin")
+            .withLongIntParameter("baudRate", baudRate);
+        return mock().intReturnValue();
     }
 
     void setPins(int rx, int tx) {
-        can.setPins(rx, tx);
+        mock().actualCall("setPins")
+            .withIntParameter("rx", rx)
+            .withIntParameter("tx", tx);
     }
 
     bool send_frame(CAN_bus_driver_fame_t can_frame) {
-        bool is_success = can.beginExtendedPacket(can_frame.id);
-        can.write(can_frame.data.pointer, can_frame.data.length);
-        is_success &= can.endPacket();
-        return is_success;
+        return true;
     }
 };

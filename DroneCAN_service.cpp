@@ -7,12 +7,12 @@ bool is_CAN_bus_initialization_successful = false;
 DroneCAN_service::DroneCAN_service(droneCAN_handle_error_t handle_error) : _handle_error(handle_error) {
     canard.init();
     try_initialize_CAN_bus_driver();
-    _is_healthy = is_CAN_bus_initialization_successful;
 }
 
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     initialize_CAN_bus_driver(can_driver);
-    if (!is_CAN_bus_initialization_successful)
+    _is_healthy = is_CAN_bus_initialization_successful;
+    if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
 }
 

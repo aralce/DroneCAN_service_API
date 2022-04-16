@@ -34,7 +34,6 @@ TEST_GROUP(DroneCAN_service_publish_batteryInfo)
     }
 };
 
-
 TEST(DroneCAN_service_publish_batteryInfo, encode_function_is_called_with_battery_message)
 {
     uavcan_equipment_power_BatteryInfo battery_message;
