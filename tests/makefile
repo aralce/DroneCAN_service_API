@@ -4,6 +4,8 @@ TEST_SUPPORT_DIR = support/
 TEST_MOCK_DIR = mock_interface/
 
 TESTS_DRONE_CAN_SERVICE_DIR = tests_DroneCAN_service/
+TESTS_PUBLISH_MESSAGE_DIR = $(TESTS_DRONE_CAN_SERVICE_DIR)/tests_publish_message/
+TESTS_PUBLISH_MESSAGE_COMMON_DIR = $(TESTS_PUBLISH_MESSAGE_DIR)/common_to_publish_message/
 
 BUILD_DEPENDENCIES_DIR = ../dependencies/
 BUILD_DSDLC_GENERATED = ../dependencies/dsdlc_generated/include
@@ -14,6 +16,8 @@ CPPUTEST_HOME = cpputest
 
 ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service.cpp
 TEST_FILES = $(filter %.cpp, $(wildcard $(TESTS_DRONE_CAN_SERVICE_DIR)*))
+TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_DIR)*))
+TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_COMMON_DIR)*))
 MOCK_FILES = $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 
 COMPILER_INCLUDE_FLAGS = -I$(TEST_MAIN_FOLDER_DIR) -I$(TEST_SUPPORT_DIR)
