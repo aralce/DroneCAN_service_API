@@ -1,8 +1,6 @@
 Test to implement:
 
 Publish:
-- when batteryInfo is publish, CAN_message is sent with success
-- batteryInfo is publish, CAN_message has the right parameters
-- when batteryInfo is publish, CAN_message fails to sent it
+
 
 Initialization

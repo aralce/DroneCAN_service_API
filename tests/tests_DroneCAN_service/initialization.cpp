@@ -1,7 +1,8 @@
 #include <common_to_all_tests.h>
 #include <DroneCAN_service_configuration.h>
 
-DroneCAN_service get_DroneCAN_ignoring_other_calls() {
+DroneCAN_service get_DroneCAN_ignoring_other_calls()
+{
     mock().ignoreOtherCalls();
     return DroneCAN_service();
 }
@@ -14,6 +15,7 @@ TEST_GROUP(DroneCAN_service_initialization)
     }
 };
 
+
 TEST(DroneCAN_service_initialization, droneCAN_without_handle_error_function)
 {
     mock().ignoreOtherCalls();
@@ -23,7 +25,9 @@ TEST(DroneCAN_service_initialization, droneCAN_without_handle_error_function)
     POINTERS_EQUAL(handle_error_DUMMY , handle_error);
 }
 
+
 void handle_error_function(DroneCAN_error error) {}
+
 TEST(DroneCAN_service_initialization, droneCAN_with_handle_error_function)
 {
     mock().ignoreOtherCalls();
@@ -32,11 +36,13 @@ TEST(DroneCAN_service_initialization, droneCAN_with_handle_error_function)
     POINTERS_EQUAL(handle_error_function, handle_error);
 }
 
+
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized)
 {
     mock().expectOneCall("init");
     DroneCAN_service dronceCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
+
 
 TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
 {
@@ -48,6 +54,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
 
+
 TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
 {
     mock().expectOneCall("begin")
@@ -58,11 +65,13 @@ TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
     CHECK_FALSE(droneCAN_service.is_healthy());
 }
 
+
 void handle_error_init_fail(DroneCAN_error error)
 {
     mock().actualCall("handle_error_init_fail")
           .withIntParameter("error", (int)error);
 } 
+
 TEST(DroneCAN_service_initialization, failed_then_error_to_handle_is_ON_INITIALIZATION)
 {
     mock().expectOneCall("handle_error_init_fail")

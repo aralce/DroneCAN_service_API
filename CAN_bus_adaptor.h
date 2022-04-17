@@ -1,16 +1,6 @@
 #pragma once
 #include <CAN.h>
 
-typedef struct {
-    uint8_t* pointer;
-    size_t length;
-}CAN_data_t;
-
-typedef struct {
-    long id;
-    CAN_data_t data;
-}CAN_bus_driver_fame_t;
-
 class CAN_bus_adaptor {
 public:
     CAN_bus_adaptor() {
@@ -25,9 +15,9 @@ public:
         can.setPins(rx, tx);
     }
 
-    bool send_frame(CAN_bus_driver_fame_t can_frame) {
+    bool send_frame(CanardCANFrame& can_frame) {
         bool is_success = can.beginExtendedPacket(can_frame.id);
-        can.write(can_frame.data.pointer, can_frame.data.length);
+        can.write(can_frame.data, sizeof(can_frame.data));
         is_success &= can.endPacket();
         return is_success;
     }

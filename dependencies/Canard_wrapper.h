@@ -28,14 +28,24 @@ public:
                    NULL);
     }
     
-    void broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        canardBroadcast(&canard_instance,
-                        type_info.signature, 
-                        type_info.id,
-                        &canard_transferID,
-                        type_info.priority,
-                        data.ptr,
-                        data.length);
+    int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
+        return canardBroadcast(&canard_instance,
+                               type_info.signature, 
+                               type_info.id,
+                               &canard_transferID,
+                               type_info.priority,
+                               data.ptr,
+                               data.length);
+    }
+
+    const CanardCANFrame* canardPeekTxQueue() {
+        CanardCANFrame* frame_to_send = canardPeekTxQueue(&canard_instance);
+        _is_txQueue_empty = (frame_to_send == NULL);
+        return frame_to_send;
+    }
+
+    bool is_txQueue_empty() {
+        return _is_txQueue_empty;
     }
     
 private:
@@ -43,6 +53,8 @@ private:
     uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
     uint8_t canard_transferID;
     uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
+    
+    bool _is_txQueue_empty = true;
     
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};
     static bool handle_acceptance_DUMMY(const CanardInstance*, uint64_t*, uint16_t, CanardTransferType, uint8_t) {return false;};

@@ -1,5 +1,6 @@
 #pragma once
 #include "common_to_all_mocks.h"
+#include <canard.h>
 
 typedef struct {
     uint64_t signature;
@@ -16,13 +17,24 @@ template <int LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, int UAVCAN_MAX_BYTES_ON_MESS
 class Canard {
 public:
     void init() {
-        mock().actualCall("init");
+        mock().actualCall("init").onObject(this);
     }
       
-    void broadcast(canard_message_type_info_t type_info, canard_message_data_t data) {
-        mock().actualCall("broadcast")
+    int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
+        mock().actualCall("broadcast").onObject(this)
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
+        return mock().intReturnValue();
+    }
+
+    const CanardCANFrame* canardPeekTxQueue() {
+        mock().actualCall("canardPeekTxQueue");
+        return (CanardCANFrame*)mock().unsignedLongLongIntReturnValue();     
+    }
+
+    bool is_txQueue_empty() {
+        mock().actualCall("is_txQueue_empty");
+        return mock().returnIntValueOrDefault((int)true);              
     }
 };
 
@@ -62,22 +74,13 @@ public:
         
         uint8_t* data_1_pointer = (uint8_t*)data_1->ptr;
         uint8_t* data_2_pointer = (uint8_t*)data_2->ptr;
-        if (!are_data_pointer_values_equal(data_1_pointer, data_2_pointer, data_1->length))
+        if (!are_data_pointer_equal(data_1_pointer, data_2_pointer, data_1->length))
             return false;
         
         return true;
     }
-    virtual SimpleString valueToString(const void* type_info)
+    virtual SimpleString valueToString(const void* data)
     {
-        return StringFrom(type_info);
-    }
-
-private:
-    bool are_data_pointer_values_equal(uint8_t* ptr_1, uint8_t* ptr_2, uint16_t data_length) {
-        for(int element=0; element<data_length; ++element, ++ptr_1, ++ptr_2)
-            if(*ptr_1 != *ptr_2)
-                return false;
-        
-        return true;
+        return StringFrom(data);
     }
 };

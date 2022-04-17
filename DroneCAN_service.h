@@ -7,7 +7,8 @@
 
 enum class DroneCAN_error{
     THERE_IS_NO_ERROR,
-    ON_INITIALIZATION
+    ON_INITIALIZATION,
+    FAIL_ON_PUBLISH,
 };
 
 typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
@@ -28,4 +29,6 @@ private:
     bool _is_healthy = false;
     
     void try_initialize_CAN_bus_driver();
+    void try_send_CAN_bus_frame(CanardCANFrame& frame);
+    void send_pending_CAN_frames();
 };
