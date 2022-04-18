@@ -24,4 +24,9 @@ test.cpp
 Has the group of tests  
   
 makefile  
-The production files to test have to be added on FILES_TO_TEST  
+Have the recipe to run the tests.
+
+
+# Important
+- The system was develop under linux and the instructions target a linux system.
+- To run the tests use the command "make"

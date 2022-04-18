@@ -15,7 +15,7 @@ typedef struct {
 template <int LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, int UAVCAN_MAX_BYTES_ON_MESSAGE>
 class Canard {
 public:
-    void init() {
+    void Canard() {
         init(handle_reception_DUMMY, handle_acceptance_DUMMY);
     }
     
@@ -26,6 +26,10 @@ public:
                    handle_reception,
                    handle_acceptance,
                    NULL);
+    }
+
+    void set_node_ID(uint8_t self_node_id) {
+        canardSetLocalNodeID(&canard_instance, self_node_id);
     }
     
     int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {

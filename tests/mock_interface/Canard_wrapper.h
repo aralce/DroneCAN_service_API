@@ -19,6 +19,11 @@ public:
     void init() {
         mock().actualCall("init").onObject(this);
     }
+
+    void set_node_ID(uint8_t self_node_id) {
+        mock().actualCall("set_node_ID")
+              .withUnsignedIntParameter("self_node_id", self_node_id);
+    }
       
     int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
         mock().actualCall("broadcast").onObject(this)

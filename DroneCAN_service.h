@@ -16,8 +16,10 @@ typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 class DroneCAN_service {
 public:
     explicit DroneCAN_service(droneCAN_handle_error_t handle_error = dummy_function);
+    explicit DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
     bool is_healthy();
     void publish_message(uavcan_equipment_power_BatteryInfo& battery_info);
+    uint8_t get_node_ID() {return _node_ID;}
 
 protected:
     droneCAN_handle_error_t _handle_error;
@@ -26,6 +28,8 @@ protected:
 private:
     Canard<LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE> canard;
     CAN_bus_adaptor can_driver;
+    
+    uint8_t _node_ID;
     bool _is_healthy = true;
     
     void try_initialize_CAN_bus_driver();

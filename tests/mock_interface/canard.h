@@ -154,3 +154,5 @@ struct CanardInstance
     bool tao_disabled;                              ///< True if TAO is disabled
 #endif
 };
+
+void canardSetLocalNodeID(CanardInstance* ins, uint8_t self_node_id);

@@ -1,7 +1,14 @@
 #include "DroneCAN_service.h"
 #include "DroneCAN_service_configuration.h"
 
-DroneCAN_service::DroneCAN_service(droneCAN_handle_error_t handle_error) : _handle_error(handle_error) {
+DroneCAN_service::DroneCAN_service(droneCAN_handle_error_t handle_error) : DroneCAN_service(DEFAULT_NODE_ID, handle_error) {
+
+}
+
+DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
+    : _handle_error(handle_error), _node_ID(node_ID)
+{
+    canard.set_node_ID(node_ID);
     canard.init();
     try_initialize_CAN_bus_driver();
 }
@@ -17,7 +24,6 @@ void DroneCAN_service::try_initialize_CAN_bus_driver() {
 bool DroneCAN_service::is_healthy() {
     return _is_healthy;
 }
-
 
 
 void DroneCAN_service::publish_message(uavcan_equipment_power_BatteryInfo& battery_info) {

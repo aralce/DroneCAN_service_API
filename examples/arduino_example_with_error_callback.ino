@@ -5,6 +5,8 @@
     This example shows how to publish a battery message once with a handle error callback function.
     The batteryInfo message must be provided with the correct data.
 
+    The node node ID assigned is DEFAULT_NODE id, which It can be found on configuration.h file
+    
     Every time the DroneCAN_service instance fails, the handle error function is executed.
     The error variable has the error code.
 

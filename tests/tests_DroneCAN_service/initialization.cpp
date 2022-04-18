@@ -15,9 +15,26 @@ TEST_GROUP(DroneCAN_service_initialization)
     }
 };
 
-TEST(DroneCAN_service_initialization, system_init_healthy) {
-    DroneCAN_service DroneCAN_service = get_DroneCAN_ignoring_other_calls();
-    CHECK_TRUE(DroneCAN_service.is_healthy());
+TEST(DroneCAN_service_initialization, system_inits_healthy) {
+    DroneCAN_service droneCAN_service = get_DroneCAN_ignoring_other_calls();
+    CHECK_TRUE(droneCAN_service.is_healthy());
+}
+
+TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_default_ID) {
+    mock().expectOneCall("set_node_ID")
+          .withUnsignedIntParameter("self_node_id", DEFAULT_NODE_ID);
+    mock().ignoreOtherCalls();
+    DroneCAN_service droneCAN_service;
+    CHECK_EQUAL(DEFAULT_NODE_ID, droneCAN_service.get_node_ID());
+}
+
+TEST(DroneCAN_service_initialization, node_ID_is_provided) {
+    const uint8_t NODE_ID = 50;
+    mock().expectOneCall("set_node_ID")
+          .withUnsignedIntParameter("self_node_id", NODE_ID);
+    mock().ignoreOtherCalls();
+    DroneCAN_service droneCAN_service(NODE_ID);
+    CHECK_EQUAL(NODE_ID, droneCAN_service.get_node_ID());
 }
 
 TEST(DroneCAN_service_initialization, droneCAN_without_handle_error_function)
