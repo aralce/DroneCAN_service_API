@@ -35,6 +35,7 @@ void setup() {
 
 void loop() {
     uavcan_equipment_power_BatteryInfo battery_info_message = get_battery_info_message();
+    droneCAN_service.publish_message(battery_info_message);
 
     delay(TIME_BETWEEN_BATTERY_INFO_PUBLISHES);
 }
