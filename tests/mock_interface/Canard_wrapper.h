@@ -24,12 +24,12 @@ public:
         mock().actualCall("broadcast").onObject(this)
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
-        return mock().intReturnValue();
+        return mock().returnIntValueOrDefault(0);
     }
 
     const CanardCANFrame* canardPeekTxQueue() {
         mock().actualCall("canardPeekTxQueue");
-        return (CanardCANFrame*)mock().unsignedLongLongIntReturnValue();     
+        return (CanardCANFrame*)mock().returnUnsignedLongLongIntValueOrDefault(0);     
     }
 
     bool is_txQueue_empty() {

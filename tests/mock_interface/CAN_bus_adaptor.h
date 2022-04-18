@@ -20,7 +20,7 @@ public:
     int begin(long baudRate) {
         mock().actualCall("begin")
             .withLongIntParameter("baudRate", baudRate);
-        return mock().intReturnValue();
+        return mock().returnIntValueOrDefault(SUCCESS);
     }
 
     void setPins(int rx, int tx) {
@@ -32,8 +32,11 @@ public:
     bool send_frame(CanardCANFrame& can_frame) {
         mock().actualCall("send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame);
-        return mock().intReturnValue();
+        return mock().returnIntValueOrDefault(SUCCESS);
     }
+
+private:
+    const int SUCCESS = 1;
 };
 
 class CanardCANFrame_comparator : public MockNamedValueComparator

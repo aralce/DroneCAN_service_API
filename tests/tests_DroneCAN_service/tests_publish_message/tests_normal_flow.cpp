@@ -1,5 +1,5 @@
-#include "common_to_publish_message/common_to_publish_message.h"
 #include <uavcan.equipment.power.BatteryInfo.h>
+#include "common_to_publish_message/common_to_publish_message.h"
 
 TEST_GROUP(DroneCAN_service_publish)
 {
@@ -83,7 +83,7 @@ TEST(DroneCAN_service_publish, canard_extract_all_pending_frames_and_send_with_C
 
 void extract_and_send_all_CAN_frames()
 {
-    CanardCANFrame returned_frame{.id = 0x42,
+    CanardCANFrame returned_frame{.id = 0x42, 
                                   .data = {1,2,3,4,5,6,7,8},
                                   .data_len = 8};
     
