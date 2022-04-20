@@ -14,11 +14,13 @@ BUILD_CAN_DRIVER_DIR = ../dependencies/arduino-CAN/src/
 
 CPPUTEST_HOME = cpputest
 
-ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service.cpp
+ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service_API.cpp
 TEST_FILES = $(filter %.cpp, $(wildcard $(TESTS_DRONE_CAN_SERVICE_DIR)*))
 TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_DIR)*))
 TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_COMMON_DIR)*))
 MOCK_FILES = $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
+
+BUILD_FILES = $(filter %.cpp, $(wildcard $(BUILD_DEPENDENCIES_DIR)*))
 
 COMPILER_INCLUDE_FLAGS = -I$(TEST_MAIN_FOLDER_DIR) -I$(TEST_SUPPORT_DIR)
 COMPILER_INCLUDE_FLAGS += -I$(TEST_MOCK_DIR) -I$(TEST_PROGRAM_DIR)
@@ -37,7 +39,7 @@ LD_LIBRARIES  = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 run: tests
 	./tests.out
 	
-tests: *.cpp $(ON_TEST_FILES) $(MOCK_FILES) $(TEST_FILES)
+tests: *.cpp $(ON_TEST_FILES) $(MOCK_FILES) $(TEST_FILES) $(BUILD_FILES)
 	$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o tests.out
 
 #print:

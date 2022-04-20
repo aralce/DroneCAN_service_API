@@ -6,31 +6,26 @@
 #include <uavcan.equipment.power.BatteryInfo.h>
 
 enum class DroneCAN_error{
-    THERE_IS_NO_ERROR,
     ON_INITIALIZATION,
     FAIL_ON_PUBLISH,
 };
 
 typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
-class DroneCAN_service {
+class DroneCAN_service_base {
 public:
-    explicit DroneCAN_service(droneCAN_handle_error_t handle_error = dummy_function);
-    explicit DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
-    bool is_healthy();
-    void publish_message(uavcan_equipment_power_BatteryInfo& battery_info);
-    uint8_t get_node_ID() {return _node_ID;}
+    DroneCAN_service_base(uint8_t node_ID, droneCAN_handle_error_t handle_error)
+        : _handle_error(handle_error), _node_ID(node_ID) {} 
 
 protected:
-    droneCAN_handle_error_t _handle_error;
-    static void dummy_function(DroneCAN_error error) {}
-
-private:
     Canard<LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE> canard;
     CAN_bus_adaptor can_driver;
-    
-    uint8_t _node_ID;
+
+    droneCAN_handle_error_t _handle_error;
     bool _is_healthy = true;
+    static void dummy_function(DroneCAN_error error) {}
+
+    uint8_t _node_ID;
     
     void try_initialize_CAN_bus_driver();
     void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t data);
