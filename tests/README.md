@@ -1,4 +1,5 @@
-# HOW DO I CONFIGURE THE SYSTEM THE FIRST TIME?
+# UNIT TESTS
+## HOW DO I CONFIGURE THE SYSTEM THE FIRST TIME?
 
 -Please, check the folder cpputest has the cpputest repository. If the cpputest is empty, then clone this [repository](https://github.com/aralce/cpputest) on this folder.  
   
@@ -12,24 +13,24 @@ $ export CPPUTEST_HOME=$(pwd)
 ```
 ***NOTE:*** The commands could you to have installed GNU autotools. In this case run `$ apt-get install automake autoconf libtool`
 
-# HOW DO I RUN THE TESTS?
+## HOW DO I RUN THE TESTS?
 - If the system is configured, then run the following command on your terminal `$ make`. You have to run the command from this folder.
 
-# HOW IS THIS FOLDER STRUCTURED?
+## HOW IS THIS FOLDER STRUCTURED?
 
-## cpputest  
+### cpputest  
 Repository of the test tool.
   
-## mock_interface  
+### mock_interface  
 Has the mock files.
   
-## support  
+### support  
 It has useful functions and classes for tests.
    
-## makefile  
+### makefile  
 Have the recipe to run the tests.
 
-# Important
+## Important
 - The system was develop under linux and the instructions target a linux system.
 
 -----------------------------------------------------------------------------------------
