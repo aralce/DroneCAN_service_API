@@ -1,6 +1,7 @@
 Test to implement:
 
 Publish:
+- the message to publish regularly is register and an error happens.
 
 
 Initialization

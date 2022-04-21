@@ -8,7 +8,7 @@ void DroneCAN_service_base::try_initialize_CAN_bus_driver() {
 }
 
 void DroneCAN_service_base::try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t data) {
-    _is_healthy = canard.broadcast(type_info, data) >=0;
+    _is_healthy = canard.broadcast(type_info, data) >= 0;
     if(!_is_healthy)
         _handle_error(DroneCAN_error::FAIL_ON_PUBLISH);
 }

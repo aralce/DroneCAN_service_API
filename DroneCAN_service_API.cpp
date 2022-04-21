@@ -13,6 +13,11 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
     try_initialize_CAN_bus_driver();
 }
 
+void DroneCAN_service::publish_regularly(uavcan_equipment_power_BatteryInfo& battery_info, uint32_t milliseconds_between_publish) {
+    publish_message(battery_info);
+    _time_between_publishes = milliseconds_between_publish;
+}
+
 void DroneCAN_service::publish_message(uavcan_equipment_power_BatteryInfo& battery_info) {
     uint8_t buffer[UAVCAN_EQUIPMENT_POWER_BATTERYINFO_MAX_SIZE]{};
     uint32_t message_length = uavcan_equipment_power_BatteryInfo_encode(&battery_info, buffer);
