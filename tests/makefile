@@ -5,6 +5,7 @@ TEST_MOCK_DIR = mock_interface/
 
 TESTS_DRONE_CAN_SERVICE_DIR = tests_DroneCAN_service/
 TESTS_PUBLISH_MESSAGE_DIR = $(TESTS_DRONE_CAN_SERVICE_DIR)/tests_publish_message/
+TESTS_PUBLISH_DIFFERENT_MESSAGES_DIR = $(TESTS_PUBLISH_MESSAGE_DIR)/tests_different_messages/
 TESTS_PUBLISH_MESSAGE_COMMON_DIR = $(TESTS_PUBLISH_MESSAGE_DIR)/common_to_publish_message/
 
 BUILD_DEPENDENCIES_DIR = ../dependencies/
@@ -17,6 +18,7 @@ CPPUTEST_HOME = cpputest
 ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service_API.cpp
 TEST_FILES = $(filter %.cpp, $(wildcard $(TESTS_DRONE_CAN_SERVICE_DIR)*))
 TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_DIR)*))
+TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_DIFFERENT_MESSAGES_DIR)*))
 TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_COMMON_DIR)*))
 MOCK_FILES = $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 

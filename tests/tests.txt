@@ -8,10 +8,10 @@ Publish:
 -is_time_to_publish_again
 -if_is_time_to_publish_again_only_publish_one_time
 -register_a_message_twice_use_time_of_last_registered_message
-
 -check_pending_tasks_when_there_is_no_registered_message
-
 -if_null_time_is_registered_to_regular_publish_the_message_is_unregistered
+
+
 
 
 Publish_node_status:

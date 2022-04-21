@@ -10,6 +10,7 @@ public:
     
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     void publish_message(uavcan_equipment_power_BatteryInfo& battery_info);
+    void publish_message(uavcan_protocol_NodeStatus& node_status) {}
 
     void run_pending_tasks(uint32_t actual_time_in_milliseconds) {
         if (actual_time_in_milliseconds - _last_time >= _time_between_publishes) {

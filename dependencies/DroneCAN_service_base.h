@@ -4,6 +4,7 @@
 #include <CAN_bus_adaptor.h>
 #include "DroneCAN_service_configuration.h"
 #include <uavcan.equipment.power.BatteryInfo.h>
+#include <uavcan.protocol.NodeStatus.h>
 
 enum class DroneCAN_error{
     ON_INITIALIZATION,
