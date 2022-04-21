@@ -2,8 +2,15 @@
 
 const int MILLISECONDS_BETWEEN_PUBLISHES = 10000;
 
+uavcan_equipment_power_BatteryInfo get_battery_info()
+{
+    mock().actualCall("get_battery_info");
+    return uavcan_equipment_power_BatteryInfo{};
+}
+
 void expect_one_published_message()
 {
+    mock().expectOneCall("get_battery_info");
     mock().expectOneCall("broadcast")
           .ignoreOtherParameters();
     mock().ignoreOtherCalls();
@@ -30,8 +37,7 @@ TEST(DroneCAN_service_publish_regularly, register_a_message_to_publish_trigger_p
 
     expect_one_published_message();
 
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES);
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
 }
 
 TEST(DroneCAN_service_publish_regularly, is_not_time_to_publish_again)
@@ -40,8 +46,7 @@ TEST(DroneCAN_service_publish_regularly, is_not_time_to_publish_again)
 
     expect_one_published_message();
 
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES);
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
     
     const int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES - 1;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
@@ -53,8 +58,7 @@ TEST(DroneCAN_service_publish_regularly, is_time_to_publish_again)
 
     expect_one_published_message();
 
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES);
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
     
     expect_one_published_message();
 
@@ -68,8 +72,7 @@ TEST(DroneCAN_service_publish_regularly, if_is_time_to_publish_again_only_publis
 
     expect_one_published_message();
 
-    uavcan_equipment_power_BatteryInfo battery_message;
-    droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES);
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
 
     expect_one_published_message();
 
@@ -78,18 +81,47 @@ TEST(DroneCAN_service_publish_regularly, if_is_time_to_publish_again_only_publis
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 }
 
-// TEST(DroneCAN_service_publish_regularly, register_a_message_twice_use_time_of_last_registered_message)
-// {
-//     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+TEST(DroneCAN_service_publish_regularly, register_a_message_twice_use_time_of_last_registered_message)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
-//     expect_one_published_message();
-//     uavcan_equipment_power_BatteryInfo battery_message;
-//     droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES);
+    expect_one_published_message();
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
     
-//     expect_one_published_message();
-//     droneCAN_service.publish_regularly(battery_message, MILLISECONDS_BETWEEN_PUBLISHES - 4);
+    expect_one_published_message();
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES - 4);
 
-//     expect_one_published_message();
-//     const int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES - 4;
-//     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
-// }
+    expect_one_published_message();
+    const int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES - 4;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME);
+}
+
+TEST(DroneCAN_service_publish_regularly, check_pending_task_when_there_is_no_register_message)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    mock().expectNoCall("get_battery_info");
+    mock().expectNoCall("broadcast");
+
+    const int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME);
+}
+
+//-if_null_time_is_registered_to_regular_publish_the_message_is_unregistered
+TEST(DroneCAN_service_publish_regularly, if_null_time_register_then_message_is_unregistered)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    expect_one_published_message();
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_PUBLISHES);
+
+    expect_one_published_message();
+    int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME);
+
+    const int MILLISECONDS_TO_UNREGISTER_MESSAGE = 0;
+    droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_TO_UNREGISTER_MESSAGE);
+
+    ACTUAL_TIME = 2*MILLISECONDS_BETWEEN_PUBLISHES;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME);
+}
