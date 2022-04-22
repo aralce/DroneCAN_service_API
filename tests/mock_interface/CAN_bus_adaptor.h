@@ -1,5 +1,6 @@
 #pragma once
 #include <common_to_all_mocks.h>
+#include <canard.h>
 
 typedef struct {
     uint8_t* pointer;

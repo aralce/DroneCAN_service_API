@@ -98,12 +98,10 @@ TEST(DroneCAN_service_publish_node_status, right_data_is_sent) {
     node_status.vendor_specific_status_code = NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE;
     
     mock().expectOneCall("uavcan_protocol_NodeStatus_encode")
-          .withParameterOfType("uavcan_protocol_NodeStatus", "msg", (const void*)&node_status)
-          .ignoreOtherParameters();
+          .withParameterOfType("uavcan_protocol_NodeStatus", "msg", (const void*)&node_status);
 
     mock().expectOneCall("broadcast")
           .ignoreOtherParameters();
-
     mock().ignoreOtherCalls();
 
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_IN_MILLISECONDS);
