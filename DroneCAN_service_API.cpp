@@ -37,6 +37,20 @@ void DroneCAN_service::publish_message(uavcan_equipment_power_BatteryInfo& batte
     send_pending_CAN_frames();
 }
 
+void DroneCAN_service::publish_message(uavcan_protocol_NodeStatus& node_status) {
+    uint8_t buffer[UAVCAN_PROTOCOL_NODESTATUS_MAX_SIZE]{};
+    uint32_t message_length = uavcan_protocol_NodeStatus_encode(&node_status, buffer);
+
+    canard_message_type_info_t type_info = {.signature = UAVCAN_PROTOCOL_NODESTATUS_SIGNATURE,
+                                            .id = UAVCAN_PROTOCOL_NODESTATUS_ID,
+                                            .priority = CANARD_TRANSFER_PRIORITY_HIGH};
+    canard_message_data_t data = {.ptr = (void*)buffer, .length = (uint16_t)message_length };
+
+    try_broadcast_with_canard(type_info, data);
+
+    send_pending_CAN_frames();
+}
+
 uint8_t DroneCAN_service::get_node_ID() {
     return _node_ID;
 }

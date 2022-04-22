@@ -42,4 +42,3 @@ uint32_t uavcan_equipment_power_BatteryInfo_encode(struct uavcan_equipment_power
     , bool tao
 #endif
 );
-bool uavcan_equipment_power_BatteryInfo_decode(const CanardRxTransfer* transfer, struct uavcan_equipment_power_BatteryInfo* msg);
