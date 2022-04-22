@@ -12,4 +12,8 @@ public:
     droneCAN_handle_error_t get_handle_error_DUMMY() {
         return dummy_function;
     }
+
+    void publish_node_status(uavcan_protocol_NodeStatus& node_status) {
+        publish_message(node_status);
+    }
 };

@@ -10,7 +10,6 @@ public:
     
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     void publish_message(uavcan_equipment_power_BatteryInfo& battery_info);
-    void publish_message(uavcan_protocol_NodeStatus& node_status);
 
     void run_pending_tasks(uint32_t actual_time_in_milliseconds) {
         if(actual_time_in_milliseconds - _last_node_status_publish >= MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES) {
@@ -29,6 +28,9 @@ public:
 
     uint8_t get_node_ID();
     bool is_healthy();
+
+protected:
+    void publish_message(uavcan_protocol_NodeStatus& node_status);
 
 private:
     uint32_t _time_between_publishes = 0;
