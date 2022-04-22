@@ -45,7 +45,7 @@ BUILD_OUTPUT_DIR = build
 COVERAGE_OUTPUT_DIR = coverage
 
 all: create_build_folder compile_tests
-	@echo "Runing tests"
+	@echo "Running tests"
 	@$(BUILD_OUTPUT_DIR)/tests.out
 
 clean:
@@ -57,7 +57,7 @@ coverage: create_build_folder create_coverage_folder compile_tests_for_coverage
 	@$(BUILD_OUTPUT_DIR)/tests.out
 	@lcov --capture --directory $(BUILD_OUTPUT_DIR) --output-file $(COVERAGE_OUTPUT_DIR)/coverage.info
 	@genhtml $(COVERAGE_OUTPUT_DIR)/coverage.info --output-directory $(COVERAGE_OUTPUT_DIR)/html_report
-	@echo "Coverave report generated on: $(COVERAGE_OUTPUT_DIR)" 
+	@echo "Coverage report generated on: $(COVERAGE_OUTPUT_DIR)" 
 	
 create_build_folder:
 	@mkdir -p $(BUILD_OUTPUT_DIR)

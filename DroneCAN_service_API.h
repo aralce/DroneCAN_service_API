@@ -15,6 +15,8 @@ public:
         if(actual_time_in_milliseconds - _last_node_status_publish >= MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES) {
             _last_node_status_publish = actual_time_in_milliseconds;
             uavcan_protocol_NodeStatus node_status{};
+            node_status.uptime_sec = actual_time_in_milliseconds/1000;
+            node_status.vendor_specific_status_code = NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE;
             publish_message(node_status);
         }
         if (actual_time_in_milliseconds - _last_time >= _time_between_publishes) {

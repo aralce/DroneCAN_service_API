@@ -12,10 +12,12 @@ TEST_GROUP(DroneCAN_service_publish_node_status)
 {
     Canard_message_type_info_t_comparator type_info_comparator;
     Canard_message_data_t_comparator data_comparator;
+    Uavcan_protocol_NodeStatus_comparator node_status_comparator;
     void setup()
     {
         mock().installComparator("canard_message_type_info_t", type_info_comparator);
         mock().installComparator("canard_message_data_t", data_comparator);
+        mock().installComparator("uavcan_protocol_NodeStatus", node_status_comparator);
     }
     void teardown()
     {
@@ -87,4 +89,22 @@ TEST(DroneCAN_service_publish_node_status, is_time_to_publish_again)
 }
 
 //The system is sending the right node status data
-//TEST(DroneCAN_service_publish_node_status, )
+TEST(DroneCAN_service_publish_node_status, right_data_is_sent) {
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    uavcan_protocol_NodeStatus node_status{};
+    int ACTUAL_TIME_IN_MILLISECONDS = 10000;
+    node_status.uptime_sec = ACTUAL_TIME_IN_MILLISECONDS/1000;
+    node_status.vendor_specific_status_code = NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE;
+    
+    mock().expectOneCall("uavcan_protocol_NodeStatus_encode")
+          .withParameterOfType("uavcan_protocol_NodeStatus", "msg", (const void*)&node_status)
+          .ignoreOtherParameters();
+
+    mock().expectOneCall("broadcast")
+          .ignoreOtherParameters();
+
+    mock().ignoreOtherCalls();
+
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_IN_MILLISECONDS);
+}
