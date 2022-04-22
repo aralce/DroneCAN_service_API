@@ -42,23 +42,33 @@ CXXFLAGS  =  -Wall $(COMPILER_INCLUDE_FLAGS)
 LD_LIBRARIES  = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 
 BUILD_OUTPUT_DIR = build
+COVERAGE_OUTPUT_DIR = coverage
 
 all: create_build_folder compile_tests
-	build/tests.out
+	@echo "Runing tests"
+	@$(BUILD_OUTPUT_DIR)/tests.out
+
+clean:
+	@rm -f -r $(BUILD_OUTPUT_DIR)
+	@rm -f -r $(COVERAGE_OUTPUT_DIR)
+	@echo "Build folders were removed"
 
 coverage: create_build_folder create_coverage_folder compile_tests_for_coverage
-	$(BUILD_OUTPUT_DIR)/tests.out
-	lcov --capture --directory build --output-file coverage/coverage.info
-	genhtml coverage/coverage.info --output-directory coverage/html_report
+	@$(BUILD_OUTPUT_DIR)/tests.out
+	@lcov --capture --directory $(BUILD_OUTPUT_DIR) --output-file $(COVERAGE_OUTPUT_DIR)/coverage.info
+	@genhtml $(COVERAGE_OUTPUT_DIR)/coverage.info --output-directory $(COVERAGE_OUTPUT_DIR)/html_report
+	@echo "Coverave report generated on: $(COVERAGE_OUTPUT_DIR)" 
 	
 create_build_folder:
-	mkdir -p build
+	@mkdir -p $(BUILD_OUTPUT_DIR)
 
 create_coverage_folder:
-	mkdir -p coverage
+	@mkdir -p $(COVERAGE_OUTPUT_DIR)
 
 compile_tests: *.cpp $(ON_TEST_FILES) $(MOCK_FILES) $(TEST_FILES) $(BUILD_FILES) 
-	$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)/tests.out
+	@echo "System is compiling files, please wait."
+	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)/tests.out
 
 compile_tests_for_coverage: *.cpp $(ON_TEST_FILES) $(MOCK_FILES) $(TEST_FILES) $(BUILD_FILES)
-	$(CXX) $(FLAG_FOR_COVERAGE) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)/tests.out
+	@echo "System is compiling files for coverage report, please wait."
+	@$(CXX) $(FLAG_FOR_COVERAGE) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)/tests.out
