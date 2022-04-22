@@ -15,8 +15,8 @@ Publish:
 
 
 Publish_node_status:
--publish_node_status_send_node_status_message
--error_when_publish_node_status_generate_FAIL_ON_PUBLISH
--error_when_publish_makes_node_unhealthy
+-publish_regularly_every_configured_seconds
+-on_initialization_node_status_is_registered_for_publish
+
 
 Initialization

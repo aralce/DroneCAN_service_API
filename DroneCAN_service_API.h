@@ -13,6 +13,11 @@ public:
     void publish_message(uavcan_protocol_NodeStatus& node_status);
 
     void run_pending_tasks(uint32_t actual_time_in_milliseconds) {
+        if(actual_time_in_milliseconds - _last_node_status_publish >= MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES) {
+            _last_node_status_publish = actual_time_in_milliseconds;
+            uavcan_protocol_NodeStatus node_status{};
+            publish_message(node_status);
+        }
         if (actual_time_in_milliseconds - _last_time >= _time_between_publishes) {
             _last_time = actual_time_in_milliseconds;
             if (_get_battery_info != nullptr) {
@@ -29,4 +34,6 @@ private:
     uint32_t _time_between_publishes = 0;
     uint32_t _last_time = 0;
     get_battery_info_t _get_battery_info = nullptr;
+
+    uint32_t _last_node_status_publish = 0;
 };

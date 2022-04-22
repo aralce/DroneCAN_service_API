@@ -11,7 +11,7 @@ uavcan_equipment_power_BatteryInfo get_battery_info()
 void expect_one_published_message()
 {
     mock().expectOneCall("get_battery_info");
-    mock().expectOneCall("broadcast")
+    mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
           .ignoreOtherParameters();
     mock().ignoreOtherCalls();
 }
@@ -101,7 +101,8 @@ TEST(DroneCAN_service_publish_regularly, check_pending_task_when_there_is_no_reg
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
     mock().expectNoCall("get_battery_info");
-    mock().expectNoCall("broadcast");
+    mock().expectNoCall("uavcan_equipment_power_BatteryInfo_encode");
+    mock().ignoreOtherCalls();
 
     const int ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
