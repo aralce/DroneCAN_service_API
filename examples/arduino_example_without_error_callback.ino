@@ -2,7 +2,7 @@
 #include <DroneCAN_service.h>
 
 /*
-    This example shows how to publish a battery message once with no handle error callback function.
+    This example shows how to publish a battery message with no handle error callback function.
     The batteryInfo message must be provided with the correct data.
 
     The node node ID assigned is DEFAULT_NODE id, which It can be found on configuration.h file
