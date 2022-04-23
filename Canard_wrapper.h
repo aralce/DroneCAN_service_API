@@ -42,8 +42,8 @@ public:
                                data.length);
     }
 
-    const CanardCANFrame* canardPeekTxQueue() {
-        CanardCANFrame* frame_to_send = canardPeekTxQueue(&canard_instance);
+    const CanardCANFrame* peekTxQueue() {
+        const CanardCANFrame* frame_to_send = canardPeekTxQueue((const CanardInstance*)&canard_instance);
         _is_txQueue_empty = (frame_to_send == NULL);
         return frame_to_send;
     }

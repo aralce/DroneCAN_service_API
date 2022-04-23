@@ -1,6 +1,6 @@
 #pragma once
-#include "dependencies/DroneCAN_service_base.h"
-#include "dependencies/DSDL_to_canard_DTO.h"
+#include "DroneCAN_service_base.h"
+#include "DSDL_to_canard_DTO.h"
 using milliseconds = uint32_t;
 
 typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);

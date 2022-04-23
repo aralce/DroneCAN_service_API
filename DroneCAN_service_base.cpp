@@ -20,7 +20,7 @@ void DroneCAN_service_base::try_broadcast_with_canard(canard_message_type_info_t
 
 void DroneCAN_service_base::send_pending_CAN_frames() {
     while (!canard.is_txQueue_empty()){
-        CanardCANFrame* frame_to_send = (CanardCANFrame*)canard.canardPeekTxQueue();
+        CanardCANFrame* frame_to_send = (CanardCANFrame*)canard.peekTxQueue();
         try_send_CAN_bus_frame(*frame_to_send);
     }
 }

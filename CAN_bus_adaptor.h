@@ -1,5 +1,5 @@
 #pragma once
-#include "dependencies/arduino-CAN/src/CAN.h"
+#include <CAN.h>
 
 class CAN_bus_adaptor {
 public:
@@ -8,17 +8,17 @@ public:
     }
 
     int begin(long baudRate) {
-        return can.begin(baudRate);
+        return CAN.begin(baudRate);
     }
 
     void setPins(int rx, int tx) {
-        can.setPins(rx, tx);
+        CAN.setPins(rx, tx);
     }
 
     bool send_frame(CanardCANFrame& can_frame) {
-        bool is_success = can.beginExtendedPacket(can_frame.id);
-        can.write(can_frame.data, sizeof(can_frame.data));
-        is_success &= can.endPacket();
+        bool is_success = CAN.beginExtendedPacket(can_frame.id);
+        CAN.write(can_frame.data, sizeof(can_frame.data));
+        is_success &= CAN.endPacket();
         return is_success;
     }
 };
