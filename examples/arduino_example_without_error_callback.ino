@@ -12,7 +12,7 @@
 
 #define TIME_BETWEEN_BATTERY_INFO_PUBLISHES
 
-uavcan_equipment_power_BatteryInfo& get_battery_info_message() {}
+uavcan_equipment_power_BatteryInfo& get_battery_info_message() {/**battery_info must be a static variable**/}
 
 void setup() {
     Serial.begin(9600);

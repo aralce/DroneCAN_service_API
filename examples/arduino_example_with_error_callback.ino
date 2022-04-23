@@ -28,8 +28,7 @@ void handle_error(DroneCAN_error error) {
     }
 }
 
-uavcan_equipment_power_BatteryInfo& get_battery_info_message() { /**your code for return battery_info**/
-                                                                 /**battery_info must be a static variable**/}
+uavcan_equipment_power_BatteryInfo& get_battery_info_message() {/**battery_info must be a static variable**/}
 
 
 void setup() {
