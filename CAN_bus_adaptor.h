@@ -1,5 +1,5 @@
 #pragma once
-#include <CAN.h>
+#include "dependencies/arduino-CAN/src/CAN.h"
 
 class CAN_bus_adaptor {
 public:

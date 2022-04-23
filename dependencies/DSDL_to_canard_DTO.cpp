@@ -1,4 +1,4 @@
-#include <DSDL_to_canard_DTO.h>
+#include "DSDL_to_canard_DTO.h"
 
 DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& battery_info) {
     uint32_t message_length = uavcan_equipment_power_BatteryInfo_encode(&battery_info, buffer);

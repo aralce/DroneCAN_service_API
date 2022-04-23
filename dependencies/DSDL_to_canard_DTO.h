@@ -1,9 +1,16 @@
 #pragma once
-#include <canard.h>
-#include <Canard_wrapper.h>
-#include <DroneCAN_service_configuration.h>
-#include <uavcan.equipment.power.BatteryInfo.h>
-#include <uavcan.protocol.NodeStatus.h>
+#ifdef IS_RUNNING_TESTS
+    #include <canard.h>
+    #include <Canard_wrapper.h>
+    #include <uavcan.equipment.power.BatteryInfo.h>
+    #include <uavcan.protocol.NodeStatus.h>
+#else
+    #include "canard.h"
+    #include "Canard_wrapper.h"
+    #include "dependencies/dsdlc_generated/include/uavcan/uavcan.equipment.power.BatteryInfo.h"
+    #include "dependencies/dsdlc_generated/include/uavcan/uavcan.protocol.NodeStatus.h"
+#endif
+#include "../DroneCAN_service_configuration.h"
 
 typedef enum {NODE_STATUS, BATTERY_INFO, NUMBER_OF_MESSAGES}type_of_message;
 class DSDL_to_canard_DTO {

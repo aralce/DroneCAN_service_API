@@ -1,10 +1,17 @@
 #pragma once
 #include <cstdio>
-#include <Canard_wrapper.h>
-#include <CAN_bus_adaptor.h>
+#ifdef IS_RUNNING_TESTS
+    #include <Canard_wrapper.h>
+    #include <CAN_bus_adaptor.h>
+    #include <uavcan.equipment.power.BatteryInfo.h>
+    #include <uavcan.protocol.NodeStatus.h>
+#else
+    #include "Canard_wrapper.h"
+    #include "../CAN_bus_adaptor.h"
+    #include "dependencies/dsdlc_generated/include/uavcan/uavcan.equipment.power.BatteryInfo.h"
+    #include "dependencies/dsdlc_generated/include/uavcan/uavcan.protocol.NodeStatus.h"
+#endif
 #include "DroneCAN_service_configuration.h"
-#include <uavcan.equipment.power.BatteryInfo.h>
-#include <uavcan.protocol.NodeStatus.h>
 
 enum class DroneCAN_error{
     ON_INITIALIZATION,
