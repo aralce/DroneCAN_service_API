@@ -28,6 +28,8 @@ protected:
 
     uint8_t _node_ID;
     
+    void publish_generic_message(canard_message_type_info_t& type_info, canard_message_data_t& data);
+    
     void try_initialize_CAN_bus_driver();
     void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t data);
     void try_send_CAN_bus_frame(CanardCANFrame& frame);

@@ -1,5 +1,10 @@
 #include "DroneCAN_service_base.h"
 
+void DroneCAN_service_base::publish_generic_message(canard_message_type_info_t& type_info, canard_message_data_t& data) {
+    try_broadcast_with_canard(type_info, data);
+    send_pending_CAN_frames();
+}
+
 void DroneCAN_service_base::try_initialize_CAN_bus_driver() {
     can_driver.setPins(CAN_BUS_RX_PIN, CAN_BUS_TX_PIN);
     _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);

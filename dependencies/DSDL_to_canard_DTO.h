@@ -1,12 +1,11 @@
 #pragma once
-
-#pragma once
 #include <canard.h>
 #include <Canard_wrapper.h>
 #include <DroneCAN_service_configuration.h>
 #include <uavcan.equipment.power.BatteryInfo.h>
 #include <uavcan.protocol.NodeStatus.h>
 
+typedef enum {NODE_STATUS, BATTERY_INFO, NUMBER_OF_MESSAGES}type_of_message;
 class DSDL_to_canard_DTO {
 private:
     uint8_t buffer[UAVCAN_MAX_BYTES_ON_MESSAGE]{};

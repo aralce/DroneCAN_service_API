@@ -2,10 +2,11 @@
 
 const int MILLISECONDS_BETWEEN_PUBLISHES = 10000;
 
-uavcan_equipment_power_BatteryInfo get_battery_info()
+uavcan_equipment_power_BatteryInfo& get_battery_info()
 {
     mock().actualCall("get_battery_info");
-    return uavcan_equipment_power_BatteryInfo{};
+    static uavcan_equipment_power_BatteryInfo battery_info{};
+    return battery_info;
 }
 
 void expect_one_published_message()
