@@ -28,16 +28,23 @@ void handle_error(DroneCAN_error error) {
     }
 }
 
-uavcan_equipment_power_BatteryInfo& get_battery_info_message() {}
+uavcan_equipment_power_BatteryInfo& get_battery_info_message() { /**your code for return battery_info**/
+                                                                 /**battery_info must be a static variable**/}
+
 
 void setup() {
     Serial.begin(9600);
     DroneCAN_service droneCAN_service(handle_error);
+    
+    uavcan_equipment_power_BatteryInfo battery_info_message = get_battery_info_message();
+    const int MILLIS_BETWEEN_PUBLISHES_OF_BATTERY_INFO = 10000;
+    droneCAN_service.publish_regularly(battery_info_message, MILLIS_BETWEEN_PUBLISHES_OF_BATTERY_INFO);
 }
 
 void loop() {
-    uavcan_equipment_power_BatteryInfo battery_info_message = get_battery_info_message();
-    droneCAN_service.publish_message(battery_info_message);
+    uint32_t actual_time = millis();
+    dronCAN_service.run_pending_tasks(actual_time);
 
-    delay(TIME_BETWEEN_BATTERY_INFO_PUBLISHES);
+    if (do_i_want_to_stop_publish_battery_info())
+        publish_regularly(battery_info_message, 0);
 }
