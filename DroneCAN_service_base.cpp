@@ -1,6 +1,6 @@
 #include "DroneCAN_service_base.h"
 
-void DroneCAN_service_base::publish_generic_message(canard_message_type_info_t& type_info, canard_message_data_t& data) {
+void DroneCAN_service_base::publish_generic_message(canard_message_type_info_t type_info, canard_message_data_t data) {
     try_broadcast_with_canard(type_info, data);
     send_pending_CAN_frames();
 }
@@ -12,7 +12,7 @@ void DroneCAN_service_base::try_initialize_CAN_bus_driver() {
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
 }
 
-void DroneCAN_service_base::try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t data) {
+void DroneCAN_service_base::try_broadcast_with_canard(canard_message_type_info_t type_info, canard_message_data_t data) {
     _is_healthy = canard.broadcast(type_info, data) >= 0;
     if(!_is_healthy)
         _handle_error(DroneCAN_error::FAIL_ON_PUBLISH);

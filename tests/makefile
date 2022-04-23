@@ -22,7 +22,7 @@ TEST_FILES += $(filter %.cpp, $(wildcard $(TESTS_PUBLISH_MESSAGE_COMMON_DIR)*))
 MOCK_FILES = $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 MOCK_FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 
-BUILD_FILES = $(filter %.cpp, $(wildcard $(BUILD_DEPENDENCIES_DIR)*))
+BUILD_FILES = $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
 
 COMPILER_INCLUDE_FLAGS = -I$(TEST_MAIN_FOLDER_DIR) -I$(TEST_SUPPORT_DIR)
 COMPILER_INCLUDE_FLAGS += -I$(TEST_MOCK_DIR) -I$(TEST_MOCK_DSDL_MESSAGES_DIR) 

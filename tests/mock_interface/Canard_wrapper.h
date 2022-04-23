@@ -32,8 +32,8 @@ public:
         return mock().returnIntValueOrDefault(0);
     }
 
-    const CanardCANFrame* canardPeekTxQueue() {
-        mock().actualCall("canardPeekTxQueue");
+    const CanardCANFrame* peekTxQueue() {
+        mock().actualCall("peekTxQueue");
         return (CanardCANFrame*)mock().returnUnsignedLongLongIntValueOrDefault(0);     
     }
 

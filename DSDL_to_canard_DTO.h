@@ -20,11 +20,11 @@ private:
     canard_message_data_t data;
 
 public:
-    canard_message_type_info_t& get_type_info() {
+    canard_message_type_info_t get_type_info() {
         return type_info;
     }
 
-    canard_message_data_t& get_data() {
+    canard_message_data_t get_data() {
         return data;
     }
 

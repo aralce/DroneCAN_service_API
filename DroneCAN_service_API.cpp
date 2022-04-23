@@ -8,8 +8,8 @@ DroneCAN_service::DroneCAN_service(droneCAN_handle_error_t handle_error) : Drone
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
     : DroneCAN_service_base(node_ID, handle_error) 
 {
-    canard.set_node_ID(node_ID);
     canard.init();
+    canard.set_node_ID(node_ID);
     try_initialize_CAN_bus_driver();
 }
 

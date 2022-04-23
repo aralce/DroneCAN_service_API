@@ -88,7 +88,7 @@ void extract_and_send_all_CAN_frames()
                                   .data_len = 8};
     
     const int16_t CAN_FRAMES_TO_SEND_ON_PUBLISH = 10;
-    mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "canardPeekTxQueue")
+    mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "peekTxQueue")
           .andReturnValue((uint64_t)&returned_frame);  
 
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "is_txQueue_empty")
