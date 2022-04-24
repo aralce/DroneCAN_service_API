@@ -91,6 +91,8 @@ void extract_and_send_all_CAN_frames()
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "peekTxQueue")
           .andReturnValue((uint64_t)&returned_frame);  
 
+    mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "popTxQueue");
+
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "is_txQueue_empty")
           .andReturnValue((int)false);
 

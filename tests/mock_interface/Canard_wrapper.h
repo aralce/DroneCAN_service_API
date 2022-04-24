@@ -37,6 +37,10 @@ public:
         return (CanardCANFrame*)mock().returnUnsignedLongLongIntValueOrDefault(0);     
     }
 
+    void popTxQueue() {
+        mock().actualCall("popTxQueue");
+    }
+
     bool is_txQueue_empty() {
         mock().actualCall("is_txQueue_empty");
         return mock().returnIntValueOrDefault((int)true);              

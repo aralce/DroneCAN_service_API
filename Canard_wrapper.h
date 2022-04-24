@@ -48,6 +48,10 @@ public:
         return frame_to_send;
     }
 
+    void popTxQueue() {
+        canardPopTxQueue(&canard_instance);
+    }
+
     bool is_txQueue_empty() {
         return _is_txQueue_empty;
     }
