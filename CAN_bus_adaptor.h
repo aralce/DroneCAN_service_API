@@ -16,8 +16,8 @@ public:
     }
 
     bool send_frame(CanardCANFrame& can_frame) {
-        bool is_success = CAN.beginExtendedPacket(can_frame.id);
-        CAN.write(can_frame.data, sizeof(can_frame.data));
+        bool is_success = CAN.beginExtendedPacket(can_frame.id & CANARD_CAN_EXT_ID_MASK);
+        CAN.write(can_frame.data, can_frame.data_len);
         is_success &= CAN.endPacket();
         return is_success;
     }
