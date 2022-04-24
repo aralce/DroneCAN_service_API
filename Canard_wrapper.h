@@ -53,7 +53,9 @@ public:
     }
 
     bool is_txQueue_empty() {
-        return _is_txQueue_empty;
+        if(canardPeekTxQueue((const CanardInstance*)&canard_instance) == NULL)
+            return true;
+        return false;
     }
     
 private:
@@ -61,9 +63,7 @@ private:
     uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
     uint8_t canard_transferID;
     uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
-    
-    bool _is_txQueue_empty = true;
-    
+      
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};
     static bool handle_acceptance_DUMMY(const CanardInstance*, uint64_t*, uint16_t, CanardTransferType, uint8_t) {return false;};
 };
