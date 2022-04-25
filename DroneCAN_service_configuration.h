@@ -1,8 +1,8 @@
 #pragma once
 
 #define CAN_BUS_BAUDRATE 1000000
-#define CAN_BUS_RX_PIN 5
-#define CAN_BUS_TX_PIN 4
+#define CAN_BUS_CRX_PIN 26
+#define CAN_BUS_CTX_PIN 27
 
 
 #define LIBCANARD_ALLOCATION_BUFFER_IN_BYTES 2000  //minimun 1000 bytes

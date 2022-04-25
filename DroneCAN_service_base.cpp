@@ -6,7 +6,7 @@ void DroneCAN_service_base::publish_generic_message(canard_message_type_info_t t
 }
 
 void DroneCAN_service_base::try_initialize_CAN_bus_driver() {
-    can_driver.setPins(CAN_BUS_RX_PIN, CAN_BUS_TX_PIN);
+    can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
     _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
