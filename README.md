@@ -7,6 +7,8 @@
 # 1. Introduction  
 The library is in charge of managing the DroneCAN messages to have a DroneCAN node. The intention is to have a simple library to manage messages without too much effort.  
   
+This library depends on [CAN library](https://github.com/aralce/arduino-CAN). You need to add [CAN library](https://github.com/aralce/arduino-CAN) to your enviroment before use this library.
+  
 # 2. API reference  
 The library has 3 files to have in mind:  
 - DroneCAN_service_api.h: Contains the interface for use in the library.  
