@@ -79,8 +79,8 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(INITIALIZATION_SUCCESSFUL);   
     
-    mock().expectOneCall("setPins").withParameter("rx", CAN_BUS_RX_PIN)
-          .withParameter("tx", CAN_BUS_TX_PIN);   
+    mock().expectOneCall("setPins").withParameter("rx", CAN_BUS_CRX_PIN)
+          .withParameter("tx", CAN_BUS_CTX_PIN);   
     
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
