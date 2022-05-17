@@ -2,6 +2,8 @@
 #include <DroneCAN_service.h>
 
 /*
+   //**DISCLAIMER THIS EXAMPLE COULD BE OUTDATED//
+
     This example shows how to publish a battery message with a handle error callback function.
     The batteryInfo message must be provided with the correct data.
 
@@ -28,16 +30,23 @@ void handle_error(DroneCAN_error error) {
     }
 }
 
-uavcan_equipment_power_BatteryInfo& get_battery_info_message() {/**battery_info must be a static variable**/}
-
+uavcan_equipment_power_BatteryInfo& get_battery_info_message() {
+    /**battery_info must be a static variable**/
+    static uavcan_equipment_power_BatteryInfo batteryInfo;
+    static char battery_name[] = "Battery_example";
+    batteryInfo.temperature = 24.3;
+    batteryInfo.voltage = 12.1;
+    batteryInfo.current = 0;
+    batteryInfo.model_name.len = strlen(battery_name);
+    batteryInfo.model_name.data = battery_name;
+}
 
 void setup() {
-    Serial.begin(9600);
+    Serial.begin(115200);
     DroneCAN_service droneCAN_service(handle_error);
     
-    uavcan_equipment_power_BatteryInfo battery_info_message = get_battery_info_message();
     const int MILLIS_BETWEEN_PUBLISHES_OF_BATTERY_INFO = 10000;
-    droneCAN_service.publish_regularly(battery_info_message, MILLIS_BETWEEN_PUBLISHES_OF_BATTERY_INFO);
+    droneCAN_service.publish_regularly(get_battery_info_message, MILLIS_BETWEEN_PUBLISHES_OF_BATTERY_INFO);
 }
 
 void loop() {

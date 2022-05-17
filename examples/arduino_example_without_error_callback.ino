@@ -2,6 +2,8 @@
 #include <DroneCAN_service.h>
 
 /*
+    //**DISCLAIMER THIS EXAMPLE COULD BE OUTDATED//
+    
     This example shows how to publish a battery message with no handle error callback function.
     The batteryInfo message must be provided with the correct data.
 
