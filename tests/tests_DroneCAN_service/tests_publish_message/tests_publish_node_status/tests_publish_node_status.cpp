@@ -1,5 +1,5 @@
 #include <common_to_all_tests.h>
-#include "tests_publish_message/common_to_publish_message/common_to_publish_message.h"
+#include "../common_to_publish_message/common_to_publish_message.h"
 
 void expect_one_publish_of_node_status()
 {
