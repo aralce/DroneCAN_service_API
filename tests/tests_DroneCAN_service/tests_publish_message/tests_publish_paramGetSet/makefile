@@ -30,7 +30,7 @@ all: create_build_folder compile_tests
 
 clean:
 	@rm -f -r $(BUILD_OUTPUT_DIR)
-	@echo "DroneCAN_service-->publish_message-->node_status: Build folders were removed"
+	@echo "DroneCAN_service-->publish_message-->paramGetSet: Build folders were removed"
 
 create_build_folder:
 	@mkdir -p $(BUILD_OUTPUT_DIR)
@@ -45,7 +45,7 @@ FILES += $(filter %.cpp, $(wildcard ../common_to_publish_message/*))
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
 compile_tests: $(OBJECTS_TO_LINK) 
-	@echo "DroneCAN_service-->publish_message-->node_status"
+	@echo "DroneCAN_service-->publish_message-->paramGetSet"
 	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)tests.out
 
 INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))

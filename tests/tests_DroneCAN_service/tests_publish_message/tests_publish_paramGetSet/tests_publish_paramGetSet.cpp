@@ -8,5 +8,5 @@ TEST_GROUP(DroneCAN_service_publish_paramGetSet)
 
 TEST(DroneCAN_service_publish_paramGetSet, init)
 {
-    FAIL("init");
+
 }
