@@ -1,4 +1,4 @@
-#include "common_to_publish_message/common_to_publish_message.h"
+#include "../common_to_publish_message/common_to_publish_message.h"
 
 void handle_error_fail_publishing(DroneCAN_error error)
 {

@@ -1,5 +1,5 @@
 #include <uavcan.equipment.power.BatteryInfo.h>
-#include "common_to_publish_message/common_to_publish_message.h"
+#include "../common_to_publish_message/common_to_publish_message.h"
 
 TEST_GROUP(DroneCAN_service_publish)
 {
