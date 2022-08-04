@@ -7,8 +7,7 @@ typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
 
 class DroneCAN_service : public DroneCAN_service_base {
 public:
-    explicit DroneCAN_service(droneCAN_handle_error_t handle_error = dummy_function);
-    explicit DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
+    explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
     
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     

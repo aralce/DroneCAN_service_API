@@ -70,15 +70,15 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
 	fi;
 
 print:
-	@ls $(CPPUTEST_HOME)
-#	echo $(INCLUDE_FILES)
-#	@echo LIBRARY $(LAST_LIBRARY_MODIFIED_TIME)
-#	@echo FILE $(shell date +%s -r $(ON_TEST_FILES))
-#	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
-#		echo 1; \
-#	else \
-#		echo 2; \
-#	fi;
+#	@ls $(CPPUTEST_HOME)
+	echo $(INCLUDE_FILES)
+	@echo LIBRARY $(LAST_LIBRARY_MODIFIED_TIME)
+	@echo FILE $(shell date +%s -r $(ON_TEST_FILES))
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		echo 1; \
+	else \
+		echo 2; \
+	fi;
 #	@echo $(shell test $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)))
 #ifeq ($(shell test $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)); echo $?), 1)
 #	echo 4

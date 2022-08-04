@@ -1,10 +1,6 @@
 #include "DroneCAN_service_API.h"
 #include "DroneCAN_service_configuration.h"
 
-DroneCAN_service::DroneCAN_service(droneCAN_handle_error_t handle_error) : DroneCAN_service(DEFAULT_NODE_ID, handle_error) {
-
-}
-
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
     : DroneCAN_service_base(node_ID, handle_error) 
 {
@@ -22,7 +18,7 @@ void DroneCAN_service::publish_regularly(get_battery_info_t get_message, millise
     publish_message(_get_battery_info());
     message[BATTERY_INFO].time_between_publish = time_between_publish;
 }
-//
+
 void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     if (is_time_to_execute_now(NODE_STATUS, actual_time)) {
         message[NODE_STATUS].last_execution = actual_time;

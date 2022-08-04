@@ -6,19 +6,12 @@ TEST_MOCK_DSDL_MESSAGES_DIR = $(TEST_MOCK_DIR)/folder_DSDL_messages/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
 
-ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service_API.cpp
-TEST_FILES = $(filter %.cpp, $(wildcard ./*))
-TEST_FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
+INCLUDE_DIR = $(TEST_MAIN_FOLDER_DIR) $(TEST_SUPPORT_DIR)
+INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_DSDL_MESSAGES_DIR)
+INCLUDE_DIR += $(TEST_PROGRAM_DIR)
+INCLUDE_DIR += $(CPPUTEST_HOME)/include/
 
-MOCK_FILES = $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
-MOCK_FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
-
-BUILD_FILES = $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
-
-COMPILER_INCLUDE_FLAGS = -I$(TEST_MAIN_FOLDER_DIR) -I$(TEST_SUPPORT_DIR)
-COMPILER_INCLUDE_FLAGS += -I$(TEST_MOCK_DIR) -I$(TEST_MOCK_DSDL_MESSAGES_DIR) 
-COMPILER_INCLUDE_FLAGS += -I$(TEST_PROGRAM_DIR)
-COMPILER_INCLUDE_FLAGS += -I$(CPPUTEST_HOME)/include
+COMPILER_INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIR))
 
 FLAG_FOR_DEFINE = -D IS_RUNNING_TESTS
 
@@ -30,7 +23,7 @@ CXXFLAGS  =  -Wall $(COMPILER_INCLUDE_FLAGS) $(FLAG_FOR_DEFINE)
 
 LD_LIBRARIES  = -L$(CPPUTEST_HOME)/lib -lCppUTest -lCppUTestExt
 
-BUILD_OUTPUT_DIR = build
+BUILD_OUTPUT_DIR = build/
 
 all: create_build_folder compile_tests
 	@echo "Running tests"
@@ -38,19 +31,63 @@ all: create_build_folder compile_tests
 
 clean:
 	@rm -f -r $(BUILD_OUTPUT_DIR)
-	@rm -f -r $(COVERAGE_OUTPUT_DIR)
 	@echo "Build folders were removed"
 
 create_build_folder:
 	@mkdir -p $(BUILD_OUTPUT_DIR)
 
-create_coverage_folder:
-	@mkdir -p $(COVERAGE_OUTPUT_DIR)
+ON_TEST_FILES = $(TEST_PROGRAM_DIR)DroneCAN_service_API.cpp
+FILES = $(filter %.cpp, $(wildcard ./*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
 
-compile_tests: *.cpp $(ON_TEST_FILES) $(MOCK_FILES) $(TEST_FILES) $(BUILD_FILES) 
+OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
+
+compile_tests: $(OBJECTS_TO_LINK) $(ON_TEST_FILES)
 	@echo "System is compiling files, please wait."
-	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)/tests.out
+	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)tests.out
+
+INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
+LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r $(files)))
+LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
+
+#Compile files into object files
+$(BUILD_OUTPUT_DIR)%.o : %.cpp
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
+	fi;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
+	fi;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
+	fi;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
+	fi;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_PROGRAM_DIR)%.cpp
+	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell date +%s -r $(ON_TEST_FILES)) ]; then  \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
+	else \
+		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
+	fi;
 
 print:
-	@echo $(TEST_FILES)
-#	@ls $(TEST_PROGRAM_DIR)
+	@echo $(INCLUDE_FILES)
