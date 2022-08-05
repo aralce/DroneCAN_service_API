@@ -76,13 +76,13 @@ TEST(DroneCAN_service_publish_paramGetSet, get_parameter)
     uavcan_parameter parameter_to_add;
     strcpy(parameter_to_add.name.data, "parameter_to_add");
     parameter_to_add.name.len = strlen(parameter_to_add.name.data);
-    parameter_to_add.value = package_uavcan_parameter((uint8_t)10);
+    // parameter_to_add.value = package_uavcan_param_value((uint8_t)10);
 }
 
-struct uavcan_protocol_param_GetSetResponse {
-    struct uavcan_protocol_param_Value value;
-    struct uavcan_protocol_param_Value default_value;
-    struct uavcan_protocol_param_NumericValue max_value;
-    struct uavcan_protocol_param_NumericValue min_value;
-    struct { uint8_t len; uint8_t data[92]; }name;
-};
+// struct uavcan_protocol_param_GetSetResponse {
+//     struct uavcan_protocol_param_Value value;
+//     struct uavcan_protocol_param_Value default_value;
+//     struct uavcan_protocol_param_NumericValue max_value;
+//     struct uavcan_protocol_param_NumericValue min_value;
+//     struct { uint8_t len; uint8_t data[92]; }name;
+// };

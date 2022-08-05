@@ -11,6 +11,9 @@
         "unordered_map": "cpp",
         "vector": "cpp",
         "initializer_list": "cpp",
-        "type_traits": "cpp"
+        "type_traits": "cpp",
+        "system_error": "cpp",
+        "functional": "cpp",
+        "utility": "cpp"
     }
 }
