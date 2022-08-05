@@ -19,7 +19,7 @@ public:
     }
 
     int begin(long baudRate) {
-        mock().actualCall("begin")
+        mock().actualCall("CAN_bus_adaptor->begin")
             .withLongIntParameter("baudRate", baudRate);
         return mock().returnIntValueOrDefault(SUCCESS);
     }

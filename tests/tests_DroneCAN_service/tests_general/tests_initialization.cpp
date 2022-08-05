@@ -23,7 +23,7 @@ TEST(DroneCAN_service_initialization, system_inits_healthy) {
 
 
 TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_default_ID) {
-    mock().expectOneCall("set_node_ID")
+    mock().expectOneCall("canard->set_node_ID")
           .withUnsignedIntParameter("self_node_id", DEFAULT_NODE_ID);
     
     DroneCAN_service droneCAN_service = get_DroneCAN_ignoring_other_calls();
@@ -33,7 +33,7 @@ TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_defa
 
 TEST(DroneCAN_service_initialization, node_ID_is_provided) {
     const uint8_t NODE_ID = 50;
-    mock().expectOneCall("set_node_ID")
+    mock().expectOneCall("canard->set_node_ID")
           .withUnsignedIntParameter("self_node_id", NODE_ID);
     mock().ignoreOtherCalls();
     
@@ -68,14 +68,14 @@ TEST(DroneCAN_service_initialization, droneCAN_with_handle_error_function)
 
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized)
 {
-    mock().expectOneCall("init");
+    mock().expectOneCall("canard->init");
     DroneCAN_service dronceCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
 
 
 TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
 {
-    mock().expectOneCall("begin")
+    mock().expectOneCall("CAN_bus_adaptor->begin")
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(INITIALIZATION_SUCCESSFUL);   
     
@@ -88,7 +88,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
 
 TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
 {
-    mock().expectOneCall("begin")
+    mock().expectOneCall("CAN_bus_adaptor->begin")
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(FAILURE_IN_INITIALIZATION);
     
@@ -105,7 +105,7 @@ void handle_error_init_fail(DroneCAN_error error)
 
 TEST(DroneCAN_service_initialization, when_fails_the_error_to_handle_is_ON_INITIALIZATION)
 {
-    mock().expectOneCall("begin")
+    mock().expectOneCall("CAN_bus_adaptor->begin")
           .ignoreOtherParameters()
           .andReturnValue(FAILURE_IN_INITIALIZATION);
 

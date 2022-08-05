@@ -17,32 +17,32 @@ template <int LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, int UAVCAN_MAX_BYTES_ON_MESS
 class Canard {
 public:
     void init() {
-        mock().actualCall("init").onObject(this);
+        mock().actualCall("canard->init").onObject(this);
     }
 
     void set_node_ID(uint8_t self_node_id) {
-        mock().actualCall("set_node_ID")
+        mock().actualCall("canard->set_node_ID")
               .withUnsignedIntParameter("self_node_id", self_node_id);
     }
       
     int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        mock().actualCall("broadcast").onObject(this)
+        mock().actualCall("canard->broadcast").onObject(this)
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
         return mock().returnIntValueOrDefault(0);
     }
 
     const CanardCANFrame* peekTxQueue() {
-        mock().actualCall("peekTxQueue");
+        mock().actualCall("canard->peekTxQueue");
         return (CanardCANFrame*)mock().returnUnsignedLongLongIntValueOrDefault(0);     
     }
 
     void popTxQueue() {
-        mock().actualCall("popTxQueue");
+        mock().actualCall("canard->popTxQueue");
     }
 
     bool is_txQueue_empty() {
-        mock().actualCall("is_txQueue_empty");
+        mock().actualCall("canard->is_txQueue_empty");
         return mock().returnIntValueOrDefault((int)true);              
     }
 };

@@ -10,7 +10,7 @@ TEST_GROUP(DroneCAN_service)
 
 TEST(DroneCAN_service, system_is_healthy)
 {
-    mock().expectOneCall("begin")
+    mock().expectOneCall("CAN_bus_adaptor->begin")
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
           .andReturnValue(INITIALIZATION_SUCCESSFUL);
     mock().ignoreOtherCalls();

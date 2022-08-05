@@ -29,7 +29,7 @@ TEST(DroneCAN_service_publish_with_error, error_on_canard_broadcast)
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls(handle_error_fail_publishing);
 
     const int16_t BROADCAST_FAILURE = -1;
-    mock().expectOneCall("broadcast")
+    mock().expectOneCall("canard->broadcast")
           .ignoreOtherParameters()
           .andReturnValue(BROADCAST_FAILURE);
 
@@ -48,7 +48,7 @@ TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
 
     const int FAILURE_ON_SEND =  0;
     
-    mock().expectOneCall("is_txQueue_empty")
+    mock().expectOneCall("canard->is_txQueue_empty")
           .andReturnValue((int)false);
 
     mock().expectOneCall("send_frame")
@@ -58,7 +58,7 @@ TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
     mock().expectOneCall("handle_error_fail_publishing")
           .withIntParameter("error", (int)DroneCAN_error::FAIL_ON_PUBLISH);
 
-    mock().expectOneCall("is_txQueue_empty")
+    mock().expectOneCall("canard->is_txQueue_empty")
           .andReturnValue((int)true);        
     
     mock().ignoreOtherCalls();

@@ -53,49 +53,20 @@ LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r 
 LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
 
 #Compile files into object files.
-#Meaning of conditional: if file in library was modified after object file or object file not exists then compile everything
 $(BUILD_OUTPUT_DIR)%.o : %.cpp
-	@if [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
-	@if [ ! -f $@ ] || [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
-	@if [ ! -f $@ ] || [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
-	@if [ ! -f $@ ] || [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_PROGRAM_DIR)%.cpp
-	@if [ ! -f $@ ] || [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : ../common_to_publish_message/%.cpp
-	@if [ ! -f $@ ] || [ $(LAST_LIBRARY_MODIFIED_TIME) -gt $(shell test -f $@ && date +%s -r $@ || echo 0) ]; then  \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $^ -c -o $@; \
-	else \
-		$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@; \
-	fi;
-
-print:
-	@echo $(CPPUTEST_HOME)
-	@ls $(CPPUTEST_HOME)
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;

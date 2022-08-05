@@ -36,7 +36,7 @@ TEST(DroneCAN_service_publish_node_status, send_node_status_message)
     
     expect_one_publish_of_node_status();   
     
-    mock().expectOneCall("broadcast")
+    mock().expectOneCall("canard->broadcast")
           .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&message_info)
           .ignoreOtherParameters();
     
@@ -100,7 +100,7 @@ TEST(DroneCAN_service_publish_node_status, right_data_is_sent) {
     mock().expectOneCall("uavcan_protocol_NodeStatus_encode")
           .withParameterOfType("uavcan_protocol_NodeStatus", "msg", (const void*)&node_status);
 
-    mock().expectOneCall("broadcast")
+    mock().expectOneCall("canard->broadcast")
           .ignoreOtherParameters();
     mock().ignoreOtherCalls();
 
