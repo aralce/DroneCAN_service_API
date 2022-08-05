@@ -1,6 +1,7 @@
 #include <common_to_all_tests.h>
 #include "../common_to_publish_message/common_to_publish_message.h"
 #include <uavcan.protocol.param.GetSet.h>
+#include <auxiliary_functions.h>
 #include <cstring>
 
 DroneCAN_service* droneCAN_service = nullptr;
@@ -74,15 +75,28 @@ void add_generic_parameter() {
 TEST(DroneCAN_service_publish_paramGetSet, get_parameter)
 {
     uavcan_parameter parameter_to_add;
-    strcpy(parameter_to_add.name.data, "parameter_to_add");
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    strcpy(parameter_to_add.name.data, PARAMETER_NAME);
     parameter_to_add.name.len = strlen(parameter_to_add.name.data);
-    // parameter_to_add.value = package_uavcan_param_value((uint8_t)10);
-}
+    
+    const uint8_t PARAMETER_VALUE = 10;
+    parameter_to_add.value = package_uavcan_param_value(PARAMETER_VALUE);
+    
+    const uint8_t PARAMETER_DEFAULT_VALUE = 50;
+    parameter_to_add.default_value = package_uavcan_param_value(PARAMETER_DEFAULT_VALUE);
 
-// struct uavcan_protocol_param_GetSetResponse {
-//     struct uavcan_protocol_param_Value value;
-//     struct uavcan_protocol_param_Value default_value;
-//     struct uavcan_protocol_param_NumericValue max_value;
-//     struct uavcan_protocol_param_NumericValue min_value;
-//     struct { uint8_t len; uint8_t data[92]; }name;
-// };
+    const uint8_t PARAMETER_MAX_VALUE = 255;
+    parameter_to_add.max_value = package_uavcan_param_value(PARAMETER_MAX_VALUE);
+
+    const uint8_t PARAMETER_MIN_VALUE = 5;
+    parameter_to_add.min_value = package_uavcan_param_value(PARAMETER_MIN_VALUE);
+
+    droneCAN_service->add_parameter(parameter_to_add);
+    uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
+
+    STRCMP_EQUAL(PARAMETER_NAME, parameter_returned.name.data);
+    CHECK_EQUAL(PARAMETER_VALUE, parameter_returned.value.integer_value);
+    CHECK_EQUAL(PARAMETER_DEFAULT_VALUE, parameter_returned.default_value.integer_value);
+    CHECK_EQUAL(PARAMETER_MAX_VALUE, parameter_returned.max_value.integer_value);
+    CHECK_EQUAL(PARAMETER_MIN_VALUE, parameter_returned.min_value.integer_value);
+}

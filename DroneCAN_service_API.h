@@ -2,7 +2,9 @@
 #define DRONECAN_SERVICE_API_H_
 
 #include "DroneCAN_service_base.h"
+#include <uavcan.protocol.param.Value.h>
 #include "DSDL_to_canard_DTO.h"
+#include <list>
 using milliseconds = uint32_t;
 
 typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
@@ -12,8 +14,11 @@ typedef struct {
     uint8_t len;
 } parameter_name;
 typedef struct {
-    int a;
     parameter_name name;
+    uavcan_protocol_param_Value value;
+    uavcan_protocol_param_Value default_value;
+    uavcan_protocol_param_Value max_value;
+    uavcan_protocol_param_Value min_value;
 }uavcan_parameter;
 
 class DroneCAN_service : public DroneCAN_service_base {
@@ -21,9 +26,9 @@ public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
     
     uint8_t get_number_of_parameters() {return number_of_parameters;}
-    void add_parameter(uavcan_parameter& parameter) {if (number_of_parameters < MAX_NUMBER_OF_PARAMETERS) ++number_of_parameters;}
-
+    void add_parameter(uavcan_parameter& parameter);
     void remove_parameter(uint8_t parameter_index_from_0) {if (number_of_parameters != 0) --number_of_parameters;}
+    uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
 
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     
@@ -47,6 +52,7 @@ private:
     get_battery_info_t _get_battery_info = nullptr;
 
     uint8_t number_of_parameters = 0;
+    std::list<uavcan_parameter> parameter_list{};
 };
 
 #endif
