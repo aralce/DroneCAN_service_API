@@ -25,13 +25,13 @@ public:
     }
 
     void setPins(int rx, int tx) {
-        mock().actualCall("setPins")
+        mock().actualCall("CAN_bus_adaptor->setPins")
             .withIntParameter("rx", rx)
             .withIntParameter("tx", tx);
     }
 
     bool send_frame(CanardCANFrame& can_frame) {
-        mock().actualCall("send_frame")
+        mock().actualCall("CAN_bus_adaptor->send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame);
         return mock().returnIntValueOrDefault(SUCCESS);
     }
