@@ -11,6 +11,10 @@ class DroneCAN_service : public DroneCAN_service_base {
 public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
     
+    uint8_t get_number_of_parameters() {return 0;}
+
+    void remove_parameter(uint8_t parameter_index_from_0) {}
+
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     
     template<typename T>
