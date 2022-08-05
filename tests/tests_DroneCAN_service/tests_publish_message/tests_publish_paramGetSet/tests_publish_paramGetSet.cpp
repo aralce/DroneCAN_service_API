@@ -1,5 +1,6 @@
 #include <common_to_all_tests.h>
 #include "../common_to_publish_message/common_to_publish_message.h"
+#include <uavcan.protocol.param.GetSet.h>
 
 TEST_GROUP(DroneCAN_service_publish_paramGetSet)
 {
@@ -32,4 +33,16 @@ TEST(DroneCAN_service_publish_paramGetSet, when_a_parameter_is_added_then_the_nu
 {
     mock().ignoreOtherCalls();
     DroneCAN_service droneCAN_service;
+
+    uavcan_parameter parameter_to_add;
+    // droneCAN_service.add_parameter()
 }
+
+
+// struct uavcan_protocol_param_GetSetResponse {
+//     struct uavcan_protocol_param_Value value;
+//     struct uavcan_protocol_param_Value default_value;
+//     struct uavcan_protocol_param_NumericValue max_value;
+//     struct uavcan_protocol_param_NumericValue min_value;
+//     struct { uint8_t len; uint8_t data[92]; }name;
+// };
