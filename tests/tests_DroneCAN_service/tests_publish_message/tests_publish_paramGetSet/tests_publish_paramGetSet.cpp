@@ -64,8 +64,9 @@ TEST(DroneCAN_service_publish_paramGetSet, add_more_parameters_than_the_MAX_NUMB
     CHECK_EQUAL(MAX_NUMBER_OF_PARAMETERS, droneCAN_service->get_number_of_parameters());
 }
 
-void add_generic_parameter() {
-    uavcan_parameter parameter_to_add;
+void add_generic_parameter()
+{
+    uavcan_parameter parameter_to_add{};
     strcpy(parameter_to_add.name.data, "parameter_to_add");
     parameter_to_add.name.len = strlen(parameter_to_add.name.data);
     
@@ -100,3 +101,39 @@ TEST(DroneCAN_service_publish_paramGetSet, get_parameter)
     CHECK_EQUAL(PARAMETER_MAX_VALUE, parameter_returned.max_value.integer_value);
     CHECK_EQUAL(PARAMETER_MIN_VALUE, parameter_returned.min_value.integer_value);
 }
+
+TEST(DroneCAN_service_publish_paramGetSet, get_parameter_when_droneCAN_service_has_no_parameter_returns_a_parameter_with_name_INVALID)
+{
+    uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
+    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.value.string_value.data);
+}
+
+TEST(DroneCAN_service_publish_paramGetSet, get_parameter_outside_bounds_returns_a_parameter_with_name_INVALID)
+{
+    const int PARAMETERS_ADDED = 4;
+    for ( int i = 0; i < PARAMETERS_ADDED; ++i)
+        add_generic_parameter();
+    
+    const int BEYOND_LAST_INDEX = PARAMETERS_ADDED;
+    uavcan_parameter parameter_returned = droneCAN_service->get_parameter(BEYOND_LAST_INDEX);
+    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.value.string_value.data);
+}
+
+TEST(DroneCAN_service_publish_paramGetSet, get_N_parameters)
+{
+    const int PARAMETERS_ADDED = 1;
+    for ( int i = 0; i < PARAMETERS_ADDED; ++i) {
+        add_generic_parameter();
+        uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
+        STRCMP_EQUAL("parameter_to_add", (const char*)parameter_returned.name.data);
+    }
+}
+
+TEST(DroneCAN_service_publish_paramGetSet, after_add_1_and_remove_1_parameter_get_a_parameter_returns_with_INVALID_name)
+{
+    add_generic_parameter();
+    droneCAN_service->remove_parameter(0);
+
+    uavcan_parameter parameter_returned =  droneCAN_service->get_parameter(0);
+    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
+}s

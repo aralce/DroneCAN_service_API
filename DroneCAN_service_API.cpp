@@ -1,5 +1,6 @@
 #include "DroneCAN_service_API.h"
 #include "DroneCAN_service_configuration.h"
+#include <cstring>
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
     : DroneCAN_service_base(node_ID, handle_error) 
@@ -17,6 +18,11 @@ void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
 }
 
 uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
+    if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
+        uavcan_parameter invalid_param;
+        strcpy((char*)invalid_param.value.string_value.data, "INVALID");
+        return invalid_param;
+    }
     auto iter = parameter_list.begin();
     std::advance(iter, parameter_index_from_0);
     return *iter;
