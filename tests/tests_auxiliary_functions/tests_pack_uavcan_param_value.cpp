@@ -85,14 +85,13 @@ void check_package_value_string(STRING_VALUE value_to_package) {
     STRCMP_EQUAL((char*)value_to_package, (const char*)param_value.string_value.data);
 }
 
-#define MAX_ALLOWED_CHARS 128
 #define COUNT_OF(x) sizeof(x)/sizeof(x[0])
 TEST(Auxiliary_functions_package_parameter_value, package_string_with_more_than_MAX_ALLOWED_CHARS_cut_the_string_to_MAX_LENGTH) {
     
-    char value_to_package[MAX_ALLOWED_CHARS + 10];
+    char value_to_package[UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH + 10];
     memset(value_to_package, 'a', COUNT_OF(value_to_package));
     
-    const int LAST_CHAR_INDEX = MAX_ALLOWED_CHARS;
+    const int LAST_CHAR_INDEX = UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH;
     value_to_package[LAST_CHAR_INDEX] = '\0';
 
     uavcan_protocol_param_Value param_value = package_uavcan_param_value_string(value_to_package);
@@ -100,7 +99,6 @@ TEST(Auxiliary_functions_package_parameter_value, package_string_with_more_than_
     int count_of_chars = 0;
     while (param_value.string_value.data[count_of_chars] != '\0')
         ++count_of_chars;
-    // for ( ; value_to_package[count_of_chars] != '\0'; ++count_of_chars);
 
-    CHECK_EQUAL(MAX_ALLOWED_CHARS - 1, count_of_chars);
+    CHECK_EQUAL(UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH - 1, count_of_chars);
 }
