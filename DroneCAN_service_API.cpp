@@ -19,6 +19,12 @@ void DroneCAN_service::publish_regularly(get_battery_info_t get_message, millise
     message[BATTERY_INFO].time_between_publish = time_between_publish;
 }
 
+template<typename T>
+void DroneCAN_service::publish_message(T& message) {
+    DSDL_to_canard_DTO data_transfer_object(message);
+    publish_generic_message(data_transfer_object.get_type_info(), data_transfer_object.get_data());
+}
+
 void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     if (is_time_to_execute_now(NODE_STATUS, actual_time)) {
         message[NODE_STATUS].last_execution = actual_time;
