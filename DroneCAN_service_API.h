@@ -33,7 +33,7 @@ public:
     bool is_healthy();
 
 protected:
-    void respond_with_parameter_data(uint8_t parameter_index_from_0) {}
+    void respond_with_parameter_data(uint8_t parameter_index_from_0);
 
 private:
     typedef struct {

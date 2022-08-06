@@ -1,27 +1,15 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <cstring>
 #include <canard.h>
-#include <uavcan.protocol.param.GetSet_req.h>
+#include <common_to_all_mocks.h>
+#include <uavcan.protocol.param.NumericValue.h>
+#include <uavcan.protocol.param.Value.h>
 
 #define UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_MAX_SIZE 371
 #define UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_SIGNATURE (0xA7B622F939D1A4D5ULL)
 #define UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID 11
-
-enum uavcan_protocol_param_NumericValue_type_t {
-    UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY,
-    UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE,
-    UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE,
-};
-
-struct uavcan_protocol_param_NumericValue {
-    enum uavcan_protocol_param_NumericValue_type_t union_tag;
-    union {
-        struct uavcan_protocol_param_Empty empty;
-        int64_t integer_value;
-        float real_value;
-    };
-};
 
 struct uavcan_protocol_param_GetSetResponse {
     struct uavcan_protocol_param_Value value;
@@ -33,4 +21,46 @@ struct uavcan_protocol_param_GetSetResponse {
 
 uint32_t uavcan_protocol_param_GetSetResponse_encode(struct uavcan_protocol_param_GetSetResponse* msg, uint8_t* buffer);
 
-bool uavcan_protocol_param_GetSetResponse_decode(const CanardRxTransfer* transfer, struct uavcan_protocol_param_GetSetResponse* msg);
+class Uavcan_protocol_param_GetSetResponse_comparator : public MockNamedValueComparator
+{
+public:
+    virtual bool isEqual(const void* object1, const void* object2)
+    {
+        uavcan_protocol_param_GetSetResponse* msg_1 = (uavcan_protocol_param_GetSetResponse*)object1;
+        uavcan_protocol_param_GetSetResponse* msg_2 = (uavcan_protocol_param_GetSetResponse*)object2;
+
+        if (msg_1->name.len != msg_2->name.len)
+            return false;
+        
+        #define STRINGS_ARE_EQUAL 0
+        if (strcmp((const char*)msg_1->name.data, (const char*)msg_2->name.data) != STRINGS_ARE_EQUAL)
+            return false;
+
+        if (msg_1->value.union_tag != msg_2->value.union_tag)
+            return false;
+        if (msg_1->value.integer_value != msg_2->value.integer_value)
+            return false;
+
+        if (msg_1->default_value.union_tag != msg_2->default_value.union_tag)
+            return false;
+        if (msg_1->default_value.integer_value != msg_2->default_value.integer_value)
+            return false;
+
+        if (msg_1->min_value.union_tag != msg_2->min_value.union_tag)
+            return false;
+        if (msg_1->min_value.integer_value != msg_2->min_value.integer_value)
+            return false;
+
+        if (msg_1->max_value.union_tag != msg_2->max_value.union_tag)
+            return false;
+        if (msg_1->max_value.integer_value != msg_2->max_value.integer_value)
+            return false;
+
+        return true;
+    }
+
+    virtual SimpleString valueToString(const void* type_info)
+    {
+        return StringFrom(type_info);
+    }
+};

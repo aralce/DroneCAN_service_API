@@ -68,6 +68,12 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     }
 }
 
+void DroneCAN_service::respond_with_parameter_data(uint8_t parameter_index_from_0) {
+    uavcan_parameter param_to_send = get_parameter(parameter_index_from_0);
+    uint8_t buffer[UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_MAX_SIZE];
+    uavcan_protocol_param_GetSetResponse_encode(&param_to_send, buffer);
+}
+
 bool DroneCAN_service::is_time_to_execute_now(type_of_message type, milliseconds actual_time) {
     return actual_time - message[type].last_execution >= message[type].time_between_publish;
 }
