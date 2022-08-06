@@ -8,12 +8,7 @@ TEST_GROUP(Auxiliary_functions_package_param_numeric_value)
 };
 
 template <typename INT_VALUE_TO_PACKAGE>
-void check_numeric_int_value_is_packaged(INT_VALUE_TO_PACKAGE value_to_package)
-{
-    uavcan_protocol_param_NumericValue param_numeric = package_uavcan_param_numeric_value(value_to_package);
-    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE, param_numeric.union_tag);
-    CHECK_EQUAL(value_to_package, param_numeric.integer_value);
-}
+void check_numeric_int_value_is_packaged(INT_VALUE_TO_PACKAGE value_to_package);
 
 TEST(Auxiliary_functions_package_param_numeric_value, package_uint8_t)
 {
@@ -33,17 +28,24 @@ TEST(Auxiliary_functions_package_param_numeric_value, package_int32_t)
     check_numeric_int_value_is_packaged(VALUE_TO_PACKAGE);
 }
 
-// enum uavcan_protocol_param_NumericValue_type_t {
-//     UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY,
-//     UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE,
-//     UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE,
-// };
+template <typename INT_VALUE_TO_PACKAGE>
+void check_numeric_int_value_is_packaged(INT_VALUE_TO_PACKAGE value_to_package)
+{
+    uavcan_protocol_param_NumericValue param_numeric = package_uavcan_param_numeric_value(value_to_package);
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE, param_numeric.union_tag);
+    CHECK_EQUAL(value_to_package, param_numeric.integer_value);
+}
 
-// struct uavcan_protocol_param_NumericValue {
-//     enum uavcan_protocol_param_NumericValue_type_t union_tag;
-//     union {
-//         struct uavcan_protocol_param_Empty empty;
-//         int64_t integer_value;
-//         float real_value;
-//     };
-// };
+TEST(Auxiliary_functions_package_param_numeric_value, package_float)
+{
+    const float VALUE_TO_PACKAGE = 1.23456789;
+    uavcan_protocol_param_NumericValue param_numeric = package_uavcan_param_numeric_value(VALUE_TO_PACKAGE);
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE, param_numeric.union_tag);
+    CHECK_EQUAL(VALUE_TO_PACKAGE, param_numeric.real_value);
+}
+
+TEST(Auxiliary_functions_package_param_numeric_value, package_empty_value)
+{
+    uavcan_protocol_param_NumericValue param_numeric = package_uavcan_param_numeric_value_empty();
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY, param_numeric.union_tag);
+}

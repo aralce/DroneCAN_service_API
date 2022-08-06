@@ -15,6 +15,9 @@ uavcan_protocol_param_Value package_uavcan_param_value_string(const char* value_
 
 uavcan_protocol_param_Value package_uavcan_param_value_empty();
 
-uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(int32_t value);
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(int32_t value_to_package);
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(float value_to_package);
+
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value_empty();
 
 #endif // AUXILIARY_FUNCTIONS_H_

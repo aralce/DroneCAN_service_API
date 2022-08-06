@@ -39,9 +39,22 @@ uavcan_protocol_param_Value package_uavcan_param_value_empty() {
     return param_value;
 }
 
-uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(int32_t value) {
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(int32_t value_to_package) {
     uavcan_protocol_param_NumericValue numeric_param_value;
     numeric_param_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
-    numeric_param_value.integer_value = value;
+    numeric_param_value.integer_value = value_to_package;
+    return numeric_param_value;
+}
+
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(float value_to_package) {
+    uavcan_protocol_param_NumericValue numeric_param_value;
+    numeric_param_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE;
+    numeric_param_value.real_value = value_to_package;
+    return numeric_param_value;
+}
+
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value_empty() {
+    uavcan_protocol_param_NumericValue numeric_param_value;
+    numeric_param_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY;
     return numeric_param_value;
 }

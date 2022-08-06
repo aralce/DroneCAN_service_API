@@ -14,6 +14,13 @@
         "type_traits": "cpp",
         "system_error": "cpp",
         "functional": "cpp",
-        "utility": "cpp"
-    }
+        "utility": "cpp",
+        "uavcan.protocol.param.numericvalue.h": "c"
+    },
+    "cSpell.words": [
+        "BATTERYINFO",
+        "omiting",
+        "uavcan",
+        "UAVCAN"
+    ]
 }

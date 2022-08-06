@@ -82,10 +82,10 @@ TEST(DroneCAN_service_paramGetSet_parameters, get_parameter)
     parameter_to_add.default_value = package_uavcan_param_value(PARAMETER_DEFAULT_VALUE);
 
     const uint8_t PARAMETER_MAX_VALUE = 255;
-    parameter_to_add.max_value = package_uavcan_param_value(PARAMETER_MAX_VALUE);
+    parameter_to_add.max_value = package_uavcan_param_numeric_value(PARAMETER_MAX_VALUE);
 
     const uint8_t PARAMETER_MIN_VALUE = 5;
-    parameter_to_add.min_value = package_uavcan_param_value(PARAMETER_MIN_VALUE);
+    parameter_to_add.min_value = package_uavcan_param_numeric_value(PARAMETER_MIN_VALUE);
 
     droneCAN_service->add_parameter(parameter_to_add);
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);

@@ -9,18 +9,7 @@ using milliseconds = uint32_t;
 
 typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
 
-// typedef struct {
-//     char data[62];
-//     uint8_t len;
-// } parameter_name;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
-// typedef struct {
-//     parameter_name name;
-//     uavcan_protocol_param_Value value;
-//     uavcan_protocol_param_Value default_value;
-//     uavcan_protocol_param_Value max_value;
-//     uavcan_protocol_param_Value min_value;
-// }uavcan_parameter;
 
 class DroneCAN_service : public DroneCAN_service_base {
 public:
@@ -42,6 +31,9 @@ public:
 
     uint8_t get_node_ID();
     bool is_healthy();
+
+protected:
+    void respond_with_parameter_data(uint8_t parameter_index_from_0) {}
 
 private:
     typedef struct {

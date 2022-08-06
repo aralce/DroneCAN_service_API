@@ -17,4 +17,8 @@ public:
     void publish_node_status(uavcan_protocol_NodeStatus& node_status) {
         publish_message(node_status);
     }
+
+    void respond_with_parameter_data(uint8_t parameter_index_from_0) {
+        DroneCAN_service::respond_with_parameter_data(parameter_index_from_0);
+    }
 };
