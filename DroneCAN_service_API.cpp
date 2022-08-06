@@ -17,15 +17,24 @@ void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
     }
 }
 
+void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
+    if (number_of_parameters != 0) {
+        --number_of_parameters;
+        auto iterator = parameter_list.begin();
+        std::advance(iterator, parameter_index_from_0);
+        parameter_list.erase(iterator);
+    }
+}
+
 uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
     if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
         uavcan_parameter invalid_param;
-        strcpy((char*)invalid_param.value.string_value.data, "INVALID");
+        strcpy((char*)invalid_param.name.data, "INVALID");
         return invalid_param;
     }
-    auto iter = parameter_list.begin();
-    std::advance(iter, parameter_index_from_0);
-    return *iter;
+    auto iterator = parameter_list.begin();
+    std::advance(iterator, parameter_index_from_0);
+    return *iterator;
 }
 
 void DroneCAN_service::publish_regularly(get_battery_info_t get_message, milliseconds time_between_publish) {
@@ -57,7 +66,6 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
         if (_get_battery_info != nullptr)
             publish_message(_get_battery_info());
     }
-
 }
 
 bool DroneCAN_service::is_time_to_execute_now(type_of_message type, milliseconds actual_time) {

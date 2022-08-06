@@ -1,12 +1,11 @@
 #include <common_to_all_tests.h>
 #include "../common_to_publish_message/common_to_publish_message.h"
+#include "common_to_paramGetSet/common_to_paramGetSet.h"
 #include <uavcan.protocol.param.GetSet.h>
 #include <auxiliary_functions.h>
 #include <cstring>
 
-DroneCAN_service* droneCAN_service = nullptr;
-
-TEST_GROUP(DroneCAN_service_publish_paramGetSet)
+TEST_GROUP(DroneCAN_service_paramGetSet_parameters)
 {
     void setup()
     {
@@ -15,22 +14,18 @@ TEST_GROUP(DroneCAN_service_publish_paramGetSet)
     }
     void teardown()
     {
-        if (droneCAN_service != nullptr) {
-            delete droneCAN_service;
-            droneCAN_service = nullptr;
-        }
-        teardown_mocks();
+        teardown_paramGetSet_tests();
     }
 };
 
-TEST(DroneCAN_service_publish_paramGetSet, inits_without_parameters)
+TEST(DroneCAN_service_paramGetSet_parameters, inits_without_parameters)
 {
     CHECK_EQUAL(0, droneCAN_service->get_number_of_parameters());
 }
 
 void remove_first_parameter();
 
-TEST(DroneCAN_service_publish_paramGetSet, try_to_remove_a_parameter_when_number_of_parameters_is_zero_has_no_effect)
+TEST(DroneCAN_service_paramGetSet_parameters, try_to_remove_a_parameter_when_number_of_parameters_is_zero_has_no_effect)
 {
     remove_first_parameter();
     CHECK_EQUAL(0, droneCAN_service->get_number_of_parameters());
@@ -38,13 +33,13 @@ TEST(DroneCAN_service_publish_paramGetSet, try_to_remove_a_parameter_when_number
 
 void add_generic_parameter();
 
-TEST(DroneCAN_service_publish_paramGetSet, when_a_parameter_is_added_then_the_number_of_parameters_is_increased)
+TEST(DroneCAN_service_paramGetSet_parameters, when_a_parameter_is_added_then_the_number_of_parameters_is_increased)
 {
     add_generic_parameter();
     CHECK_EQUAL(1, droneCAN_service->get_number_of_parameters());
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, add_1_parameter_and_remove_1_parameter_then_number_of_parameters_is_zero)
+TEST(DroneCAN_service_paramGetSet_parameters, add_1_parameter_and_remove_1_parameter_then_number_of_parameters_is_zero)
 {
     add_generic_parameter();
     remove_first_parameter();
@@ -57,7 +52,7 @@ void remove_first_parameter()
     droneCAN_service->remove_parameter(PARAMETER_INDEX_TO_REMOVE);
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, add_more_parameters_than_the_MAX_NUMBER_OF_PARAMETERS_has_no_effect)
+TEST(DroneCAN_service_paramGetSet_parameters, add_more_parameters_than_the_MAX_NUMBER_OF_PARAMETERS_has_no_effect)
 {
     for (uint8_t parameter = 0; parameter < MAX_NUMBER_OF_PARAMETERS + 1; ++parameter)
         add_generic_parameter();
@@ -67,18 +62,18 @@ TEST(DroneCAN_service_publish_paramGetSet, add_more_parameters_than_the_MAX_NUMB
 void add_generic_parameter()
 {
     uavcan_parameter parameter_to_add{};
-    strcpy(parameter_to_add.name.data, "parameter_to_add");
-    parameter_to_add.name.len = strlen(parameter_to_add.name.data);
+    strcpy((char*)parameter_to_add.name.data, "parameter_to_add");
+    parameter_to_add.name.len = strlen((const char*)parameter_to_add.name.data);
     
     droneCAN_service->add_parameter(parameter_to_add);
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, get_parameter)
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter)
 {
     uavcan_parameter parameter_to_add;
     const char PARAMETER_NAME[] = "parameter_to_add";
-    strcpy(parameter_to_add.name.data, PARAMETER_NAME);
-    parameter_to_add.name.len = strlen(parameter_to_add.name.data);
+    strcpy((char*)parameter_to_add.name.data, PARAMETER_NAME);
+    parameter_to_add.name.len = strlen((const char*)parameter_to_add.name.data);
     
     const uint8_t PARAMETER_VALUE = 10;
     parameter_to_add.value = package_uavcan_param_value(PARAMETER_VALUE);
@@ -95,20 +90,20 @@ TEST(DroneCAN_service_publish_paramGetSet, get_parameter)
     droneCAN_service->add_parameter(parameter_to_add);
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
 
-    STRCMP_EQUAL(PARAMETER_NAME, parameter_returned.name.data);
+    STRCMP_EQUAL(PARAMETER_NAME, (const char*)parameter_returned.name.data);
     CHECK_EQUAL(PARAMETER_VALUE, parameter_returned.value.integer_value);
     CHECK_EQUAL(PARAMETER_DEFAULT_VALUE, parameter_returned.default_value.integer_value);
     CHECK_EQUAL(PARAMETER_MAX_VALUE, parameter_returned.max_value.integer_value);
     CHECK_EQUAL(PARAMETER_MIN_VALUE, parameter_returned.min_value.integer_value);
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, get_parameter_when_droneCAN_service_has_no_parameter_returns_a_parameter_with_name_INVALID)
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_when_droneCAN_service_has_no_parameter_returns_a_parameter_with_name_INVALID)
 {
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
-    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.value.string_value.data);
+    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, get_parameter_outside_bounds_returns_a_parameter_with_name_INVALID)
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_outside_bounds_returns_a_parameter_with_name_INVALID)
 {
     const int PARAMETERS_ADDED = 4;
     for ( int i = 0; i < PARAMETERS_ADDED; ++i)
@@ -116,10 +111,10 @@ TEST(DroneCAN_service_publish_paramGetSet, get_parameter_outside_bounds_returns_
     
     const int BEYOND_LAST_INDEX = PARAMETERS_ADDED;
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(BEYOND_LAST_INDEX);
-    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.value.string_value.data);
+    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, get_N_parameters)
+TEST(DroneCAN_service_paramGetSet_parameters, get_N_parameters)
 {
     const int PARAMETERS_ADDED = 1;
     for ( int i = 0; i < PARAMETERS_ADDED; ++i) {
@@ -129,11 +124,11 @@ TEST(DroneCAN_service_publish_paramGetSet, get_N_parameters)
     }
 }
 
-TEST(DroneCAN_service_publish_paramGetSet, after_add_1_and_remove_1_parameter_get_a_parameter_returns_with_INVALID_name)
+TEST(DroneCAN_service_paramGetSet_parameters, after_add_1_and_remove_1_parameter_get_a_parameter_returns_with_INVALID_name)
 {
     add_generic_parameter();
     droneCAN_service->remove_parameter(0);
 
     uavcan_parameter parameter_returned =  droneCAN_service->get_parameter(0);
     STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
-}s
+}

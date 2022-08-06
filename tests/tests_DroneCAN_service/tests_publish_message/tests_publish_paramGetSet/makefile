@@ -45,7 +45,7 @@ FILES += $(filter %.cpp, $(wildcard ../common_to_publish_message/*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
-compile_tests: $(OBJECTS_TO_LINK) 
+compile_tests: $(OBJECTS_TO_LINK) $(BUILD_OUTPUT_DIR)common_to_paramGetSet.o
 	@echo "DroneCAN_service-->publish_message-->general"
 	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)tests.out
 
@@ -70,4 +70,7 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_PROGRAM_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : ../common_to_publish_message/%.cpp
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
+
+$(BUILD_OUTPUT_DIR)%.o : common_to_paramGetSet/%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;

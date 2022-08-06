@@ -2,6 +2,7 @@
 #define AUXILIARY_FUNCTIONS_H_
 #include <cstring>
 #include <uavcan.protocol.param.Value.h>
+#include <uavcan.protocol.param.NumericValue.h>
 
 #define UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH 128
 
@@ -13,5 +14,7 @@ uavcan_protocol_param_Value package_uavcan_param_value_string(const uint8_t* val
 uavcan_protocol_param_Value package_uavcan_param_value_string(const char* value_to_package);
 
 uavcan_protocol_param_Value package_uavcan_param_value_empty();
+
+uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(int32_t value);
 
 #endif // AUXILIARY_FUNCTIONS_H_

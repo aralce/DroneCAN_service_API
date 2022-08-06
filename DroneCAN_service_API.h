@@ -2,33 +2,36 @@
 #define DRONECAN_SERVICE_API_H_
 
 #include "DroneCAN_service_base.h"
-#include <uavcan.protocol.param.Value.h>
+#include <uavcan.protocol.param.GetSet.h>
 #include "DSDL_to_canard_DTO.h"
 #include <list>
 using milliseconds = uint32_t;
 
 typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
 
-typedef struct {
-    char data[62];
-    uint8_t len;
-} parameter_name;
-typedef struct {
-    parameter_name name;
-    uavcan_protocol_param_Value value;
-    uavcan_protocol_param_Value default_value;
-    uavcan_protocol_param_Value max_value;
-    uavcan_protocol_param_Value min_value;
-}uavcan_parameter;
+// typedef struct {
+//     char data[62];
+//     uint8_t len;
+// } parameter_name;
+using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
+// typedef struct {
+//     parameter_name name;
+//     uavcan_protocol_param_Value value;
+//     uavcan_protocol_param_Value default_value;
+//     uavcan_protocol_param_Value max_value;
+//     uavcan_protocol_param_Value min_value;
+// }uavcan_parameter;
 
 class DroneCAN_service : public DroneCAN_service_base {
 public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
     
+    //GROUP param_get_set
     uint8_t get_number_of_parameters() {return number_of_parameters;}
     void add_parameter(uavcan_parameter& parameter);
-    void remove_parameter(uint8_t parameter_index_from_0) {if (number_of_parameters != 0) --number_of_parameters;}
+    void remove_parameter(uint8_t parameter_index_from_0);
     uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
+    //
 
     void publish_regularly(get_battery_info_t get_message, uint32_t milliseconds_between_publish);
     
