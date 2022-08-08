@@ -1,4 +1,5 @@
 TEST_MAIN_FOLDER_DIR = ../../../
+TEST_DRONE_CAN_DIR = ../../
 TEST_PROGRAM_DIR = $(TEST_MAIN_FOLDER_DIR)../
 TEST_SUPPORT_DIR = $(TEST_MAIN_FOLDER_DIR)support/
 TEST_MOCK_DIR = $(TEST_MAIN_FOLDER_DIR)mock_interface/
@@ -6,7 +7,7 @@ TEST_MOCK_DSDL_MESSAGES_DIR = $(TEST_MOCK_DIR)/folder_DSDL_messages/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
 
-INCLUDE_DIR = $(TEST_MAIN_FOLDER_DIR) $(TEST_SUPPORT_DIR)
+INCLUDE_DIR = $(TEST_MAIN_FOLDER_DIR) $(TEST_SUPPORT_DIR) $(TEST_DRONE_CAN_DIR)
 INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_DSDL_MESSAGES_DIR)
 INCLUDE_DIR += $(TEST_PROGRAM_DIR)
 INCLUDE_DIR += $(CPPUTEST_HOME)/include/
@@ -31,7 +32,7 @@ all: create_build_folder compile_tests
 
 clean:
 	@rm -f -r $(BUILD_OUTPUT_DIR)
-	@echo "DroneCAN_service-->publish_message-->general: Build folders were removed"
+	@echo "DroneCAN_service-->publish_message-->paramGetSet: Build folders were removed"
 
 create_build_folder:
 	@mkdir -p $(BUILD_OUTPUT_DIR)
@@ -41,12 +42,13 @@ FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_DRONE_CAN_DIR)*))
 FILES += $(filter %.cpp, $(wildcard ../common_to_publish_message/*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
 compile_tests: $(OBJECTS_TO_LINK) $(BUILD_OUTPUT_DIR)common_to_paramGetSet.o
-	@echo "DroneCAN_service-->publish_message-->general"
+	@echo "DroneCAN_service-->publish_message-->paramGetSet"
 	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)tests.out
 
 INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
@@ -73,4 +75,7 @@ $(BUILD_OUTPUT_DIR)%.o : ../common_to_publish_message/%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : common_to_paramGetSet/%.cpp
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_DRONE_CAN_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;

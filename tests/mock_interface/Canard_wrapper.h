@@ -50,7 +50,7 @@ public:
 
     bool is_txQueue_empty() {
         mock().actualCall("canard->is_txQueue_empty");
-        return mock().returnIntValueOrDefault((int)true);              
+        return mock().returnBoolValueOrDefault(true);              
     }
 };
 

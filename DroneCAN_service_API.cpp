@@ -68,10 +68,22 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     }
 }
 
+#define count_of(x) sizeof(x)/sizeof(x[0])
 void DroneCAN_service::respond_with_parameter_data(uint8_t parameter_index_from_0) {
     uavcan_parameter param_to_send = get_parameter(parameter_index_from_0);
     uint8_t buffer[UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_MAX_SIZE];
     uavcan_protocol_param_GetSetResponse_encode(&param_to_send, buffer);
+    
+    canard_message_type_info_t type_info = {.signature = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_SIGNATURE,
+                                            .id = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID,
+                                            .priority = CANARD_TRANSFER_PRIORITY_MEDIUM};
+    canard_message_data_t message_data = {.ptr = (void*)buffer,
+                                          .length = count_of(buffer)};
+    canard.send_response(type_info, message_data);
+    canard.is_txQueue_empty();
+    canard.peekTxQueue();
+    canard.popTxQueue();
+    canard.is_txQueue_empty();
 }
 
 bool DroneCAN_service::is_time_to_execute_now(type_of_message type, milliseconds actual_time) {

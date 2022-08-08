@@ -74,7 +74,7 @@ TEST(DroneCAN_service_publish, canard_extract_all_pending_frames_and_send_with_C
     extract_and_send_all_CAN_frames();
 
     mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue((int)true);
+          .andReturnValue(true);
     
     mock().ignoreOtherCalls();
 
@@ -94,7 +94,7 @@ void extract_and_send_all_CAN_frames()
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "canard->popTxQueue");
 
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "canard->is_txQueue_empty")
-          .andReturnValue((int)false);
+          .andReturnValue(false);
 
     mock().expectNCalls(CAN_FRAMES_TO_SEND_ON_PUBLISH, "CAN_bus_adaptor->send_frame")
           .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&returned_frame);
@@ -104,7 +104,7 @@ void extract_and_send_all_CAN_frames()
 TEST(DroneCAN_service_publish, success_on_send_CAN_message)
 {
     mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue((int)false);
+          .andReturnValue(false);
 
     const int SUCCESS_ON_SEND = 1;
     mock().expectOneCall("CAN_bus_adaptor->send_frame")
@@ -112,7 +112,7 @@ TEST(DroneCAN_service_publish, success_on_send_CAN_message)
           .andReturnValue(SUCCESS_ON_SEND);
 
     mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue((int)true);
+          .andReturnValue(true);
 
     mock().ignoreOtherCalls();
 

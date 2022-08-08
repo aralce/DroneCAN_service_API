@@ -49,7 +49,7 @@ TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
     const int FAILURE_ON_SEND =  0;
     
     mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue((int)false);
+          .andReturnValue(false);
 
     mock().expectOneCall("CAN_bus_adaptor->send_frame")
           .ignoreOtherParameters()
@@ -59,7 +59,7 @@ TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
           .withIntParameter("error", (int)DroneCAN_error::FAIL_ON_PUBLISH);
 
     mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue((int)true);        
+          .andReturnValue(true);        
     
     mock().ignoreOtherCalls();
 
