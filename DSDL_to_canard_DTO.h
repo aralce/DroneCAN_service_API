@@ -4,11 +4,14 @@
     #include <Canard_wrapper.h>
     #include <uavcan.equipment.power.BatteryInfo.h>
     #include <uavcan.protocol.NodeStatus.h>
+    #include <uavcan.protocol.param.GetSet_res.h>
+
 #else
     #include "canard.h"
     #include "Canard_wrapper.h"
     #include "uavcan.equipment.power.BatteryInfo.h"
     #include "uavcan.protocol.NodeStatus.h"
+    #include "uavcan.protocol.param.GetSet_res.h"
 #endif
 #include "DroneCAN_service_configuration.h"
 
@@ -30,4 +33,5 @@ public:
 
     DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& battery_info);
     DSDL_to_canard_DTO(uavcan_protocol_NodeStatus& node_status);
+    DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse& param_response);
 };
