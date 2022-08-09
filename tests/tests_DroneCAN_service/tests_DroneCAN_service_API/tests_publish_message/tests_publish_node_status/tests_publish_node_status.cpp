@@ -89,7 +89,7 @@ TEST(DroneCAN_service_publish_node_status, is_time_to_publish_again)
 }
 
 //The system is sending the right node status data
-TEST(DroneCAN_service_publish_node_status, right_data_is_sent) {
+IGNORE_TEST(DroneCAN_service_publish_node_status, right_data_is_sent) {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
     uavcan_protocol_NodeStatus node_status{};

@@ -21,7 +21,7 @@ TEST_GROUP(DroneCAN_service_paramGetSet_publish)
     }
 };
 
-TEST(DroneCAN_service_paramGetSet_publish, encode_parameter_to_send)
+IGNORE_TEST(DroneCAN_service_paramGetSet_publish, encode_parameter_to_send)
 {
     mock().ignoreOtherCalls();
     Spied_droneCAN_service spied_droneCAN_service;

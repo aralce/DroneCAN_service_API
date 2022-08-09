@@ -37,7 +37,7 @@ TEST(DroneCAN_service_publish, canardBroadcast_is_called_with_right_type_info)
 {
     canard_message_type_info_t type_info = {.signature = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE,
                                             .id = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID,
-                                            .priority = CANARD_TRANSFER_PRIORITY_LOW };
+                                            .priority = CANARD_TRANSFER_PRIORITY_MEDIUM };
     mock().expectOneCall("canard->broadcast")
           .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
           .ignoreOtherParameters();
