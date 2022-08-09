@@ -13,9 +13,10 @@ typedef struct {
     uint16_t length;
 }canard_message_data_t;
 
-template <int LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, int UAVCAN_MAX_BYTES_ON_MESSAGE>
 class Canard {
 public:
+    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {}
+
     void init() {
         mock().actualCall("canard->init").onObject(this);
     }

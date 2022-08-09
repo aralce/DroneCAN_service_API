@@ -12,17 +12,27 @@ typedef struct {
     uint16_t length;
 }canard_message_data_t;
 
-template <int ALLOCATION_BUFFER_IN_BYTES, int MAX_BYTES_ON_MESSAGE>
 class Canard {
 public:
+    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {
+        buffer_size = bytes_allocation_buffer;
+        canard_buffer = new uint8_t[buffer_size];
+        canard_transmission_buffer = new uint8_t[max_bytes_on_message];
+    }
+
+    ~Canard() { 
+        delete[] canard_buffer;
+        delete[] canard_transmission_buffer;
+    }
+
     void init() {
         init(handle_reception_DUMMY, handle_acceptance_DUMMY);
     }
     
     void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance) {
-        canardInit(&this->canard_instance,
-                   this->canard_buffer,
-                   ALLOCATION_BUFFER_IN_BYTES,
+        canardInit(&canard_instance,
+                   canard_buffer,
+                   buffer_size,
                    handle_reception,
                    handle_acceptance,
                    NULL);
@@ -33,10 +43,10 @@ public:
     }
     
     int16_t broadcast(canard_message_type_info_t type_info, canard_message_data_t data) {
-        return canardBroadcast(&this->canard_instance,
+        return canardBroadcast(&canard_instance,
                                type_info.signature, 
                                type_info.id,
-                               &this->canard_transferID,
+                               &canard_transferID,
                                type_info.priority,
                                data.ptr,
                                data.length);
@@ -56,12 +66,13 @@ public:
             return true;
         return false;
     }
-    
+
 private:
     CanardInstance canard_instance;
-    uint8_t canard_buffer[ALLOCATION_BUFFER_IN_BYTES];
+    uint8_t* canard_buffer;
+    uint8_t buffer_size;
     uint8_t canard_transferID;
-    uint8_t canard_transmission_buffer[MAX_BYTES_ON_MESSAGE];
+    uint8_t* canard_transmission_buffer;
       
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};
     static bool handle_acceptance_DUMMY(const CanardInstance*, uint64_t*, uint16_t, CanardTransferType, uint8_t) {return false;};

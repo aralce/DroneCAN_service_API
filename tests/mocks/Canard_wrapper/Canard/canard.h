@@ -162,4 +162,33 @@ struct CanardInstance
 #endif
 };
 
-void canardSetLocalNodeID(CanardInstance* ins, uint8_t self_node_id);
+#include <common_to_all_mocks.h>
+
+inline void canardInit(CanardInstance* out_ins, void* mem_arena, size_t mem_arena_size, CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept, void* user_reference) {
+    mock().actualCall("canardInit");
+
+}
+
+inline void canardSetLocalNodeID(CanardInstance* ins, uint8_t self_node_id) {
+    mock().actualCall("canardSetLocalNodeID")
+          .withUnsignedIntParameter("self_node_id", self_node_id);
+}
+
+inline int16_t canardBroadcast(CanardInstance* ins, uint64_t data_type_signature, uint16_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, const void* payload, uint16_t payload_len) {
+    mock().actualCall("canardBroadcast")
+          .withUnsignedLongLongIntParameter("data_type_signature", data_type_signature)
+          .withUnsignedIntParameter("data_type_id", data_type_id)
+          .withUnsignedIntParameter("priority", priority)
+          .withPointerParameter("payload", (void*)payload)
+          .withUnsignedIntParameter("payload_len", payload_len);
+    return mock().returnIntValueOrDefault(0);
+}
+
+inline const CanardCANFrame* canardPeekTxQueue(const CanardInstance* ins) {
+    mock().actualCall("canardPeekTxQueue");
+    return (CanardCANFrame*)mock().returnPointerValueOrDefault(nullptr);
+}
+
+inline void canardPopTxQueue(CanardInstance* ins) {
+    mock().actualCall("canardPopTxQueue");
+}

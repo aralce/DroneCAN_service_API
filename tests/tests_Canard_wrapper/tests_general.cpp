@@ -2,15 +2,15 @@
 #include <Canard_wrapper.h>
 #include <DroneCAN_service_configuration.h>
 
-Canard<LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE> canard;
+Canard canard(LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE);
 
 TEST_GROUP(Canard_wrapper)
 {
 
 };
 
+
 TEST(Canard_wrapper, init)
 {
-    
-    FAIL("init");
+    // mock().expectOneCall("canardInit")
 }

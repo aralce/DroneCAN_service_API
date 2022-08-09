@@ -28,7 +28,7 @@ public:
     explicit DroneCAN_service_base(uint8_t node_ID, droneCAN_handle_error_t handle_error);
 
 protected:
-    Canard<LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE> canard;
+    Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
 
     droneCAN_handle_error_t _handle_error;
