@@ -5,7 +5,7 @@ DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& batte
     
     type_info.signature = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE;
     type_info.id = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID;
-    type_info.priority = CANARD_TRANSFER_PRIORITY_LOW;
+    type_info.priority = CANARD_TRANSFER_PRIORITY_MEDIUM;
     
     data.ptr = (void*)buffer;
     data.length = (uint16_t)message_length;
