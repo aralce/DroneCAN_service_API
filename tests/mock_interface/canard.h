@@ -25,8 +25,15 @@
 #define CANARD_TRANSFER_PRIORITY_LOW                24
 #define CANARD_TRANSFER_PRIORITY_LOWEST             31
 
-#define CANARD_TRANSFER_PAYLOAD_LEN_BITS            10U
+/// Related to CanardCANFrame
+#define CANARD_CAN_EXT_ID_MASK                      0x1FFFFFFFU
+#define CANARD_CAN_STD_ID_MASK                      0x000007FFU
+#define CANARD_CAN_FRAME_EFF                        (1UL << 31U)         ///< Extended frame format
+#define CANARD_CAN_FRAME_RTR                        (1UL << 30U)         ///< Remote transmission (not used by UAVCAN)
+#define CANARD_CAN_FRAME_ERR                        (1UL << 29U)         ///< Error frame (not used by UAVCAN)
 
+#define CANARD_TRANSFER_PAYLOAD_LEN_BITS            10U
+#define CANARD_MAX_TRANSFER_PAYLOAD_LEN             ((1U << CANARD_TRANSFER_PAYLOAD_LEN_BITS) - 1U)
 
 /**
  * This data type holds a standard CAN 2.0B data frame with 29-bit ID.

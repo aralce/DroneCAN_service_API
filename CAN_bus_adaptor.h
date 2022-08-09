@@ -1,5 +1,6 @@
 #pragma once
 #include <CAN.h>
+#include <canard.h>
 
 class CAN_bus_adaptor {
 public:
@@ -17,10 +18,15 @@ public:
 
     bool send_frame(CanardCANFrame& can_frame) {
         bool is_success = CAN.beginExtendedPacket(can_frame.id & CANARD_CAN_EXT_ID_MASK);
-        Serial.printf("begin of packet: %d\r\n", is_success);
-        CAN.write(can_frame.data, can_frame.data_len);
-        Serial.printf("end of packet: %d\r\n", is_success);
+        is_success &= try_CAN_write(can_frame.data, can_frame.data_len);
         is_success &= CAN.endPacket();
         return is_success;
+    }
+
+private:
+    bool try_CAN_write(const uint8_t* buffer, size_t size) {
+        size_t bytes_written = CAN.write(buffer, size);
+        bool was_writing_successful = (bytes_written == size);
+        return was_writing_successful;
     }
 };

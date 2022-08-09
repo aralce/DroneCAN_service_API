@@ -2,11 +2,12 @@ TEST_MAIN_FOLDER_DIR = ../
 TEST_PROGRAM_DIR = $(TEST_MAIN_FOLDER_DIR)../
 TEST_SUPPORT_DIR = $(TEST_MAIN_FOLDER_DIR)support/
 TEST_MOCK_DIR = $(TEST_MAIN_FOLDER_DIR)mock_interface/
+TEST_MOCK_CAN_LIBRARY = $(TEST_MOCK_DIR)CAN_BUS_adaptor/arduino_CAN_library/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
 
 INCLUDE_DIR = $(TEST_MAIN_FOLDER_DIR) $(TEST_SUPPORT_DIR)
-INCLUDE_DIR += $(TEST_MOCK_DIR)
+INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_CAN_LIBRARY)
 INCLUDE_DIR += $(TEST_PROGRAM_DIR)
 INCLUDE_DIR += $(CPPUTEST_HOME)/include/
 
@@ -37,6 +38,7 @@ create_build_folder:
 FILES = $(filter %.cpp, $(wildcard ./*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_CAN_LIBRARY)*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
@@ -58,6 +60,9 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_CAN_LIBRARY)%.cpp
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
+
 print:
 	@echo $(TEST_MAIN_FOLDER_DIR)
-	@ls $(TEST_MAIN_FOLDER_DIR)
+	@ls $(TEST_MOCK_CAN_LIBRARY)
