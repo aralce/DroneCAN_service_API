@@ -6,13 +6,10 @@
 #ifdef IS_RUNNING_TESTS
     #include <Canard_wrapper.h>
     #include <CAN_bus_adaptor.h>
-    #include <uavcan.equipment.power.BatteryInfo.h>
-    #include <uavcan.protocol.NodeStatus.h>
+    #include <DSDL_to_canard_DTO.h>
 #else
     #include "Canard_wrapper.h"
     #include "CAN_bus_adaptor.h"
-    #include "uavcan.equipment.power.BatteryInfo.h"
-    #include "uavcan.protocol.NodeStatus.h"
 #endif
 #include "DroneCAN_service_configuration.h"
 
@@ -25,11 +22,19 @@ typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
 class DroneCAN_message_sender {
 public:
-    explicit DroneCAN_message_sender(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
+    explicit DroneCAN_message_sender(droneCAN_handle_error_t handle_error = dummy_function);
 
-    void broadcast_message(uavcan_equipment_power_BatteryInfo& battery_info);
+    bool is_healthy() const {return _is_healthy;}
+    
+    void broadcast_message(DSDL_to_canard_DTO& data_transfer_object);
 
-protected:
+    template <typename UAVCAN_MESSAGE>
+    void broadcast_message(UAVCAN_MESSAGE& uavcan_message) {
+        DSDL_to_canard_DTO data_transfer_object(uavcan_message);
+        broadcast_message(data_transfer_object);
+    }
+
+private:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
 
@@ -37,8 +42,6 @@ protected:
     bool _is_healthy = true;
     static void dummy_function(DroneCAN_error error) {}
 
-    uint8_t _node_ID;
-    
     void publish_generic_message(canard_message_type_info_t type_info, canard_message_data_t data);
     
     void try_initialize_CAN_bus_driver();

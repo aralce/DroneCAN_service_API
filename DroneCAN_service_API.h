@@ -3,7 +3,7 @@
 
 #include "DroneCAN_message_sender.h"
 #include <uavcan.protocol.param.GetSet.h>
-#include "DSDL_to_canard_DTO.h"
+#include <DSDL_to_canard_DTO.h>
 #include <list>
 using milliseconds = uint32_t;
 
@@ -13,7 +13,7 @@ using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
 class DroneCAN_service : public DroneCAN_message_sender {
 public:
-    explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
+    explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = nullptr);
     
     //GROUP param_get_set
     uint8_t get_number_of_parameters() {return number_of_parameters;}

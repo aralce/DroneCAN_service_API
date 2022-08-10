@@ -2,6 +2,10 @@
 #include <DroneCAN_message_sender.h>
 #include <DSDL_to_canard_DTO.h>
 
+canard_message_type_info_t type_info{};
+canard_message_data_t message_data{};
+DroneCAN_message_sender* message_sender = nullptr;
+
 TEST_GROUP(DroneCAN_message_sender)
 {
     Canard_message_type_info_t_comparator type_info_comparator;
@@ -9,6 +13,7 @@ TEST_GROUP(DroneCAN_message_sender)
     CanardCANFrame_comparator can_frame_comparator;
     void setup()
     {
+        message_sender = new DroneCAN_message_sender;
         mock().installComparator("canard_message_type_info_t", type_info_comparator);
         mock().installComparator("canard_message_data_t", data_comparator);
         mock().installComparator("CanardCANFrame", can_frame_comparator);
@@ -18,19 +23,23 @@ TEST_GROUP(DroneCAN_message_sender)
         mock().checkExpectations();
         mock().clear();
         mock().removeAllComparatorsAndCopiers();
+        if  (message_sender != nullptr) {
+            delete message_sender;
+            message_sender = nullptr;
+        }
     }
 };
 
-void handle_error_function(DroneCAN_error error)
+TEST(DroneCAN_message_sender, inits_healthy)
 {
-    if (error == DroneCAN_error::FAIL_ON_PUBLISH)
-    mock().actualCall("handle_error_function")
-          .withIntParameter("error", (int)error);
+    CHECK_TRUE(message_sender->is_healthy());
 }
+
+void handle_error_function(DroneCAN_error error);
 
 TEST(DroneCAN_message_sender, broadcast_message_has_error_on_canardBroadcast)
 {
-    DroneCAN_message_sender message_sender(DEFAULT_NODE_ID, handle_error_function);
+    DroneCAN_message_sender message_sender(handle_error_function);
 
     const int16_t ERROR_VALUE = -1;
     mock().expectOneCall("canard->broadcast")
@@ -42,11 +51,13 @@ TEST(DroneCAN_message_sender, broadcast_message_has_error_on_canardBroadcast)
 
     uavcan_equipment_power_BatteryInfo battery_info;
     message_sender.broadcast_message(battery_info);
+
+    CHECK_FALSE(message_sender.is_healthy());
 }
 
 TEST(DroneCAN_message_sender, broadcast_message_has_error_on_send_to_CAN_BUS)
 {
-    DroneCAN_message_sender message_sender(DEFAULT_NODE_ID, handle_error_function);
+    DroneCAN_message_sender message_sender(handle_error_function);
 
     mock().expectOneCall("canard->is_txQueue_empty")
           .andReturnValue(false);
@@ -61,19 +72,42 @@ TEST(DroneCAN_message_sender, broadcast_message_has_error_on_send_to_CAN_BUS)
 
     uavcan_equipment_power_BatteryInfo battery_info;
     message_sender.broadcast_message(battery_info);
+    
+    CHECK_FALSE(message_sender.is_healthy());
 }
 
-TEST(DroneCAN_message_sender, broadcast_message_with_batteryInfo)
+void handle_error_function(DroneCAN_error error)
 {
-    DroneCAN_message_sender message_sender(DEFAULT_NODE_ID);
+    if (error == DroneCAN_error::FAIL_ON_PUBLISH)
+    mock().actualCall("handle_error_function")
+          .withIntParameter("error", (int)error);
+}
 
+void CHECK_canard_message_is_sent_with_CAN_bus_adaptor(canard_message_type_info_t& type_info, canard_message_data_t& message_data);
+
+TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_power_BatteryInfo)
+{
     mock().expectOneCall("DSDL_to_canard_DTO->construct_with_uavcan_power_BatteryInfo");
+    CHECK_canard_message_is_sent_with_CAN_bus_adaptor(type_info, message_data);
     
-    canard_message_type_info_t type_info{};
+    uavcan_equipment_power_BatteryInfo battery_info;
+    message_sender->broadcast_message(battery_info);
+}
+
+TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_protocol_NodeStatus)
+{
+    mock().expectOneCall("DSDL_to_canard_DTO->constuct_with_uavcan_protocol_NodeStatus");
+    CHECK_canard_message_is_sent_with_CAN_bus_adaptor(type_info, message_data);
+
+    uavcan_protocol_NodeStatus node_status;
+    message_sender->broadcast_message(node_status);
+}
+
+void CHECK_canard_message_is_sent_with_CAN_bus_adaptor(canard_message_type_info_t& type_info, canard_message_data_t& message_data)
+{
     mock().expectOneCall("DSDL_to_canard_DTO->get_type_info")
           .andReturnValue((void*)&type_info);
     
-    canard_message_data_t message_data{};
     mock().expectOneCall("DSDL_to_canard_DTO->get_data")
           .andReturnValue((void*)&message_data);
 
@@ -98,21 +132,4 @@ TEST(DroneCAN_message_sender, broadcast_message_with_batteryInfo)
     }
     mock().expectOneCall("canard->is_txQueue_empty")
           .andReturnValue(true);
-
-    uavcan_equipment_power_BatteryInfo battery_info;
-    message_sender.broadcast_message(battery_info);
 }
-
-// //This TEST is part of the DroneCAN_message_sender && DSDL_to_canard_DTO
-// IGNORE_TEST(DroneCAN_service_publish, canardBroadcast_is_called_with_right_type_info)
-// {
-//     canard_message_type_info_t type_info = {.signature = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_SIGNATURE,
-//                                             .id = UAVCAN_EQUIPMENT_POWER_BATTERYINFO_ID,
-//                                             .priority = CANARD_TRANSFER_PRIORITY_MEDIUM };
-//     mock().expectOneCall("canard->broadcast")
-//           .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
-//           .ignoreOtherParameters();
-
-//     mock().ignoreOtherCalls();
-//     publish_batteryInfo_message(droneCAN_service); 
-// }

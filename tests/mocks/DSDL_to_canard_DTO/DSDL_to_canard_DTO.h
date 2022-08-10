@@ -6,6 +6,8 @@
 #include <uavcan.protocol.NodeStatus.h>
 #include <uavcan.protocol.param.GetSet_res.h>
 
+typedef enum {NODE_STATUS, BATTERY_INFO, NUMBER_OF_MESSAGES}type_of_message;
+
 class DSDL_to_canard_DTO {
 public:
     canard_message_type_info_t get_type_info();

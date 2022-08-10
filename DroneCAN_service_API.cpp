@@ -3,11 +3,11 @@
 #include <cstring>
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
-    : DroneCAN_message_sender(node_ID, handle_error) 
+    : DroneCAN_message_sender(handle_error) 
 {
-    canard.init();
-    canard.set_node_ID(node_ID);
-    try_initialize_CAN_bus_driver();
+    // canard.init();
+    // canard.set_node_ID(node_ID);
+    // try_initialize_CAN_bus_driver();
 }
 
 void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
@@ -49,8 +49,8 @@ void DroneCAN_service::publish_regularly(get_battery_info_t get_message, millise
 
 template<typename T>
 void DroneCAN_service::publish_message(T& message) {
-    DSDL_to_canard_DTO data_transfer_object(message);
-    publish_generic_message(data_transfer_object.get_type_info(), data_transfer_object.get_data());
+    // DSDL_to_canard_DTO data_transfer_object(message);
+    // publish_generic_message(data_transfer_object.get_type_info(), data_transfer_object.get_data());
 }
 
 void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
@@ -70,20 +70,20 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
 
 #define count_of(x) sizeof(x)/sizeof(x[0])
 void DroneCAN_service::respond_with_parameter_data(uint8_t parameter_index_from_0) {
-    uavcan_parameter param_to_send = get_parameter(parameter_index_from_0);
-    uint8_t buffer[UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_MAX_SIZE];
-    uavcan_protocol_param_GetSetResponse_encode(&param_to_send, buffer);
+    // uavcan_parameter param_to_send = get_parameter(parameter_index_from_0);
+    // uint8_t buffer[UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_MAX_SIZE];
+    // uavcan_protocol_param_GetSetResponse_encode(&param_to_send, buffer);
     
-    canard_message_type_info_t type_info = {.signature = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_SIGNATURE,
-                                            .id = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID,
-                                            .priority = CANARD_TRANSFER_PRIORITY_MEDIUM};
-    canard_message_data_t message_data = {.ptr = (void*)buffer,
-                                          .length = count_of(buffer)};
-    canard.send_response(type_info, message_data);
-    canard.is_txQueue_empty();
-    canard.peekTxQueue();
-    canard.popTxQueue();
-    canard.is_txQueue_empty();
+    // canard_message_type_info_t type_info = {.signature = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_SIGNATURE,
+    //                                         .id = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID,
+    //                                         .priority = CANARD_TRANSFER_PRIORITY_MEDIUM};
+    // canard_message_data_t message_data = {.ptr = (void*)buffer,
+    //                                       .length = count_of(buffer)};
+    // canard.send_response(type_info, message_data);
+    // canard.is_txQueue_empty();
+    // canard.peekTxQueue();
+    // canard.popTxQueue();
+    // canard.is_txQueue_empty();
 }
 
 bool DroneCAN_service::is_time_to_execute_now(type_of_message type, milliseconds actual_time) {
@@ -91,9 +91,11 @@ bool DroneCAN_service::is_time_to_execute_now(type_of_message type, milliseconds
 }
 
 uint8_t DroneCAN_service::get_node_ID() {
-    return _node_ID;
+    return 0;
+    // return _node_ID;
 }
 
 bool DroneCAN_service::is_healthy() {
-    return _is_healthy;
+    return 0;
+    // return _is_healthy;
 }
