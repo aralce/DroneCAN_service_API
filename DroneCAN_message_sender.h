@@ -23,9 +23,9 @@ enum class DroneCAN_error{
 
 typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
-class DroneCAN_service_base {
+class DroneCAN_message_sender {
 public:
-    explicit DroneCAN_service_base(uint8_t node_ID, droneCAN_handle_error_t handle_error);
+    explicit DroneCAN_message_sender(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
 
 protected:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};

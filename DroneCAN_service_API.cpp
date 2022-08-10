@@ -3,7 +3,7 @@
 #include <cstring>
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
-    : DroneCAN_service_base(node_ID, handle_error) 
+    : DroneCAN_message_sender(node_ID, handle_error) 
 {
     canard.init();
     canard.set_node_ID(node_ID);

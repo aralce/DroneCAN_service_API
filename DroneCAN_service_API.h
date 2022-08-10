@@ -11,7 +11,7 @@ typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
 
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
-class DroneCAN_service : public DroneCAN_service_base {
+class DroneCAN_service : public DroneCAN_message_sender {
 public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = dummy_function);
     
@@ -29,7 +29,7 @@ public:
 
     void run_pending_tasks(milliseconds actual_time);
 
-    uint8_t get_node_ID();
+    uint8_t        ();
     bool is_healthy();
 
 protected:
