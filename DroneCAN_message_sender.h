@@ -34,6 +34,8 @@ public:
         broadcast_message(data_transfer_object);
     }
 
+    void send_response_message(uavcan_protocol_param_GetSetResponse& param_response);
+
 private:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
@@ -41,11 +43,10 @@ private:
     droneCAN_handle_error_t _handle_error;
     bool _is_healthy = true;
     static void dummy_function(DroneCAN_error error) {}
-
-    void publish_generic_message(canard_message_type_info_t type_info, canard_message_data_t data);
     
     void try_initialize_CAN_bus_driver();
     void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t& data);
+    void try_send_response_message_with_canard(canard_message_type_info_t& type_info, canard_message_data_t& data);
     void try_send_CAN_bus_frame(CanardCANFrame& frame);
     void send_pending_CAN_frames();
 };

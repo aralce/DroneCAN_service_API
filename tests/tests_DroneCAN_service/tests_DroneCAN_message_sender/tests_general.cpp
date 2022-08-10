@@ -55,7 +55,25 @@ TEST(DroneCAN_message_sender, broadcast_message_has_error_on_canardBroadcast)
     CHECK_FALSE(message_sender.is_healthy());
 }
 
-TEST(DroneCAN_message_sender, broadcast_message_has_error_on_send_to_CAN_BUS)
+TEST(DroneCAN_message_sender, send_response_message_has_error_on_canardRequestOrRespond)
+{
+    DroneCAN_message_sender message_sender(handle_error_function);
+
+    const int16_t ERROR_VALUE = -1;
+    mock().expectOneCall("canard->send_response")
+          .ignoreOtherParameters()
+          .andReturnValue(ERROR_VALUE);
+    mock().expectOneCall("handle_error_function")
+          .withIntParameter("error", (int)DroneCAN_error::FAIL_ON_PUBLISH);
+    mock().ignoreOtherCalls();
+
+    uavcan_protocol_param_GetSetResponse param_response;
+    message_sender.send_response_message(param_response);
+
+    CHECK_FALSE(message_sender.is_healthy());
+}
+
+TEST(DroneCAN_message_sender, send_to_CAN_BUS)
 {
     DroneCAN_message_sender message_sender(handle_error_function);
 
@@ -83,12 +101,13 @@ void handle_error_function(DroneCAN_error error)
           .withIntParameter("error", (int)error);
 }
 
-void CHECK_canard_message_is_sent_with_CAN_bus_adaptor(canard_message_type_info_t& type_info, canard_message_data_t& message_data);
+void CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(canard_message_type_info_t& type_info, canard_message_data_t& message_data);
+void CHECK_frames_are_sent_with_CAN_bus(int16_t frames_to_transfer);
 
 TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_power_BatteryInfo)
 {
     mock().expectOneCall("DSDL_to_canard_DTO->construct_with_uavcan_power_BatteryInfo");
-    CHECK_canard_message_is_sent_with_CAN_bus_adaptor(type_info, message_data);
+    CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(type_info, message_data);
     
     uavcan_equipment_power_BatteryInfo battery_info;
     message_sender->broadcast_message(battery_info);
@@ -97,13 +116,35 @@ TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_power_BatteryInfo)
 TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_protocol_NodeStatus)
 {
     mock().expectOneCall("DSDL_to_canard_DTO->constuct_with_uavcan_protocol_NodeStatus");
-    CHECK_canard_message_is_sent_with_CAN_bus_adaptor(type_info, message_data);
+    CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(type_info, message_data);
 
     uavcan_protocol_NodeStatus node_status;
     message_sender->broadcast_message(node_status);
 }
 
-void CHECK_canard_message_is_sent_with_CAN_bus_adaptor(canard_message_type_info_t& type_info, canard_message_data_t& message_data)
+TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
+{
+    mock().expectOneCall("DSDL_to_canard_DTO->constuct_with_uavcan_protocol_param_GetSetResponse");
+
+    mock().expectOneCall("DSDL_to_canard_DTO->get_type_info")
+          .andReturnValue((void*)&type_info);
+
+    mock().expectOneCall("DSDL_to_canard_DTO->get_data")
+          .andReturnValue((void*)&message_data);
+
+    const uint16_t FRAMES_TO_TRANSFER = 9;
+    mock().expectOneCall("canard->send_response")
+          .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
+          .withParameterOfType("canard_message_data_t", "data", (const void*)&message_data)
+          .andReturnValue(FRAMES_TO_TRANSFER);
+
+    CHECK_frames_are_sent_with_CAN_bus(FRAMES_TO_TRANSFER);
+
+    uavcan_protocol_param_GetSetResponse param_response;
+    message_sender->send_response_message(param_response);
+}
+
+void CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(canard_message_type_info_t& type_info, canard_message_data_t& message_data)
 {
     mock().expectOneCall("DSDL_to_canard_DTO->get_type_info")
           .andReturnValue((void*)&type_info);
@@ -117,7 +158,12 @@ void CHECK_canard_message_is_sent_with_CAN_bus_adaptor(canard_message_type_info_
           .withParameterOfType("canard_message_data_t", "data", (const void*)&message_data)
           .andReturnValue(FRAMES_TO_TRANSFER);
 
-    for (int frames = 0; frames < FRAMES_TO_TRANSFER; ++frames) {
+    CHECK_frames_are_sent_with_CAN_bus(FRAMES_TO_TRANSFER);
+}
+
+void CHECK_frames_are_sent_with_CAN_bus(int16_t frames_to_transfer)
+{
+    for (int frames = 0; frames < frames_to_transfer; ++frames) {
         mock().expectOneCall("canard->is_txQueue_empty")
               .andReturnValue(false);
         
