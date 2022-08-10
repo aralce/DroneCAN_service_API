@@ -18,7 +18,7 @@ public:
     explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {}
 
     void init() {
-        mock().actualCall("canard->init").onObject(this);
+        mock().actualCall("canard->init");
     }
 
     void set_node_ID(uint8_t self_node_id) {
@@ -27,14 +27,14 @@ public:
     }
       
     int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        mock().actualCall("canard->broadcast").onObject(this)
+        mock().actualCall("canard->broadcast")
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
         return mock().returnIntValueOrDefault(0);
     }
 
     int16_t send_response(canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        mock().actualCall("canard->send_response").onObject(this)
+        mock().actualCall("canard->send_response")
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
         return mock().returnIntValueOrDefault(0);
@@ -42,7 +42,7 @@ public:
 
     const CanardCANFrame* peekTxQueue() {
         mock().actualCall("canard->peekTxQueue");
-        return (CanardCANFrame*)mock().returnUnsignedLongLongIntValueOrDefault(0);     
+        return (CanardCANFrame*)mock().returnPointerValueOrDefault(nullptr);     
     }
 
     void popTxQueue() {

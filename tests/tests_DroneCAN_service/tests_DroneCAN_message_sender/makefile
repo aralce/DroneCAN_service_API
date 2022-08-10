@@ -6,7 +6,7 @@ TEST_MOCK_DIR = $(TEST_MAIN_FOLDER_DIR)mocks/
 TEST_MOCK_CAN_BUS_ADAPTOR_DIR = $(TEST_MOCK_DIR)CAN_BUS_adaptor/
 TEST_MOCK_CANARD_WRAPPER_DIR = $(TEST_MOCK_DIR)Canard_wrapper/
 TEST_MOCK_CANARD_DIR = $(TEST_MOCK_DIR)Canard_wrapper/Canard/
-TEST_MOCK_DSDL_TO_CANARD_DTO_DIR = $(TESTS_MOCK_DIR)DSDL_to_canard_DTO/
+TEST_MOCK_DSDL_TO_CANARD_DTO_DIR = $(TEST_MOCK_DIR)DSDL_to_canard_DTO/
 TEST_MOCK_DSDL_MESSAGES_DIR = $(TEST_MOCK_DIR)folder_DSDL_messages/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
@@ -45,6 +45,7 @@ create_build_folder:
 FILES = $(filter %.cpp, $(wildcard ./*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_DRONE_CAN_DIR)*))
@@ -69,6 +70,9 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)%.cpp
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
+
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
@@ -79,4 +83,4 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_DRONE_CAN_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 print:
-	 @ls $(TEST_MAIN_FOLDER_DIR)
+	 @echo $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)

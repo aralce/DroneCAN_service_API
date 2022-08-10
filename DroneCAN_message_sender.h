@@ -27,6 +27,8 @@ class DroneCAN_message_sender {
 public:
     explicit DroneCAN_message_sender(uint8_t node_ID, droneCAN_handle_error_t handle_error = dummy_function);
 
+    void broadcast_message(uavcan_equipment_power_BatteryInfo& battery_info);
+
 protected:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
@@ -40,7 +42,7 @@ protected:
     void publish_generic_message(canard_message_type_info_t type_info, canard_message_data_t data);
     
     void try_initialize_CAN_bus_driver();
-    void try_broadcast_with_canard(canard_message_type_info_t type_info, canard_message_data_t data);
+    void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t& data);
     void try_send_CAN_bus_frame(CanardCANFrame& frame);
     void send_pending_CAN_frames();
 };

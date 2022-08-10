@@ -23,8 +23,8 @@ TEST_GROUP(DroneCAN_service_publish_with_error)
     }
 };
 
-
-TEST(DroneCAN_service_publish_with_error, error_on_canard_broadcast)
+//This TEST is part of DroneCAN_message_sender & Canard_wrapper
+IGNORE_TEST(DroneCAN_service_publish_with_error, error_on_canard_broadcast)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls(handle_error_fail_publishing);
 
@@ -40,9 +40,8 @@ TEST(DroneCAN_service_publish_with_error, error_on_canard_broadcast)
     publish_batteryInfo_message(droneCAN_service);
 }
 
-
-
-TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
+//This TEST is part of DroneCAN_message_sender & CAN_bus_adaptor
+IGNORE_TEST(DroneCAN_service_publish_with_error, error_on_send_CAN_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls(handle_error_fail_publishing);
 

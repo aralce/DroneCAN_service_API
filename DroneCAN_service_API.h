@@ -1,7 +1,7 @@
 #ifndef DRONECAN_SERVICE_API_H_
 #define DRONECAN_SERVICE_API_H_
 
-#include "DroneCAN_service_base.h"
+#include "DroneCAN_message_sender.h"
 #include <uavcan.protocol.param.GetSet.h>
 #include "DSDL_to_canard_DTO.h"
 #include <list>
@@ -29,7 +29,7 @@ public:
 
     void run_pending_tasks(milliseconds actual_time);
 
-    uint8_t        ();
+    uint8_t get_node_ID();
     bool is_healthy();
 
 protected:
