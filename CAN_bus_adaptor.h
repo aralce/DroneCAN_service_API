@@ -8,7 +8,7 @@ public:
 
     }
 
-    int begin(long baudRate) {
+    bool begin(long baudRate) {
         return CAN.begin(baudRate);
     }
 

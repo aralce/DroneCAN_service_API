@@ -10,6 +10,7 @@
 #else
     #include "Canard_wrapper.h"
     #include "CAN_bus_adaptor.h"
+    #include "Canard_wrapper.h"
 #endif
 #include "DroneCAN_service_configuration.h"
 

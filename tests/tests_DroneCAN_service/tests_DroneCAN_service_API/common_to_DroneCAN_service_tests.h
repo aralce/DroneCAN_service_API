@@ -4,8 +4,8 @@
 #include <Spied_DroneCAN_service.h>
 #include <DroneCAN_service_configuration.h>
 
-#define FAILURE_IN_INITIALIZATION 0
-#define INITIALIZATION_SUCCESSFUL 1
+#define FAILURE_IN_INITIALIZATION false
+#define INITIALIZATION_SUCCESSFUL true
 
 void teardown_mocks();
 

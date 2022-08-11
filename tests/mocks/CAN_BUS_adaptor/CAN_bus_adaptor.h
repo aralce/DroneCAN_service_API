@@ -18,7 +18,7 @@ public:
 
     }
 
-    int begin(long baudRate) {
+    bool begin(long baudRate) {
         mock().actualCall("CAN_bus_adaptor->begin")
             .withLongIntParameter("baudRate", baudRate);
         return mock().returnBoolValueOrDefault(SUCCESS);

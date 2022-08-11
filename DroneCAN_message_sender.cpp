@@ -49,14 +49,3 @@ void DroneCAN_message_sender::try_send_CAN_bus_frame(CanardCANFrame& frame) {
     if (!_is_healthy)
         _handle_error(DroneCAN_error::FAIL_ON_PUBLISH);
 }
-
-///////////////////////////////////
-
-//TODO:This doesn't goes here
-void DroneCAN_message_sender::try_initialize_CAN_bus_driver() {
-    can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
-    _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);
-    if (!_is_healthy)
-        _handle_error(DroneCAN_error::ON_INITIALIZATION);
-}
-
