@@ -24,12 +24,12 @@ typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
 class DroneCAN_message_sender {
 public:
-    explicit DroneCAN_message_sender(Canard& canard, CAN_bus_adaptor& can_driver, droneCAN_handle_error_t handle_error = nullptr) {
-        // mock().actualCall("DroneCAN_message_sender->constructor")
-        //       .withParameter("canard", (const void*)&canard)
-        //       .withParameter("can_driver", (const void*)&can_driver)
-        //       .withPointerParameter("handle_error", (void*)handle_error);
-    }
+    explicit DroneCAN_message_sender(Canard& canard, CAN_bus_adaptor& can_driver, droneCAN_handle_error_t handle_error = nullptr);
+    //     mock().actualCall("DroneCAN_message_sender->constructor")
+    //           .withParameter("canard", (const void*)&canard)
+    //           .withParameter("can_driver", (const void*)&can_driver)
+    //           .withPointerParameter("handle_error", (void*)handle_error);
+    // }
 
     // bool is_healthy() {
     //     mock().actualCall("DroneCAN_message_sender->is_healthy");

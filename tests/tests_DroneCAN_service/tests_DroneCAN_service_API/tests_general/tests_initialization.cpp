@@ -20,13 +20,13 @@ TEST(DroneCAN_service_initialization, system_inits_healthy) {
     CHECK_TRUE(droneCAN_service.is_healthy());
 }
 
-// TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_is_init)
-// {
-//     mock().expectOneCall("DroneCAN_message_sender->constructor")
-//           .ignoreOtherParameters();
-//     mock().ignoreOtherCalls();
-//     DroneCAN_service droneCAN_service;
-// }
+TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_is_init)
+{
+    mock().expectOneCall("DroneCAN_message_sender->constructor")
+          .ignoreOtherParameters();
+    mock().ignoreOtherCalls();
+    DroneCAN_service droneCAN_service;
+}
 
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized)
 {

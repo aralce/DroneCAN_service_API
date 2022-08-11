@@ -16,7 +16,8 @@
         "functional": "cpp",
         "utility": "cpp",
         "uavcan.protocol.param.numericvalue.h": "c",
-        "cstdint": "cpp"
+        "cstdint": "cpp",
+        "new": "cpp"
     },
     "cSpell.words": [
         "BATTERYINFO",
