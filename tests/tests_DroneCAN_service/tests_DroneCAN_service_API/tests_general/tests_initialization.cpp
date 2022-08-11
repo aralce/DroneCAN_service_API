@@ -20,6 +20,14 @@ TEST(DroneCAN_service_initialization, system_inits_healthy) {
     CHECK_TRUE(droneCAN_service.is_healthy());
 }
 
+// TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_is_init)
+// {
+//     mock().expectOneCall("DroneCAN_message_sender->constructor")
+//           .ignoreOtherParameters();
+//     mock().ignoreOtherCalls();
+//     DroneCAN_service droneCAN_service;
+// }
+
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized)
 {
     mock().expectOneCall("canard->init");
@@ -96,15 +104,15 @@ void handle_error_init_fail(DroneCAN_error error)
           .withIntParameter("error", (int)error);
 } 
 
-// TEST(DroneCAN_service_initialization, when_fails_the_error_to_handle_is_ON_INITIALIZATION)
-// {
-//     mock().expectOneCall("CAN_bus_adaptor->begin")
-//           .ignoreOtherParameters()
-//           .andReturnValue(FAILURE_IN_INITIALIZATION);
+TEST(DroneCAN_service_initialization, when_fails_the_error_to_handle_is_ON_INITIALIZATION)
+{
+    mock().expectOneCall("CAN_bus_adaptor->begin")
+          .ignoreOtherParameters()
+          .andReturnValue(FAILURE_IN_INITIALIZATION);
 
-//     mock().expectOneCall("handle_error_init_fail")
-//           .withParameter("error", (int)DroneCAN_error::ON_INITIALIZATION);
+    mock().expectOneCall("handle_error_init_fail")
+          .withParameter("error", (int)DroneCAN_error::ON_INITIALIZATION);
     
-//     mock().ignoreOtherCalls();
-//     DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error_init_fail);
-// }
+    mock().ignoreOtherCalls();
+    DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error_init_fail);
+}

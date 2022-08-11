@@ -1,27 +1,32 @@
 #ifndef DRONECAN_SERVICE_API_H_
 #define DRONECAN_SERVICE_API_H_
 
-#include "DroneCAN_message_sender.h"
+#include <DroneCAN_message_sender.h>
 
 // using milliseconds = uint32_t;
 
-// typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
+typedef uavcan_equipment_power_BatteryInfo& (*get_battery_info_t)(void);
 
 // using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
 class DroneCAN_service {
 public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = nullptr);
+    ~DroneCAN_service() {delete message_sender;};
 
     bool is_healthy() {return _is_healthy;}
     uint8_t get_node_ID() {return _node_ID;}
+
+    void publish_regularly(get_battery_info_t get_battery_info, uint32_t milliseconds_between_publish) {}
+
 protected:
     droneCAN_handle_error_t _handle_error = nullptr;
 
 private:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
-    
+    DroneCAN_message_sender* message_sender;
+
     bool _is_healthy = true;
     uint8_t _node_ID;
 

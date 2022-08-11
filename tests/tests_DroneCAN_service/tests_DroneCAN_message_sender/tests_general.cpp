@@ -4,6 +4,9 @@
 
 canard_message_type_info_t type_info{};
 canard_message_data_t message_data{};
+
+Canard canard(LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE);
+CAN_bus_adaptor can_driver;
 DroneCAN_message_sender* message_sender = nullptr;
 
 TEST_GROUP(DroneCAN_message_sender)
@@ -13,7 +16,7 @@ TEST_GROUP(DroneCAN_message_sender)
     CanardCANFrame_comparator can_frame_comparator;
     void setup()
     {
-        message_sender = new DroneCAN_message_sender;
+        message_sender = new DroneCAN_message_sender(canard, can_driver);
         mock().installComparator("canard_message_type_info_t", type_info_comparator);
         mock().installComparator("canard_message_data_t", data_comparator);
         mock().installComparator("CanardCANFrame", can_frame_comparator);
@@ -36,10 +39,11 @@ TEST(DroneCAN_message_sender, inits_healthy)
 }
 
 void handle_error_function(DroneCAN_error error);
+DroneCAN_message_sender get_DroneCAN_message_sender_instance(droneCAN_handle_error_t handle_error);
 
 TEST(DroneCAN_message_sender, broadcast_message_has_error_on_canardBroadcast)
 {
-    DroneCAN_message_sender message_sender(handle_error_function);
+    DroneCAN_message_sender message_sender = get_DroneCAN_message_sender_instance(handle_error_function);
 
     const int16_t ERROR_VALUE = -1;
     mock().expectOneCall("canard->broadcast")
@@ -57,7 +61,7 @@ TEST(DroneCAN_message_sender, broadcast_message_has_error_on_canardBroadcast)
 
 TEST(DroneCAN_message_sender, send_response_message_has_error_on_canardRequestOrRespond)
 {
-    DroneCAN_message_sender message_sender(handle_error_function);
+    DroneCAN_message_sender message_sender = get_DroneCAN_message_sender_instance(handle_error_function);
 
     const int16_t ERROR_VALUE = -1;
     mock().expectOneCall("canard->send_response")
@@ -76,7 +80,7 @@ TEST(DroneCAN_message_sender, send_response_message_has_error_on_canardRequestOr
 
 TEST(DroneCAN_message_sender, send_to_CAN_BUS)
 {
-    DroneCAN_message_sender message_sender(handle_error_function);
+    DroneCAN_message_sender message_sender = get_DroneCAN_message_sender_instance(handle_error_function);
 
     mock().expectOneCall("canard->is_txQueue_empty")
           .andReturnValue(false);
@@ -93,6 +97,10 @@ TEST(DroneCAN_message_sender, send_to_CAN_BUS)
     message_sender.broadcast_message(battery_info);
     
     CHECK_FALSE(message_sender.is_healthy());
+}
+
+DroneCAN_message_sender get_DroneCAN_message_sender_instance(droneCAN_handle_error_t handle_error) {
+    return DroneCAN_message_sender{canard, can_driver, handle_error};
 }
 
 void handle_error_function(DroneCAN_error error)

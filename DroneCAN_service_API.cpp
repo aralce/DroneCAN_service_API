@@ -5,7 +5,8 @@ void DUMMY_error_handler(DroneCAN_error error) {}
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
     _handle_error = handle_error == nullptr ? DUMMY_error_handler : handle_error;
-    
+    message_sender = new DroneCAN_message_sender(canard, can_driver, _handle_error);
+
     canard.init();
     canard.set_node_ID(node_ID);
     
@@ -20,8 +21,8 @@ void execute_error_handler(droneCAN_handle_error_t handler, DroneCAN_error error
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
     _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);
-    // if (!_is_healthy)
-    //     _handle_error(DroneCAN_error::ON_INITIALIZATION);
+    if (!_is_healthy)
+        _handle_error(DroneCAN_error::ON_INITIALIZATION);
 }
 
 // DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)

@@ -23,7 +23,7 @@ typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
 class DroneCAN_message_sender {
 public:
-    explicit DroneCAN_message_sender(droneCAN_handle_error_t handle_error = dummy_function);
+    explicit DroneCAN_message_sender(Canard& canard, CAN_bus_adaptor& can_driverdrone, droneCAN_handle_error_t handle_error = nullptr);
 
     bool is_healthy() const {return _is_healthy;}
     
@@ -38,12 +38,11 @@ public:
     void send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id);
 
 private:
-    Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
-    CAN_bus_adaptor can_driver;
+    Canard& _canard;
+    CAN_bus_adaptor& _can_driver;
 
     droneCAN_handle_error_t _handle_error;
     bool _is_healthy = true;
-    static void dummy_function(DroneCAN_error error) {}
     
     void try_initialize_CAN_bus_driver();
     void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t& data);

@@ -2,20 +2,19 @@
 
 const int MILLISECONDS_BETWEEN_PUBLISHES = 10000;
 
-// uavcan_equipment_power_BatteryInfo& get_battery_info()
-// {
-//     mock().actualCall("get_battery_info");
-//     static uavcan_equipment_power_BatteryInfo battery_info{};
-//     return battery_info;
-// }
+uavcan_equipment_power_BatteryInfo& get_battery_info()
+{
+    mock().actualCall("get_battery_info");
+    static uavcan_equipment_power_BatteryInfo battery_info{};
+    return battery_info;
+}
 
-// void expect_one_published_message()
-// {
-//     mock().expectOneCall("get_battery_info");
-//     mock().expectOneCall("uavcan_equipment_power_BatteryInfo_encode")
-//           .ignoreOtherParameters();
-//     mock().ignoreOtherCalls();
-// }
+void expect_one_published_message()
+{
+    mock().expectOneCall("get_battery_info");
+    mock().expectOneCall("DroneCAN_message_sender->broadcast_message");
+    mock().ignoreOtherCalls();
+}
 
 TEST_GROUP(DroneCAN_service_publish_regularly)
 {
@@ -36,6 +35,7 @@ TEST(DroneCAN_service_publish_regularly, init)
 {
     
 }
+
 
 // TEST(DroneCAN_service_publish_regularly, register_a_message_to_publish_trigger_publish_of_the_message)
 // {
