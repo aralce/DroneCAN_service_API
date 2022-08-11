@@ -33,8 +33,9 @@ public:
         return mock().returnIntValueOrDefault(0);
     }
 
-    int16_t send_response(canard_message_type_info_t& type_info, canard_message_data_t& data) {
+    int16_t send_response(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data) {
         mock().actualCall("canard->send_response")
+              .withUnsignedIntParameter("destination_node_id", destination_node_id)
               .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
               .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
         return mock().returnIntValueOrDefault(0);

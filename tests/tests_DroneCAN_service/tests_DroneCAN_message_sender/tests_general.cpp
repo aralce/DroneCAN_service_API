@@ -68,7 +68,8 @@ TEST(DroneCAN_message_sender, send_response_message_has_error_on_canardRequestOr
     mock().ignoreOtherCalls();
 
     uavcan_protocol_param_GetSetResponse param_response;
-    message_sender.send_response_message(param_response);
+    const uint8_t DESTINATION_NODE_ID = 22;
+    message_sender.send_response_message(param_response, DESTINATION_NODE_ID);
 
     CHECK_FALSE(message_sender.is_healthy());
 }
@@ -133,7 +134,9 @@ TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
           .andReturnValue((void*)&message_data);
 
     const uint16_t FRAMES_TO_TRANSFER = 9;
+    const uint8_t DESTINATION_NODE_ID = 22;
     mock().expectOneCall("canard->send_response")
+          .withUnsignedIntParameter("destination_node_id", DESTINATION_NODE_ID)
           .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
           .withParameterOfType("canard_message_data_t", "data", (const void*)&message_data)
           .andReturnValue(FRAMES_TO_TRANSFER);
@@ -141,7 +144,7 @@ TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
     CHECK_frames_are_sent_with_CAN_bus(FRAMES_TO_TRANSFER);
 
     uavcan_protocol_param_GetSetResponse param_response;
-    message_sender->send_response_message(param_response);
+    message_sender->send_response_message(param_response, DESTINATION_NODE_ID);
 }
 
 void CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(canard_message_type_info_t& type_info, canard_message_data_t& message_data)

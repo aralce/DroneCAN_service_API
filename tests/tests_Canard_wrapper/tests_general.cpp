@@ -37,7 +37,7 @@ TEST(Canard_wrapper, set_node_ID)
 }
 
     canard_message_type_info_t message_type_info = {.signature = 4,
-                                                    .id = 9999,
+                                                    .id = 99,
                                                     .priority = CANARD_TRANSFER_PRIORITY_MEDIUM};
     uint8_t data[8] = {0, 1, 2, 3, 4, 5, 6, 7};
     canard_message_data_t message_data = {.ptr = data, .length = 8};
@@ -61,7 +61,17 @@ TEST(Canard_wrapper, send_response)
 {
     Canard canard = get_canard_instance();
 
-    mock().expectOneCall("canard")
+    uint8_t DESTINATION_NODE_ID = 40;
+    mock().expectOneCall("canardRequestOrRespond")
+          .withUnsignedIntParameter("destination_node_id", DESTINATION_NODE_ID)
+          .withUnsignedLongLongIntParameter("data_type_signature", message_type_info.signature)
+          .withUnsignedIntParameter("data_type_id", message_type_info.id)
+          .withUnsignedIntParameter("priority", message_type_info.priority)
+          .withPointerParameter("payload", (void*)message_data.ptr)
+          .withUnsignedIntParameter("payload_len", message_data.length)
+          .andReturnValue(RETURN_VALUE);
+    
+    canard.send_response(DESTINATION_NODE_ID, message_type_info, message_data);
 }
 
 TEST(Canard_wrapper, peekTxQueue)

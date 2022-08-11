@@ -184,7 +184,7 @@ inline int16_t canardBroadcast(CanardInstance* ins, uint64_t data_type_signature
     return mock().returnIntValueOrDefault(0);
 }
 
-int16_t canardRequestOrRespond(CanardInstance* ins, uint8_t destination_node_id, uint64_t data_type_signature, uint8_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, CanardRequestResponse kind, const void* payload, uint16_t payload_lens) {
+inline int16_t canardRequestOrRespond(CanardInstance* ins, uint8_t destination_node_id, uint64_t data_type_signature, uint8_t data_type_id, uint8_t* inout_transfer_id, uint8_t priority, CanardRequestResponse kind, const void* payload, uint16_t payload_lens) {
     mock().actualCall("canardRequestOrRespond")
           .withUnsignedIntParameter("destination_node_id", destination_node_id)
           .withUnsignedLongLongIntParameter("data_type_signature", data_type_signature)

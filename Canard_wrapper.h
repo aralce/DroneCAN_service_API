@@ -52,6 +52,18 @@ public:
                                data.length);
     }
 
+    int16_t send_response(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data) {
+        return canardRequestOrRespond(&canard_instance,
+                                      destination_node_id,
+                                      type_info.signature,
+                                      type_info.id,
+                                      &canard_transferID,
+                                      type_info.priority,
+                                      CanardResponse,
+                                      data.ptr,
+                                      data.length);
+    }
+
     const CanardCANFrame* peekTxQueue() {
         const CanardCANFrame* frame_to_send = canardPeekTxQueue((const CanardInstance*)&canard_instance);
         return frame_to_send;
