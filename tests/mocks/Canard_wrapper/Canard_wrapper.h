@@ -2,6 +2,7 @@
 #include "common_to_all_mocks.h"
 #include <canard.h>
 
+
 typedef struct {
     uint64_t signature;
     uint16_t id;
@@ -19,6 +20,12 @@ public:
 
     void init() {
         mock().actualCall("canard->init");
+    }
+
+    void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance) {
+        mock().actualCall("canard->init_with_reception_handler")
+              .withPointerParameter("handle_reception", (void*)handle_reception)
+              .withPointerParameter("handle_acceptance", (void*)handle_acceptance);
     }
 
     void set_node_ID(uint8_t self_node_id) {

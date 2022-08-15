@@ -1,4 +1,5 @@
 #include <common_to_DroneCAN_service_tests.h>
+#include <DroneCAN_reception_functions.h>
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls()
 {
@@ -28,11 +29,13 @@ TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_
     DroneCAN_service droneCAN_service;
 }
 
-TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized)
+TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized_with_reception_functions)
 {
-    mock().expectOneCall("canard->init");
+    mock().expectOneCall("canard->init_with_reception_handler")
+          .withPointerParameter("handle_reception", (void*)handle_received_droneCAN_message)
+          .withPointerParameter("handle_acceptance", (void*)should_accept_droneCAN_message);
     mock().ignoreOtherCalls();
-    DroneCAN_service dronceCAN_service;
+    Spied_droneCAN_service spied_dronceCAN_service;
 }
 
 TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_default_ID) {

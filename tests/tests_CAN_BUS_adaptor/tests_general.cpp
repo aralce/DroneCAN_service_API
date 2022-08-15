@@ -91,3 +91,34 @@ TEST(CAN_bus_adaptor, send_can_frame_fails_on_write_function)
     can_frame.data_len = CAN_FRAME_SIZE;
     CHECK_FALSE(can.send_frame(can_frame));
 }
+
+typedef void (*onReceive_callback)(int packet_size);
+void onReceive_callback_dummy(int) {}
+
+TEST(CAN_bus_adaptor, register_an_on_receive_callback_function)
+{
+    CAN_bus_adaptor can;
+
+    onReceive_callback callback = onReceive_callback_dummy;
+
+    mock().expectOneCall("can_class->onReceive")
+          .withPointerParameter("onReceive_callback", (void*)callback);
+    can.onReceive(callback);
+}
+
+TEST(CAN_bus_adaptor, read_from_can)
+{
+    CAN_bus_adaptor can;
+
+    uint8_t packet_bytes[8] = {1, 2, 3, 4, 5, 6, 7, 8};
+    
+    for (int bytes = 0; bytes < 8; ++bytes) {
+        mock().expectOneCall("can_class->read")
+              .andReturnValue(packet_bytes[bytes]);
+        can.read();
+    }
+
+    mock().expectOneCall("can_class->read")
+          .andReturnValue(-1);
+    can.read();
+}

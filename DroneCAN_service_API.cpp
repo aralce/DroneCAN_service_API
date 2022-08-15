@@ -1,4 +1,5 @@
 #include "DroneCAN_service_API.h"
+#include <DroneCAN_reception_functions.h>
 #include <cstring>
 
 void DUMMY_error_handler(DroneCAN_error error) {}
@@ -10,7 +11,7 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
     
     message_sender = new DroneCAN_message_sender(canard, can_driver, _handle_error);
 
-    canard.init();
+    canard.init(handle_received_droneCAN_message, should_accept_droneCAN_message);
     canard.set_node_ID(node_ID);
     
     try_initialize_CAN_bus_driver();
@@ -50,29 +51,29 @@ bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_ti
         return false;
 }
 
-// void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
-//     if (number_of_parameters < MAX_NUMBER_OF_PARAMETERS) {
-//         ++number_of_parameters;
-//         parameter_list.push_back(parameter);
-//     }
-// }
+void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
+    if (number_of_parameters < MAX_NUMBER_OF_PARAMETERS) {
+        ++number_of_parameters;
+        parameter_list.push_back(parameter);
+    }
+}
 
-// void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
-//     if (number_of_parameters != 0) {
-//         --number_of_parameters;
-//         auto iterator = parameter_list.begin();
-//         std::advance(iterator, parameter_index_from_0);
-//         parameter_list.erase(iterator);
-//     }
-// }
+void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
+    if (number_of_parameters != 0) {
+        --number_of_parameters;
+        auto iterator = parameter_list.begin();
+        std::advance(iterator, parameter_index_from_0);
+        parameter_list.erase(iterator);
+    }
+}
 
-// uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
-//     if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
-//         uavcan_parameter invalid_param;
-//         strcpy((char*)invalid_param.name.data, "INVALID");
-//         return invalid_param;
-//     }
-//     auto iterator = parameter_list.begin();
-//     std::advance(iterator, parameter_index_from_0);
-//     return *iterator;
-// }
+uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
+    if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
+        uavcan_parameter invalid_param;
+        strcpy((char*)invalid_param.name.data, "INVALID");
+        return invalid_param;
+    }
+    auto iterator = parameter_list.begin();
+    std::advance(iterator, parameter_index_from_0);
+    return *iterator;
+}

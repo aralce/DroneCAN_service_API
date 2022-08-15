@@ -33,6 +33,17 @@ public:
         mock().actualCall("can_class->endPacket");
         return mock().returnBoolValueOrDefault(true);
     }
+
+    void onReceive(void (*onReceive_callback)(int)) {
+        mock().actualCall("can_class->onReceive")
+              .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
+    }
+
+    int read() {
+        mock().actualCall("can_class->read");
+        return mock().returnIntValueOrDefault(0);
+    }
+
 };
 
 extern CAN_class CAN;

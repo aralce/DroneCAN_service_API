@@ -1,7 +1,7 @@
 #include <common_to_DroneCAN_service_tests.h>
 #include <DroneCAN_message_sender.h>
 
-TEST_GROUP(DroneCAN_service_API_publish)
+TEST_GROUP(DroneCAN_service_API)
 {
     void teardown()
     {
@@ -10,7 +10,7 @@ TEST_GROUP(DroneCAN_service_API_publish)
     }
 };
 
-TEST(DroneCAN_service_API_publish, publish_batteryInfo_message)
+TEST(DroneCAN_service_API, publish_batteryInfo_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
@@ -21,7 +21,7 @@ TEST(DroneCAN_service_API_publish, publish_batteryInfo_message)
     droneCAN_service.publish_message(battery_info);
 }
 
-TEST(DroneCAN_service_API_publish, publish_node_status_message)
+TEST(DroneCAN_service_API, publish_node_status_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 

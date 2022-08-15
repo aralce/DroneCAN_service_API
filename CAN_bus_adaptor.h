@@ -23,6 +23,14 @@ public:
         return is_success;
     }
 
+    void onReceive(void (*onReceive_callback)(int packet_size)) {
+        CAN.onReceive(onReceive_callback);
+    }
+
+    int read() {
+        return CAN.read();
+    }
+
 private:
     bool try_CAN_write(const uint8_t* buffer, size_t size) {
         size_t bytes_written = CAN.write(buffer, size);
