@@ -1,7 +1,6 @@
 #include <common_to_all_tests.h>
+#include <common_to_DroneCAN_service_tests.h>
 #include <auxiliary_functions.h>
-#include "../common_to_publish_message/common_to_publish_message.h"
-#include "common_to_paramGetSet/common_to_paramGetSet.h"
 
 TEST_GROUP(DroneCAN_service_paramGetSet_publish)
 {
@@ -16,7 +15,6 @@ TEST_GROUP(DroneCAN_service_paramGetSet_publish)
     }
     void teardown()
     {
-        teardown_paramGetSet_tests();
         mock().removeAllComparatorsAndCopiers();
     }
 };

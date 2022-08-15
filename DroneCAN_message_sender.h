@@ -10,7 +10,7 @@
 #else
     #include "Canard_wrapper.h"
     #include "CAN_bus_adaptor.h"
-    #include "Canard_wrapper.h"
+    #include "DSDL_to_canard_DTO.h"
 #endif
 #include "DroneCAN_service_configuration.h"
 
@@ -27,8 +27,6 @@ public:
 
     bool is_healthy() const {return _is_healthy;}
     
-    void broadcast_message(DSDL_to_canard_DTO& data_transfer_object);
-
     template <typename UAVCAN_MESSAGE>
     void broadcast_message(UAVCAN_MESSAGE& uavcan_message) {
         DSDL_to_canard_DTO data_transfer_object(uavcan_message);
@@ -49,6 +47,8 @@ private:
     void try_send_response_message_with_canard(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data);
     void try_send_CAN_bus_frame(CanardCANFrame& frame);
     void send_pending_CAN_frames();
+
+    void broadcast_message(DSDL_to_canard_DTO& data_transfer_object);
 };
 
 #endif

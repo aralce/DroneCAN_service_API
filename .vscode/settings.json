@@ -17,7 +17,10 @@
         "utility": "cpp",
         "uavcan.protocol.param.numericvalue.h": "c",
         "cstdint": "cpp",
-        "new": "cpp"
+        "new": "cpp",
+        "istream": "cpp",
+        "numeric": "cpp",
+        "ostream": "cpp"
     },
     "cSpell.words": [
         "BATTERYINFO",

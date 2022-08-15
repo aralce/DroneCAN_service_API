@@ -7,4 +7,6 @@ public:
       : DroneCAN_service(node_ID, handle_error) {}
 
     droneCAN_handle_error_t get_pointer_to_handle_error_function() {return _handle_error;}
+
+    uavcan_protocol_NodeStatus* spy_node_status_struct() {return &nodeStatus_struct;}
 };
