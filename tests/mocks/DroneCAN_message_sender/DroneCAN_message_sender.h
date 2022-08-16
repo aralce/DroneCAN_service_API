@@ -30,10 +30,11 @@ public:
               .withPointerParameter("uavcan_message", (void*)&uavcan_message);
     }
 
-    // void send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id) {
-    //     mock().actualCall("DroneCAN_message_sender->send_response_message")
-    //           .withParameter("param_response", (const void*)&param_response);
-    // }
+    void send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id) {
+        mock().actualCall("DroneCAN_message_sender->send_response_message")
+              .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void *)&param_response)
+              .withUnsignedIntParameter("destination_node_id", destination_node_id);
+    }
 };
 
 #endif // DRONECAN_SERVICE_BASE_H_

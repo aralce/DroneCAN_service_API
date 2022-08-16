@@ -85,6 +85,58 @@ typedef struct CanardRxTransfer CanardRxTransfer;
 typedef struct CanardRxState CanardRxState;
 typedef struct CanardTxQueueItem CanardTxQueueItem;
 
+struct CanardRxTransfer
+{
+    /**
+     * Timestamp at which the first frame of this transfer was received.
+     */
+    uint64_t timestamp_usec;
+
+    /**
+     * Payload is scattered across three storages:
+     *  - Head points to CanardRxState.buffer_head (length of which is up to CANARD_PAYLOAD_HEAD_SIZE), or to the
+     *    payload field (possibly with offset) of the last received CAN frame.
+     *
+     *  - Middle is located in the linked list of dynamic blocks (only for multi-frame transfers).
+     *
+     *  - Tail points to the payload field (possibly with offset) of the last received CAN frame
+     *    (only for multi-frame transfers).
+     *
+     * The tail offset depends on how much data of the last frame was accommodated in the last allocated block.
+     *
+     * For single-frame transfers, middle and tail will be NULL, and the head will point at first byte
+     * of the payload of the CAN frame.
+     *
+     * In simple cases it should be possible to get data directly from the head and/or tail pointers.
+     * Otherwise it is advised to use canardDecodeScalar().
+     */
+    const uint8_t* payload_head;            ///< Always valid, i.e. not NULL.
+                                            ///< For multi frame transfers, the maximum size is defined in the constant
+                                            ///< CANARD_MULTIFRAME_RX_PAYLOAD_HEAD_SIZE.
+                                            ///< For single-frame transfers, the size is defined in the
+                                            ///< field payload_len.
+    uint8_t* payload_middle;      ///< May be NULL if the buffer was not needed. Always NULL for single-frame
+                                            ///< transfers.
+    const uint8_t* payload_tail;            ///< Last bytes of multi-frame transfers. Always NULL for single-frame
+                                            ///< transfers.
+    uint16_t payload_len;                   ///< Effective length of the payload in bytes.
+
+    /**
+     * These fields identify the transfer for the application.
+     */
+    uint16_t data_type_id;                  ///< 0 to 255 for services, 0 to 65535 for messages
+    uint8_t transfer_type;                  ///< See CanardTransferType
+    uint8_t transfer_id;                    ///< 0 to 31
+    uint8_t priority;                       ///< 0 to 31
+    uint8_t source_node_id;                 ///< 1 to 127, or 0 if the source is anonymous
+#if CANARD_ENABLE_TAO_OPTION
+    bool tao;
+#endif
+#if CANARD_ENABLE_CANFD
+    bool canfd;                             ///< frame canfd
+#endif
+};
+
 /**
  * The application must implement this function and supply a pointer to it to the library during initialization.
  * The library calls this function to determine whether the transfer should be received.

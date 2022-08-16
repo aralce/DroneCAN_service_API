@@ -1,14 +1,29 @@
 #include "DroneCAN_service_API.h"
+#include <uavcan.protocol.param.GetSet_req.h>
 #include <cstring>
 
 void DUMMY_error_handler(DroneCAN_error error) {}
 
+typedef struct{
+    CanardInstance *instance;
+    CanardRxTransfer *rx_transfer;
+}canard_reception_t;
+canard_reception_t canard_reception;
+bool is_there_canard_message_to_handle = false;
 void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
-
+    canard_reception.instance = ins;
+    canard_reception.rx_transfer = transfer;
+    is_there_canard_message_to_handle = true;
 }
 
 bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {
-    return false;
+    switch(data_type_id) {
+        case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
+            *out_data_type_signature = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_SIGNATURE;
+            return true;
+        default:
+            return false;
+    }
 }
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
@@ -52,6 +67,7 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
         message_sender->broadcast_message(*battery_info);
     }
 
+    //TODO: extract to function
     if (is_can_data_to_read) {
         CanardCANFrame canard_frame;
         canard_frame.id = can_driver.get_packet_id();
@@ -62,6 +78,19 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
 
         uint64_t actual_time_in_microseconds = 1000*(uint64_t)actual_time;
         try_handle_rx_frame_with_canard(canard_frame, actual_time_in_microseconds);
+        
+        is_can_data_to_read = false;
+    }
+
+    //TODO: extract to function
+    if (is_there_canard_message_to_handle) {
+        uavcan_protocol_param_GetSetRequest paramGetSet_request;
+        uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
+        
+        uavcan_parameter parameter_to_send = get_parameter(paramGetSet_request.index);
+        message_sender->send_response_message(parameter_to_send, canard_reception.rx_transfer->source_node_id);
+
+        is_there_canard_message_to_handle = false;
     }
 }
 
