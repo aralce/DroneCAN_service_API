@@ -1,8 +1,15 @@
 #include "DroneCAN_service_API.h"
-#include <DroneCAN_reception_functions.h>
 #include <cstring>
 
 void DUMMY_error_handler(DroneCAN_error error) {}
+
+void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
+
+}
+
+bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {
+    return false;
+}
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
     nodeStatus_struct.vendor_specific_status_code = NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE;
@@ -11,7 +18,7 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
     
     message_sender = new DroneCAN_message_sender(canard, can_driver, _handle_error);
 
-    canard.init(handle_received_droneCAN_message, should_accept_droneCAN_message);
+    canard.init(handle_canard_reception, should_accept_canard_reception);
     canard.set_node_ID(node_ID);
     
     try_initialize_CAN_bus_driver();
@@ -22,11 +29,15 @@ void execute_error_handler(droneCAN_handle_error_t handler, DroneCAN_error error
         handler(error_to_send);
 }
 
+bool is_can_data_to_read = false;
+void onReceive_on_can_bus(int packet_size) {is_can_data_to_read = true;}
+
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
     _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
+    can_driver.onReceive(onReceive_on_can_bus);
 }
 
 bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions);
@@ -40,6 +51,18 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
         uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
         message_sender->broadcast_message(*battery_info);
     }
+
+    if (is_can_data_to_read) {
+        CanardCANFrame canard_frame;
+        canard_frame.id = can_driver.get_packet_id();
+        
+        canard_frame.data_len = 8;
+        for (int byte = 0; byte < canard_frame.data_len; ++byte)
+            canard_frame.data[byte] = can_driver.read();
+
+        uint64_t actual_time_in_microseconds = 1000*(uint64_t)actual_time;
+        try_handle_rx_frame_with_canard(canard_frame, actual_time_in_microseconds);
+    }
 }
 
 bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions) {
@@ -49,6 +72,11 @@ bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_ti
         return true;
     }else
         return false;
+}
+
+void DroneCAN_service::try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec) {
+    if (canard.handle_rx_frame(frame, timestamp_usec) < 0)
+        _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
 }
 
 void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
