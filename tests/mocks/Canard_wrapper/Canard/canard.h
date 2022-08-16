@@ -203,3 +203,10 @@ inline const CanardCANFrame* canardPeekTxQueue(const CanardInstance* ins) {
 inline void canardPopTxQueue(CanardInstance* ins) {
     mock().actualCall("canardPopTxQueue");
 }
+
+inline int16_t canardHandleRxFrame(CanardInstance* ins, CanardCANFrame* frame, uint64_t timestamp_usec) {
+    mock().actualCall("canardHandleRxFrame")
+          .withPointerParameter("frame", (void*)frame)
+          .withUnsignedLongLongIntParameter("timestamp_usec", timestamp_usec);
+    return mock().returnIntValueOrDefault(0);
+}

@@ -14,9 +14,11 @@
 #endif
 #include "DroneCAN_service_configuration.h"
 
+//TODO: move this somewhere
 enum class DroneCAN_error{
     ON_INITIALIZATION,
     FAIL_ON_PUBLISH,
+    FAIL_ON_RECEPTION
 };
 
 typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);

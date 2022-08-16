@@ -16,51 +16,31 @@ typedef struct {
 
 class Canard {
 public:
-    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {}
+    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message);
 
-    void init() {
-        mock().actualCall("canard->init");
-    }
+    void init();
 
-    void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance) {
-        mock().actualCall("canard->init_with_reception_handler")
-              .withPointerParameter("handle_reception", (void*)handle_reception)
-              .withPointerParameter("handle_acceptance", (void*)handle_acceptance);
-    }
+    void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance);
+    static CanardOnTransferReception spy_handle_reception_function_pointer();
+    static CanardShouldAcceptTransfer spy_handle_acceptance_function_pointer();
 
-    void set_node_ID(uint8_t self_node_id) {
-        mock().actualCall("canard->set_node_ID")
-              .withUnsignedIntParameter("self_node_id", self_node_id);
-    }
+    void set_node_ID(uint8_t self_node_id);
       
-    int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        mock().actualCall("canard->broadcast")
-              .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
-              .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
-        return mock().returnIntValueOrDefault(0);
-    }
+    int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data);
 
-    int16_t send_response(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data) {
-        mock().actualCall("canard->send_response")
-              .withUnsignedIntParameter("destination_node_id", destination_node_id)
-              .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
-              .withParameterOfType("canard_message_data_t", "data", (const void*)&data);
-        return mock().returnIntValueOrDefault(0);
-    }
+    int16_t send_response(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data);
 
-    const CanardCANFrame* peekTxQueue() {
-        mock().actualCall("canard->peekTxQueue");
-        return (CanardCANFrame*)mock().returnPointerValueOrDefault(nullptr);     
-    }
+    const CanardCANFrame* peekTxQueue();
 
-    void popTxQueue() {
-        mock().actualCall("canard->popTxQueue");
-    }
+    void popTxQueue();
 
-    bool is_txQueue_empty() {
-        mock().actualCall("canard->is_txQueue_empty");
-        return mock().returnBoolValueOrDefault(true);              
-    }
+    bool is_txQueue_empty();
+
+    int16_t handle_rx_frame(const CanardCANFrame& frame, uint64_t timestamp_usec);
+
+private:
+    static CanardOnTransferReception on_reception_ptr;
+    static CanardShouldAcceptTransfer should_accept_ptr;
 };
 
 class Canard_message_type_info_t_comparator : public MockNamedValueComparator

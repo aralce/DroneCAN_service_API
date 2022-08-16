@@ -122,3 +122,13 @@ TEST(CAN_bus_adaptor, read_from_can)
           .andReturnValue(-1);
     can.read();
 }
+
+TEST(CAN_bus_adaptor, get_packet_id) {
+    CAN_bus_adaptor can;
+
+    long PACKET_ID = 99;
+    mock().expectOneCall("can_class->packetId")
+          .andReturnValue(PACKET_ID);
+    
+    CHECK_EQUAL(PACKET_ID, can.get_packet_id());
+}

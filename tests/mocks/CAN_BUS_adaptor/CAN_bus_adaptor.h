@@ -36,6 +36,21 @@ public:
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
+    void onReceive(void (*onReceive_callback)(int packet_size)) {
+        mock().actualCall("CAN_bus_adaptor->onReceive")
+              .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
+    }
+
+    int read() {
+        mock().actualCall("CAN_bus_adaptor->read");
+        return mock().returnIntValueOrDefault(0);
+    }
+
+    long get_packet_id() {
+        mock().actualCall("CAN_bus_adaptor->get_packet_id");
+        return mock().returnLongIntValueOrDefault(0);
+    }
+
 private:
     const int SUCCESS = true;
 };

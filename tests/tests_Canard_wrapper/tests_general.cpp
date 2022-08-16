@@ -113,3 +113,19 @@ TEST(Canard_wrapper, is_txQueue_empty_returns_the_queue_is_empty)
 
     CHECK_TRUE(canard.is_txQueue_empty());
 }
+
+TEST(Canard_wrapper, handle_rx_frame)
+{
+    Canard canard = get_canard_instance();
+
+    CanardCANFrame canard_frame{};
+    uint64_t TIMESTAMP_MICROSECONDS = 10000;
+    int16_t ERROR_CODE = -99;
+    mock().expectOneCall("canardHandleRxFrame")
+          .withPointerParameter("frame", (void*)&canard_frame)
+          .withUnsignedLongLongIntParameter("timestamp_usec", TIMESTAMP_MICROSECONDS)
+          .andReturnValue(ERROR_CODE);
+
+    int16_t returned_value = canard.handle_rx_frame(canard_frame, TIMESTAMP_MICROSECONDS);
+    CHECK_EQUAL(ERROR_CODE, returned_value);
+}

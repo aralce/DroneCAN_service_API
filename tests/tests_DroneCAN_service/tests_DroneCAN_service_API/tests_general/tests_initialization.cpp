@@ -1,5 +1,4 @@
 #include <common_to_DroneCAN_service_tests.h>
-#include <DroneCAN_reception_functions.h>
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls()
 {
@@ -29,11 +28,13 @@ TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_
     DroneCAN_service droneCAN_service;
 }
 
+extern void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer);
+extern bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id);
 TEST(DroneCAN_service_initialization, on_initialization_libcanard_is_initialized_with_reception_functions)
 {
     mock().expectOneCall("canard->init_with_reception_handler")
-          .withPointerParameter("handle_reception", (void*)handle_received_droneCAN_message)
-          .withPointerParameter("handle_acceptance", (void*)should_accept_droneCAN_message);
+          .withPointerParameter("handle_reception", (void*)handle_canard_reception)
+          .withPointerParameter("handle_acceptance", (void*)should_accept_canard_reception);
     mock().ignoreOtherCalls();
     Spied_droneCAN_service spied_dronceCAN_service;
 }
@@ -56,15 +57,19 @@ TEST(DroneCAN_service_initialization, node_ID_is_provided) {
     CHECK_EQUAL(NODE_ID, droneCAN_service.get_node_ID());
 }
 
+extern void onReceive_on_can_bus(int packet_size);
 TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
 {
+    mock().expectOneCall("CAN_bus_adaptor->setPins").withParameter("rx", CAN_BUS_CRX_PIN)
+          .withParameter("tx", CAN_BUS_CTX_PIN);
+    
     mock().expectOneCall("CAN_bus_adaptor->begin")
           .withParameter("baudRate", CAN_BUS_BAUDRATE)
-          .andReturnValue(INITIALIZATION_SUCCESSFUL);   
+          .andReturnValue(INITIALIZATION_SUCCESSFUL);
     
-    mock().expectOneCall("CAN_bus_adaptor->setPins").withParameter("rx", CAN_BUS_CRX_PIN)
-          .withParameter("tx", CAN_BUS_CTX_PIN);   
-    
+    mock().expectOneCall("CAN_bus_adaptor->onReceive")
+          .withPointerParameter("onReceive_callback", (void*)onReceive_on_can_bus);
+
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
 

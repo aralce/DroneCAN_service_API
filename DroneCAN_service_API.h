@@ -61,6 +61,7 @@ private:
     std::list<uavcan_parameter> parameter_list{};
 
     void try_initialize_CAN_bus_driver();
+    void try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec);
 };
 
 #endif

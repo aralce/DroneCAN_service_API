@@ -44,6 +44,11 @@ public:
         return mock().returnIntValueOrDefault(0);
     }
 
+    long packetId() {
+        mock().actualCall("can_class->packetId");
+        return mock().returnLongIntValueOrDefault(0);
+    }
+
 };
 
 extern CAN_class CAN;

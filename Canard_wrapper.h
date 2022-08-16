@@ -79,6 +79,10 @@ public:
         return false;
     }
 
+    int16_t handle_rx_frame(CanardCANFrame& frame, uint64_t timestamp_usec) {
+        return canardHandleRxFrame(&canard_instance, &frame, timestamp_usec);
+    }
+
 private:
     CanardInstance canard_instance;
     uint8_t* canard_buffer;

@@ -31,6 +31,8 @@ public:
         return CAN.read();
     }
 
+    long get_packet_id() {return CAN.packetId();}
+
 private:
     bool try_CAN_write(const uint8_t* buffer, size_t size) {
         size_t bytes_written = CAN.write(buffer, size);
