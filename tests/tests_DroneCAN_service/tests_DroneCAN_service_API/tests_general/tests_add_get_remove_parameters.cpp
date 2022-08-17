@@ -36,7 +36,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, try_to_remove_a_parameter_when_num
     CHECK_EQUAL(0, droneCAN_service->get_number_of_parameters());
 }
 
-void add_generic_parameter();
+void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type = UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
 
 TEST(DroneCAN_service_paramGetSet_parameters, when_a_parameter_is_added_then_the_number_of_parameters_is_increased)
 {
@@ -62,15 +62,6 @@ TEST(DroneCAN_service_paramGetSet_parameters, add_more_parameters_than_the_MAX_N
     for (uint8_t parameter = 0; parameter < MAX_NUMBER_OF_PARAMETERS + 1; ++parameter)
         add_generic_parameter();
     CHECK_EQUAL(MAX_NUMBER_OF_PARAMETERS, droneCAN_service->get_number_of_parameters());
-}
-
-void add_generic_parameter()
-{
-    uavcan_parameter parameter_to_add{};
-    strcpy((char*)parameter_to_add.name.data, "parameter_to_add");
-    parameter_to_add.name.len = strlen((const char*)parameter_to_add.name.data);
-    
-    droneCAN_service->add_parameter(parameter_to_add);
 }
 
 TEST(DroneCAN_service_paramGetSet_parameters, get_parameter)
@@ -105,7 +96,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, get_parameter)
 TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_when_droneCAN_service_has_no_parameter_returns_a_parameter_with_name_INVALID)
 {
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(0);
-    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
+    STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (const char*)parameter_returned.name.data);
 }
 
 TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_outside_bounds_returns_a_parameter_with_name_INVALID)
@@ -116,7 +107,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_outside_bounds_retur
     
     const int BEYOND_LAST_INDEX = PARAMETERS_ADDED;
     uavcan_parameter parameter_returned = droneCAN_service->get_parameter(BEYOND_LAST_INDEX);
-    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
+    STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (const char*)parameter_returned.name.data);
 }
 
 TEST(DroneCAN_service_paramGetSet_parameters, get_N_parameters)
@@ -135,5 +126,72 @@ TEST(DroneCAN_service_paramGetSet_parameters, after_add_1_and_remove_1_parameter
     droneCAN_service->remove_parameter(0);
 
     uavcan_parameter parameter_returned =  droneCAN_service->get_parameter(0);
-    STRCMP_EQUAL("INVALID", (const char*)parameter_returned.name.data);
+    STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (const char*)parameter_returned.name.data);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_invalid_parameter_returns_false)
+{
+    const uint8_t PARAMETER_INDEX = 1;
+    const uint16_t NEW_VALUE = 0;
+    CHECK_FALSE(droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE));
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_a_valid_parameter_returns_true)
+{
+    add_generic_parameter();
+    const uint8_t PARAMETER_INDEX = 0;
+    const uint16_t NEW_VALUE = 0;
+    CHECK_TRUE(droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE));
+}
+
+const uint8_t PARAMETER_INDEX = 0;
+void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index);
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_uint16_t_parameter)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE, PARAMETER_INDEX);
+
+    uint16_t NEW_VALUE = 987;
+    droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.integer_value);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_bool_parameter)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE, PARAMETER_INDEX);
+
+    bool NEW_VALUE = true;
+    droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.boolean_value);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_float_parameter)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE, PARAMETER_INDEX);
+
+    float NEW_VALUE = true;
+    droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.real_value);
+}
+
+void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index)
+{
+    add_generic_parameter(value_type);
+    uavcan_parameter parameter_added = droneCAN_service->get_parameter(parameter_index);
+    CHECK_EQUAL(value_type, parameter_added.value.union_tag);
+    uint16_t OLD_VALUE = 0;
+    CHECK_EQUAL(OLD_VALUE, parameter_added.value.integer_value);
+}
+
+void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type)
+{
+    uavcan_parameter parameter_to_add{};
+    strcpy((char*)parameter_to_add.name.data, "parameter_to_add");
+    parameter_to_add.name.len = strlen((const char*)parameter_to_add.name.data);
+    parameter_to_add.value.union_tag = value_type;
+    
+    droneCAN_service->add_parameter(parameter_to_add);
 }

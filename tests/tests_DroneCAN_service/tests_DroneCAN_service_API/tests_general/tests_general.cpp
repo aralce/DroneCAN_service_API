@@ -135,20 +135,16 @@ TEST(DroneCAN_service_API_general, received_message_is_handled_on_canard_recepti
     POINTERS_EQUAL(&canard_instance, canard_reception.instance);
 }
 
+void set_handle_canard_reception_for_paramGetSet_message();
+
 TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_parameter) {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     uavcan_parameter system_parameter{};
-    strcpy((char*)system_parameter.name.data,"system parameter");
+    strcpy((char*)system_parameter.name.data,"valid system parameter");
     system_parameter.name.len = strlen((char*)system_parameter.name.data);
     droneCAN_service.add_parameter(system_parameter);
 
-    CanardInstance canard_instance;
-    CanardRxTransfer rx_transfer;
-    rx_transfer.data_type_id = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID;
-    rx_transfer.source_node_id = 20;
-    handle_canard_reception(&canard_instance, &rx_transfer);
-
-    CHECK_TRUE(is_there_canard_message_to_handle);
+    set_handle_canard_reception_for_paramGetSet_message();
     
     uavcan_protocol_param_GetSetRequest paramGetSet_request{};
     paramGetSet_request.name.len = 0;
@@ -169,4 +165,33 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_p
     CHECK_FALSE(is_there_canard_message_to_handle);
 }
 
-TEST(DroneCAN_service_API_general)
+TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid_parameter)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    set_handle_canard_reception_for_paramGetSet_message();
+
+    uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+    paramGetSet_request.index = 2;
+    mock().expectOneCall("uavcan_protocol_param_GetSetRequest_decode")
+          .withPointerParameter("transfer", (void*)canard_reception.rx_transfer)
+          .withOutputParameterReturning("msg", (const void*)&paramGetSet_request, sizeof(paramGetSet_request));
+
+    uavcan_parameter parameter_returned = droneCAN_service.get_parameter(paramGetSet_request.index);
+    STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (char*)parameter_returned.name.data);
+
+    milliseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+    CHECK_FALSE(is_there_canard_message_to_handle);
+}
+
+void set_handle_canard_reception_for_paramGetSet_message()
+{
+    static CanardInstance canard_instance{};
+    static CanardRxTransfer rx_transfer{};
+    rx_transfer.data_type_id = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID;
+    rx_transfer.source_node_id = 20;
+    handle_canard_reception(&canard_instance, &rx_transfer);
+    CHECK_TRUE(is_there_canard_message_to_handle);
+}

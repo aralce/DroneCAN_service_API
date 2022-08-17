@@ -31,6 +31,9 @@ public:
     void add_parameter(uavcan_parameter& parameter);
     void remove_parameter(uint8_t parameter_index_from_0);
     uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
+    bool set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set);
+    bool set_parameter_value(uint8_t parameter_index_from_0, uint16_t value_to_set);
+    bool set_parameter_value(uint8_t parameter_index_from_0, float value_to_set);
     //
 
     bool is_healthy() {return _is_healthy;}
@@ -61,7 +64,11 @@ private:
     std::list<uavcan_parameter> parameter_list{};
 
     void try_initialize_CAN_bus_driver();
+    void read_can_bus_data_when_is_available(milliseconds actual_time);
     void try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec);
+
+    template <typename PARAM_VALUE_TYPE>
+    bool set_generic_parameter_value(uint8_t parameter_index_from_0, PARAM_VALUE_TYPE value_to_set);
 };
 
 #endif
