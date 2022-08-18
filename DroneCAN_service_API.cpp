@@ -105,9 +105,14 @@ void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_messag
         uavcan_protocol_param_GetSetRequest paramGetSet_request;
         uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
         
-        droneCAN_service->set_parameter_value(paramGetSet_request.index, (int32_t)paramGetSet_request.value.integer_value);
+        uavcan_parameter parameter_to_send;
+        if (paramGetSet_request.name.len == 0)
+            parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
+        else {
+            droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (int32_t)paramGetSet_request.value.integer_value);
+            parameter_to_send = droneCAN_service->get_parameter_by_name((char*)paramGetSet_request.name.data);
+        }
         
-        uavcan_parameter parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
         if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
             message_sender->send_response_message(parameter_to_send, canard_reception.rx_transfer->source_node_id);
 
@@ -152,6 +157,31 @@ uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
     auto iterator = parameter_list.begin();
     std::advance(iterator, parameter_index_from_0);
     return *iterator;
+}
+
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_to_set) {
+    return set_generic_parameter_value_by_name(name, value_to_set);
+}
+
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, int32_t value_to_set) {
+    return set_generic_parameter_value_by_name(name, value_to_set);
+}
+
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, float value_to_set) {
+    return set_generic_parameter_value_by_name(name, value_to_set);
+}
+
+template <typename PARAM_VALUE_TYPE>
+bool DroneCAN_service::set_generic_parameter_value_by_name(const char* name, PARAM_VALUE_TYPE value_to_set) {
+    auto iterator = parameter_list.begin();
+    while (iterator != parameter_list.end()) {
+        if (strcmp((char*)iterator->name.data, name) == 0) {
+            iterator->value = package_uavcan_param_value(value_to_set);
+            return true;
+        }
+        ++iterator;
+    }
+    return false;
 }
 
 bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set) {

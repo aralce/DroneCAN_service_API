@@ -208,6 +208,59 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_float_parameter
     CHECK_EQUAL(NEW_VALUE, parameter_changed.value.real_value);
 }
 
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_returns_true_on_success)
+{
+    add_generic_parameter();
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    const uint16_t NEW_VALUE = 0;
+    CHECK_TRUE(droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, NEW_VALUE));
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_returns_false_on_invalid_parameter)
+{
+    add_generic_parameter();
+    const char PARAMETER_NAME[] = "this parameter does not exist";
+    const uint16_t NEW_VALUE = 0;
+    CHECK_FALSE(droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, NEW_VALUE));
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_for_an_bool_value)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE, PARAMETER_INDEX);
+
+    bool NEW_VALUE = 20;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, NEW_VALUE);
+    
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE, parameter_changed.value.union_tag);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.integer_value);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_for_an_int32_t_value)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE, PARAMETER_INDEX);
+
+    int32_t NEW_VALUE = 20;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, NEW_VALUE);
+    
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.integer_value);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_for_an_float_value)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE, PARAMETER_INDEX);
+
+    float NEW_VALUE = 20;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, NEW_VALUE);
+    
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.real_value);
+}
+
 void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index)
 {
     add_generic_parameter(value_type);

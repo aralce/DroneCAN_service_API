@@ -35,6 +35,9 @@ public:
     uavcan_parameter get_parameter_by_name(const char* name);
     uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
     
+    bool set_parameter_value_by_name(const char* name, bool value_to_set);
+    bool set_parameter_value_by_name(const char* name, int32_t value_to_set);
+    bool set_parameter_value_by_name(const char* name, float value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, float value_to_set);
@@ -68,6 +71,9 @@ private:
     void read_can_bus_data_when_is_available(milliseconds actual_time);
     void try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec);
 
+    template <typename PARAM_VALUE_TYPE>
+    bool set_generic_parameter_value_by_name(const char* name, PARAM_VALUE_TYPE value_to_set);
+    
     template <typename PARAM_VALUE_TYPE>
     bool set_generic_parameter_value(uint8_t parameter_index_from_0, PARAM_VALUE_TYPE value_to_set);
 };
