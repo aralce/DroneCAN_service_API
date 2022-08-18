@@ -9,8 +9,10 @@ typedef struct{
     CanardInstance *instance;
     CanardRxTransfer *rx_transfer;
 }canard_reception_t;
+
 canard_reception_t canard_reception;
 bool is_there_canard_message_to_handle = false;
+
 void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
     canard_reception.instance = ins;
     canard_reception.rx_transfer = transfer;
@@ -38,11 +40,6 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
     canard.set_node_ID(node_ID);
     
     try_initialize_CAN_bus_driver();
-}
-
-void execute_error_handler(droneCAN_handle_error_t handler, DroneCAN_error error_to_send) {
-    if (handler != nullptr)
-        handler(error_to_send);
 }
 
 bool is_can_data_to_read = false;
@@ -108,6 +105,8 @@ void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_messag
         uavcan_protocol_param_GetSetRequest paramGetSet_request;
         uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
         
+        droneCAN_service->set_parameter_value(paramGetSet_request.index, (int32_t)paramGetSet_request.value.integer_value);
+        
         uavcan_parameter parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
         if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
             message_sender->send_response_message(parameter_to_send, canard_reception.rx_transfer->source_node_id);
@@ -132,6 +131,18 @@ void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
     }
 }
 
+uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name) {
+    auto iterator = parameter_list.begin();
+    while(iterator != parameter_list.end()) {
+        if (strcmp((char*)iterator->name.data, name) == 0)
+            return *iterator;
+        ++iterator;
+    }
+    uavcan_parameter invalid_parameter;
+    strcpy((char*)invalid_parameter.name.data, NAME_FOR_INVALID_PARAMETER);
+    return invalid_parameter;
+}
+
 uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
     if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
         uavcan_parameter invalid_param;
@@ -147,14 +158,8 @@ bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, bool 
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, uint16_t value_to_set) {
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set) {
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
-    // if (parameter_index_from_0 >= parameter_list.size())
-    //     return false;
-    // auto iterator = parameter_list.begin();
-    // std::advance(iterator, parameter_index_from_0);
-    // iterator->value = package_uavcan_param_value(value_to_set);
-    // return true;
 }
 
 bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, float value_to_set) {

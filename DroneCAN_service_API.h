@@ -28,11 +28,15 @@ public:
 
     //parameters
     uint8_t get_number_of_parameters() {return number_of_parameters;}
+    
     void add_parameter(uavcan_parameter& parameter);
     void remove_parameter(uint8_t parameter_index_from_0);
+    
+    uavcan_parameter get_parameter_by_name(const char* name);
     uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
+    
     bool set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set);
-    bool set_parameter_value(uint8_t parameter_index_from_0, uint16_t value_to_set);
+    bool set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, float value_to_set);
     //
 
@@ -44,9 +48,6 @@ protected:
     uavcan_protocol_NodeStatus nodeStatus_struct{};
 
 private:
-    typedef void* (*function_pointer);
-    function_pointer callback_functions[NUMBER_OF_MESSAGES]{};
-    
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
     CAN_bus_adaptor can_driver;
     DroneCAN_message_sender* message_sender;

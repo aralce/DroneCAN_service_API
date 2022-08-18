@@ -110,6 +110,37 @@ TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_outside_bounds_retur
     STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (const char*)parameter_returned.name.data);
 }
 
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_by_name)
+{
+    uavcan_parameter parameter_to_add;
+    strcpy((char*)parameter_to_add.name.data, "parameter_1");
+    droneCAN_service->add_parameter(parameter_to_add);
+    
+    strcpy((char*)parameter_to_add.name.data, "parameter_2");
+    droneCAN_service->add_parameter(parameter_to_add);
+
+    uavcan_parameter parameter_gotten_by_name = droneCAN_service->get_parameter_by_name((char*)parameter_to_add.name.data);
+    uavcan_parameter parameter_gotten_by_index = droneCAN_service->get_parameter(1);
+
+    STRCMP_EQUAL((char*)parameter_gotten_by_name.name.data, (char*)parameter_gotten_by_index.name.data);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_by_name_not_found_returns_parameter_with_INVALID_name)
+{
+    uavcan_parameter parameter_to_add;
+    strcpy((char*)parameter_to_add.name.data, "parameter_1");
+    droneCAN_service->add_parameter(parameter_to_add);
+
+    uavcan_parameter parameter_invalid = droneCAN_service->get_parameter_by_name("this parameter name does not exist");
+    STRCMP_EQUAL((char*)parameter_invalid.name.data, NAME_FOR_INVALID_PARAMETER);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, get_parameter_by_name_if_there_is_no_parameters_returns_parameter_with_INVALID_name)
+{
+    uavcan_parameter parameter_invalid = droneCAN_service->get_parameter_by_name("this parameter name does not exist");
+    STRCMP_EQUAL((char*)parameter_invalid.name.data, NAME_FOR_INVALID_PARAMETER);
+}
+
 TEST(DroneCAN_service_paramGetSet_parameters, get_N_parameters)
 {
     const int PARAMETERS_ADDED = 1;
@@ -147,11 +178,11 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_a_valid_parameter_
 const uint8_t PARAMETER_INDEX = 0;
 void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index);
 
-TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_uint16_t_parameter)
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_int32_t_parameter)
 {
     set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE, PARAMETER_INDEX);
 
-    uint16_t NEW_VALUE = 987;
+    int32_t NEW_VALUE = -1e6;
     droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
     uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
     CHECK_EQUAL(NEW_VALUE, parameter_changed.value.integer_value);
