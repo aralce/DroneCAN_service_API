@@ -106,10 +106,11 @@ void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_messag
         uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
         
         uavcan_parameter parameter_to_send;
-        if (paramGetSet_request.name.len == 0)
+        if (paramGetSet_request.name.len == 0){
             parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
+        }
         else {
-            droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (int32_t)paramGetSet_request.value.integer_value);
+            droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
             parameter_to_send = droneCAN_service->get_parameter_by_name((char*)paramGetSet_request.name.data);
         }
         
@@ -134,6 +135,20 @@ void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
         std::advance(iterator, parameter_index_from_0);
         parameter_list.erase(iterator);
     }
+}
+
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set, uavcan_protocol_param_Value_type_t data_type) {
+    switch (data_type) {
+        case UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE:
+            return set_parameter_value_by_name(name, *(bool*)pointer_to_value_to_set);
+        case UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE:
+            return set_parameter_value_by_name(name, *(int64_t*)pointer_to_value_to_set);
+        case UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE:
+            return set_parameter_value_by_name(name, *(float*)pointer_to_value_to_set);
+        default:
+            return false;
+    }
+
 }
 
 uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name) {
@@ -163,7 +178,7 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, int32_t value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, int64_t value_to_set) {
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 

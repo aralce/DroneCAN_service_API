@@ -35,8 +35,10 @@ public:
     uavcan_parameter get_parameter_by_name(const char* name);
     uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
     
+    bool set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set, uavcan_protocol_param_Value_type_t data_type);
     bool set_parameter_value_by_name(const char* name, bool value_to_set);
-    bool set_parameter_value_by_name(const char* name, int32_t value_to_set);
+    bool set_parameter_value_by_name(const char* name, int32_t value_to_set) {return set_parameter_value_by_name(name, (int64_t)value_to_set);}
+    bool set_parameter_value_by_name(const char* name, int64_t value_to_set);
     bool set_parameter_value_by_name(const char* name, float value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set);

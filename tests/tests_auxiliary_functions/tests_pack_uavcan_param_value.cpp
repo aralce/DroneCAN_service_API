@@ -22,9 +22,9 @@ TEST(Auxiliary_functions_package_parameter_value, package_uint16_t)
     check_package_value_integer(VALUE_TO_PACKAGE);
 }
 
-TEST(Auxiliary_functions_package_parameter_value, package_int32_t)
+TEST(Auxiliary_functions_package_parameter_value, package_int64_t)
 {
-    int32_t VALUE_TO_PACKAGE = -1e6;
+    int64_t VALUE_TO_PACKAGE = -1e12;
     check_package_value_integer(VALUE_TO_PACKAGE);
 }
 

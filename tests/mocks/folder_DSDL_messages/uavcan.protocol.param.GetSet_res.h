@@ -29,17 +29,25 @@ public:
         uavcan_protocol_param_GetSetResponse* msg_1 = (uavcan_protocol_param_GetSetResponse*)object1;
         uavcan_protocol_param_GetSetResponse* msg_2 = (uavcan_protocol_param_GetSetResponse*)object2;
 
-        if (msg_1->name.len != msg_2->name.len)
+        if (msg_1->name.len != msg_2->name.len) {
+            printf("name_len mismatch\n");
             return false;
+        }
         
         #define STRINGS_ARE_EQUAL 0
-        if (strcmp((const char*)msg_1->name.data, (const char*)msg_2->name.data) != STRINGS_ARE_EQUAL)
+        if (strcmp((const char*)msg_1->name.data, (const char*)msg_2->name.data) != STRINGS_ARE_EQUAL) {
+            printf("name mismatch\n");
             return false;
+        }
 
-        if (msg_1->value.union_tag != msg_2->value.union_tag)
+        if (msg_1->value.union_tag != msg_2->value.union_tag) {
+            printf("value-union_tag mismatch\n");
             return false;
-        if (msg_1->value.integer_value != msg_2->value.integer_value)
+        }
+        if (msg_1->value.integer_value != msg_2->value.integer_value) {
+            printf("value-integer_value mismatch: value_1->%ld | value_2->%ld\n", msg_1->value.integer_value, msg_2->value.integer_value);
             return false;
+        }
 
         if (msg_1->default_value.union_tag != msg_2->default_value.union_tag)
             return false;

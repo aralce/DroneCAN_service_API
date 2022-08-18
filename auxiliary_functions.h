@@ -7,6 +7,7 @@
 #define UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH 128
 
 uavcan_protocol_param_Value package_uavcan_param_value(int32_t value_to_package);
+uavcan_protocol_param_Value package_uavcan_param_value(int64_t value_to_package);
 uavcan_protocol_param_Value package_uavcan_param_value(float value_to_package);
 uavcan_protocol_param_Value package_uavcan_param_value(bool value_to_package);
 

@@ -261,6 +261,44 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_for_an_float_
     CHECK_EQUAL(NEW_VALUE, parameter_changed.value.real_value);
 }
 
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_with_union_tag_info_for_bool)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE, PARAMETER_INDEX);
+    
+    bool NEW_VALUE = true;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, (void*)&NEW_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE);
+
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter_by_name(PARAMETER_NAME);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.boolean_value);
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE, parameter_changed.value.union_tag);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_with_union_tag_info_for_int64_t)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE, PARAMETER_INDEX);
+
+    int64_t NEW_VALUE = -1e12;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, (void*)&NEW_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+    
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter_by_name(PARAMETER_NAME);
+    CHECK_EQUAL(NEW_VALUE, parameter_changed.value.integer_value);
+    CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE, parameter_changed.value.union_tag);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_with_union_tag_info_for_float)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE, PARAMETER_INDEX);
+
+    float NEW_VALUE = 1.23456789;
+    const char PARAMETER_NAME[] = "parameter_to_add";
+    droneCAN_service->set_parameter_value_by_name(PARAMETER_NAME, (void*)&NEW_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter_by_name(PARAMETER_NAME);
+    DOUBLES_EQUAL(NEW_VALUE, parameter_changed.value.real_value, 0.00001f);
+}
+
 void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index)
 {
     add_generic_parameter(value_type);
