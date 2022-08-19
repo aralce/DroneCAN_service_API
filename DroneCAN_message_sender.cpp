@@ -26,8 +26,9 @@ void DroneCAN_message_sender::send_response_message(uavcan_protocol_param_GetSet
     DSDL_to_canard_DTO data_transfer_object(param_response);
     canard_message_type_info_t message_type_info = data_transfer_object.get_type_info();
     canard_message_data_t data = data_transfer_object.get_data();
-    try_send_response_message_with_canard(destination_node_id, message_type_info, data);
-
+    Serial2.printf("Canard send response code: %d\n", _canard.send_response(destination_node_id, message_type_info, data)); //TODO: is returning out of memory
+    // try_send_response_message_with_canard(destination_node_id, message_type_info, data);
+    Serial2.println("Sending RESPONSE!!!!!!!!!!!!!!!!!");
     send_pending_CAN_frames();
 }
 

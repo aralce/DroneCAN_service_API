@@ -65,6 +65,7 @@ private:
     get_batteryInfo_handler  _get_batteryInfo= nullptr;
     milliseconds ms_between_battery_info_publish = 0;
     milliseconds last_ms_since_battery_info_publish = 0;
+    milliseconds last_ms_since_clean_of_canard = 0;
 
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};

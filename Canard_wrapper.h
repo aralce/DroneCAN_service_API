@@ -1,5 +1,6 @@
 #pragma once
 #include <canard.h>
+#include <Arduino.h>
 
 typedef struct {
     uint64_t signature;
@@ -80,7 +81,12 @@ public:
     }
 
     int16_t handle_rx_frame(CanardCANFrame& frame, uint64_t timestamp_usec) {
+        frame.id |= CANARD_CAN_FRAME_EFF; //TODO: add test
         return canardHandleRxFrame(&canard_instance, &frame, timestamp_usec);
+    }
+
+    void clean() {
+        canardCleanupStaleTransfers(&canard_instance, micros()); //TODO: add test
     }
 
 private:
