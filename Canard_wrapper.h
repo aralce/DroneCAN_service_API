@@ -31,6 +31,8 @@ public:
     }
     
     void init(CanardOnTransferReception handle_reception, CanardShouldAcceptTransfer handle_acceptance) {
+        Serial2.printf("Size of canard_buffer: %u\n", sizeof(canard_buffer));
+        Serial2.printf("%d\n", buffer_size);
         canardInit(&canard_instance,
                    canard_buffer,
                    buffer_size,
@@ -85,14 +87,22 @@ public:
         return canardHandleRxFrame(&canard_instance, &frame, timestamp_usec);
     }
 
+    void release_rx_memory(CanardRxTransfer* rx_transfer) {
+        canardReleaseRxTransferPayload(&canard_instance, rx_transfer); //TODO: add test
+    }
+
     void clean() {
         canardCleanupStaleTransfers(&canard_instance, micros()); //TODO: add test
+    }
+
+    CanardPoolAllocatorStatistics get_pool_allocator_statistics() {
+        return canardGetPoolAllocatorStatistics(&canard_instance);
     }
 
 private:
     CanardInstance canard_instance;
     uint8_t* canard_buffer;
-    uint8_t buffer_size;
+    size_t buffer_size; //TODO: add test
     uint8_t canard_transferID;
     uint8_t* canard_transmission_buffer;
       

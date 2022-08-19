@@ -3,6 +3,8 @@
 #include <auxiliary_functions.h>
 #include <cstring>
 
+CanardPoolAllocatorStatistics statistics{};
+
 void DUMMY_error_handler(DroneCAN_error error) {}
 
 typedef struct{
@@ -57,7 +59,7 @@ void DroneCAN_service::try_initialize_CAN_bus_driver() {
 }
 
 bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions);
-void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_message_sender* message_sender);
+void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard, DroneCAN_message_sender* message_sender);
 
 void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     if (is_time_to_execute(last_ms_since_node_status_publish, actual_time, MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
@@ -70,9 +72,12 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
     }
 
     read_can_bus_data_when_is_available(actual_time);
-    handle_incoming_message(this, message_sender);
-    if(is_time_to_execute(last_ms_since_clean_of_canard, actual_time, 1000)) //TODO: add test
+    handle_incoming_message(this, canard, message_sender);
+    if(is_time_to_execute(last_ms_since_clean_of_canard, actual_time, 1000)) { //TODO: add test
+        CanardPoolAllocatorStatistics statistics = canard.get_pool_allocator_statistics();
+        Serial2.printf("Statistics || -capacity_blocks: %u || -current_usage_blocks: %u || -peak_usage_blocks: %u ||\n", statistics.capacity_blocks, statistics.current_usage_blocks, statistics.peak_usage_blocks);
         canard.clean();
+    }
 }
 
 bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions) {
@@ -105,7 +110,7 @@ void DroneCAN_service::try_handle_rx_frame_with_canard(CanardCANFrame& frame, ui
         _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
 }
 
-void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_message_sender* message_sender) {
+void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard, DroneCAN_message_sender* message_sender) {
     if (is_there_canard_message_to_handle) {
         uavcan_protocol_param_GetSetRequest paramGetSet_request;
         uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
@@ -117,8 +122,10 @@ void handle_incoming_message(DroneCAN_service* droneCAN_service, DroneCAN_messag
             droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
             parameter_to_send = droneCAN_service->get_parameter_by_name((char*)paramGetSet_request.name.data);
         }
-        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
+        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
+            canard.release_rx_memory(canard_reception.rx_transfer);
             message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+        }
 
         is_there_canard_message_to_handle = false;
     }
