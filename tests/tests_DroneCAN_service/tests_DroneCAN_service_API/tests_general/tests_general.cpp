@@ -9,6 +9,7 @@ extern bool is_there_canard_message_to_handle;
 typedef struct{
     CanardInstance *instance;
     CanardRxTransfer *rx_transfer;
+    uint8_t source_node_id;
 }canard_reception_t;
 extern canard_reception_t canard_reception;
 
@@ -51,14 +52,14 @@ TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it
               .andReturnValue(can_bus_packet[byte]);
     }
 
-    milliseconds ACTUAL_TIME = 100;
+    microseconds ACTUAL_TIME = 100;
     CanardCANFrame can_frame{};
     can_frame.id = CAN_BUS_PACKET_ID;
     memcpy(can_frame.data, can_bus_packet, CAN_BUS_PACKET_SIZE);
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
     mock().expectOneCall("canard->handle_rx_frame")
           .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame)
-          .withUnsignedLongLongIntParameter("timestamp_usec", 1000*ACTUAL_TIME);
+          .withUnsignedLongLongIntParameter("timestamp_usec", ACTUAL_TIME);
 
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 
@@ -70,7 +71,7 @@ static void handle_error(DroneCAN_error error) {
           .withIntParameter("error", (int)error);
 }
 
-TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_then_indicates_it)
+IGNORE_TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_then_indicates_it)
 {
     mock().disable();
     DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error);
@@ -85,7 +86,7 @@ TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_then_in
           .withIntParameter("error", (int)DroneCAN_error::FAIL_ON_RECEPTION);
     mock().ignoreOtherCalls();
     
-    milliseconds ACTUAL_TIME = 0;
+    microseconds ACTUAL_TIME = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
     
     CHECK_FALSE(is_can_data_to_read);
@@ -109,6 +110,14 @@ TEST(DroneCAN_service_API_general, when_uavcan_protocol_paramGetSet_request_is_r
     CHECK_TRUE(should_accept_canard_reception(accept_struct.ins, &accept_struct.out_data_type_signature, accept_struct.data_type_id, accept_struct.transfer_type, 0));
 
     CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_SIGNATURE, accept_struct.out_data_type_signature);
+}
+
+TEST(DroneCAN_service_API_general, when_uavcan_protocol_getNodeInfo_is_received_accept_it)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    should_accept_canard_struct accept_struct{};
+
 }
 
 TEST(DroneCAN_service_API_general, when_uavcan_nodeStatus_is_received_does_not_accept_it)
@@ -150,13 +159,17 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_p
     set_handle_canard_reception_for_paramGetSet_message();
     
     const uint16_t REQUESTED_PARAMETER_INDEX = 0;
-    CHECK_paramGetSet_request_is_decoded(REQUESTED_PARAMETER_INDEX, "", 0, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE); 
+    const uavcan_protocol_param_Value_type_t UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER = UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY;
+    CHECK_paramGetSet_request_is_decoded(REQUESTED_PARAMETER_INDEX, "", 0, UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER); 
     
     uavcan_parameter parameter_returned = droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX);
+    const uint8_t* pointer_to_source_node_id = &canard_reception.source_node_id;
     mock().expectOneCall("DroneCAN_message_sender->send_response_message") 
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
-    milliseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    POINTERS_EQUAL(&canard_reception.source_node_id, pointer_to_source_node_id);
+
+    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 
     CHECK_FALSE(is_there_canard_message_to_handle);
@@ -182,7 +195,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_par
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
 
-    const milliseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 }
 
@@ -204,7 +217,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_flo
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
     
-    const milliseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 }
 
@@ -262,7 +275,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid
     uavcan_parameter parameter_returned = droneCAN_service.get_parameter(paramGetSet_request.index);
     STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (char*)parameter_returned.name.data);
 
-    milliseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 
     CHECK_FALSE(is_there_canard_message_to_handle);

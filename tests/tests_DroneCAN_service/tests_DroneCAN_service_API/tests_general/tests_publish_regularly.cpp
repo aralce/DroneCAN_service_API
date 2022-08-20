@@ -38,7 +38,7 @@ TEST(DroneCAN_service_publish_regularly, is_not_time_yet_to_publish_node_status_
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().expectNoCall("DroneCAN_message_sender->broadcast_message");
-    const milliseconds INITIAL_TIME = 0; 
+    const microseconds INITIAL_TIME = 0; 
     droneCAN_service.run_pending_tasks(INITIAL_TIME);
 }
 
@@ -51,7 +51,7 @@ TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
     uavcan_protocol_NodeStatus* nodeStatus = spied_droneCAN_service.spy_node_status_struct();
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message")
           .ignoreOtherParameters();
-    const milliseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
+    const microseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
     
     const uint8_t NODESTATUS_HEALTH_OK = 0;
@@ -72,7 +72,7 @@ TEST(DroneCAN_service_publish_regularly, register_batteryInfo_for_regular_publis
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
-    const milliseconds MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10000;
+    const microseconds MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10000;
     droneCAN_service.register_for_regular_publish(get_battery_info, MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH);
 
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message") //send node_status
@@ -81,7 +81,7 @@ TEST(DroneCAN_service_publish_regularly, register_batteryInfo_for_regular_publis
     
     droneCAN_service.run_pending_tasks(MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH - 1); //doesn't publish_batteryInfo_message
     
-    const milliseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH;
+    const microseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH;
     uavcan_equipment_power_BatteryInfo battery_info{};
     mock().expectOneCall("get_battery_info")
           .andReturnValue((void*)&battery_info);

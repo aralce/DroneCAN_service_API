@@ -1,7 +1,7 @@
 #include <common_to_all_tests.h>
 #include <Canard_wrapper.h>
 #include <DroneCAN_service_configuration.h>
-
+#include <typeinfo>
 
 TEST_GROUP(Canard_wrapper)
 {
@@ -21,8 +21,11 @@ Canard get_canard_instance()
 TEST(Canard_wrapper, init)
 {
     Canard canard = get_canard_instance();
-    mock().expectOneCall("canardInit");
-
+    size_t buffer_size = LIBCANARD_ALLOCATION_BUFFER_IN_BYTES;
+    mock().expectOneCall("canardInit")
+          .withUnsignedLongLongIntParameter("mem_arena_size", buffer_size);
+    CHECK_TRUE(typeid(buffer_size) == typeid(size_t));
+    
     canard.init();
 }
 
@@ -123,9 +126,22 @@ TEST(Canard_wrapper, handle_rx_frame)
     int16_t ERROR_CODE = -99;
     mock().expectOneCall("canardHandleRxFrame")
           .withPointerParameter("frame", (void*)&canard_frame)
+          .withUnsignedLongIntParameter("frame.id", canard_frame.id | CANARD_CAN_FRAME_EFF)
           .withUnsignedLongLongIntParameter("timestamp_usec", TIMESTAMP_MICROSECONDS)
           .andReturnValue(ERROR_CODE);
 
     int16_t returned_value = canard.handle_rx_frame(canard_frame, TIMESTAMP_MICROSECONDS);
     CHECK_EQUAL(ERROR_CODE, returned_value);
+}
+
+TEST(Canard_wrapper, release_rx_memory)
+{
+    Canard canard = get_canard_instance();
+
+    CanardRxTransfer rx_transfer{};
+
+    mock().expectOneCall("canardReleaseRxTransferPayload")
+          .withPointerParameter("transfer", (void*)&rx_transfer);
+
+    canard.release_rx_memory(&rx_transfer);
 }

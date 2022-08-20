@@ -21,7 +21,8 @@
         "istream": "cpp",
         "numeric": "cpp",
         "ostream": "cpp",
-        "cstddef": "cpp"
+        "cstddef": "cpp",
+        "typeinfo": "cpp"
     },
     "cSpell.words": [
         "BATTERYINFO",

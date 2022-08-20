@@ -19,7 +19,7 @@ bool is_there_canard_message_to_handle = false;
 void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
     canard_reception.instance = ins;
     canard_reception.rx_transfer = transfer;
-    canard_reception.source_node_id = transfer->source_node_id; //TODO: Change on test
+    canard_reception.source_node_id = transfer->source_node_id;
     is_there_canard_message_to_handle = true;
 }
 
@@ -34,7 +34,6 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
 }
 
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
-    Serial2.begin(115200); //DEBUG
     nodeStatus_struct.vendor_specific_status_code = NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE;
 
     _handle_error = handle_error == nullptr ? DUMMY_error_handler : handle_error;
@@ -58,10 +57,10 @@ void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver.onReceive(onReceive_on_can_bus);
 }
 
-bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions);
+bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions);
 void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard, DroneCAN_message_sender* message_sender);
 
-void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
+void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
     if (is_time_to_execute(last_ms_since_node_status_publish, actual_time, MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
         nodeStatus_struct.uptime_sec = actual_time/1000;
         message_sender->broadcast_message(nodeStatus_struct);
@@ -73,14 +72,14 @@ void DroneCAN_service::run_pending_tasks(milliseconds actual_time) {
 
     read_can_bus_data_when_is_available(actual_time);
     handle_incoming_message(this, canard, message_sender);
-    if(is_time_to_execute(last_ms_since_clean_of_canard, actual_time, 1000)) { //TODO: add test
-        CanardPoolAllocatorStatistics statistics = canard.get_pool_allocator_statistics();
-        Serial2.printf("Statistics || -capacity_blocks: %u || -current_usage_blocks: %u || -peak_usage_blocks: %u ||\n", statistics.capacity_blocks, statistics.current_usage_blocks, statistics.peak_usage_blocks);
-        canard.clean();
+    if(is_time_to_execute(last_ms_since_clean_of_canard, actual_time, 1000)) {
+        // CanardPoolAllocatorStatistics statistics = canard.get_pool_allocator_statistics();
+        // Serial2.printf("Statistics || -capacity_blocks: %u || -current_usage_blocks: %u || -peak_usage_blocks: %u ||\n", statistics.capacity_blocks, statistics.current_usage_blocks, statistics.peak_usage_blocks);
+        // canard.clean();
     }
 }
 
-bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_time, milliseconds time_between_executions) {
+bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions) {
     bool is_time_to_execute_now = actual_time - last_time_executed >=  time_between_executions;
     if (is_time_to_execute_now) {
         last_time_executed = actual_time;
@@ -89,7 +88,7 @@ bool is_time_to_execute(milliseconds& last_time_executed, milliseconds actual_ti
         return false;
 }
 
-void DroneCAN_service::read_can_bus_data_when_is_available(milliseconds actual_time) {
+void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
     if (is_can_data_to_read) {
         CanardCANFrame canard_frame;
         canard_frame.id = can_driver.get_packet_id();
@@ -98,8 +97,7 @@ void DroneCAN_service::read_can_bus_data_when_is_available(milliseconds actual_t
         for (int byte = 0; byte < canard_frame.data_len; ++byte)
             canard_frame.data[byte] = can_driver.read();
 
-        uint64_t timestamp_usec = micros();  //TODO: add test
-        canard.handle_rx_frame(canard_frame, timestamp_usec);
+        canard.handle_rx_frame(canard_frame, actual_time);
         
         is_can_data_to_read = false;
     }
@@ -116,16 +114,14 @@ void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard,
         uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
         
         uavcan_parameter parameter_to_send;
-        if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)  //TODO: add test
+        if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
             parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
         else {
             droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
             parameter_to_send = droneCAN_service->get_parameter_by_name((char*)paramGetSet_request.name.data);
         }
-        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
-            canard.release_rx_memory(canard_reception.rx_transfer);
+        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
             message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-        }
 
         is_there_canard_message_to_handle = false;
     }

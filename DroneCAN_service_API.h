@@ -4,7 +4,7 @@
 #include <DroneCAN_message_sender.h>
 #include <list>
 
-using milliseconds = uint32_t;
+using microseconds = uint64_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
 enum class uavcan_message_type{BATTERY_INFO};
@@ -14,14 +14,14 @@ public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = nullptr);
     ~DroneCAN_service() {delete message_sender;};
 
-    void run_pending_tasks(milliseconds actual_time);
+    void run_pending_tasks(microseconds actual_time);
 
     template <typename UAVCAN_MESSAGE>
     void publish_message(UAVCAN_MESSAGE& uavcan_message) {
         message_sender->broadcast_message(uavcan_message);
     }
 
-    void register_for_regular_publish(uavcan_equipment_power_BatteryInfo* (*get_battery_info)(), milliseconds time_between_publish) {
+    void register_for_regular_publish(uavcan_equipment_power_BatteryInfo* (*get_battery_info)(), microseconds time_between_publish) {
         _get_batteryInfo = get_battery_info;
         ms_between_battery_info_publish = time_between_publish;
     }
@@ -59,19 +59,19 @@ private:
 
     bool _is_healthy = true;
     uint8_t _node_ID;
-    milliseconds last_ms_since_node_status_publish = 0;
+    microseconds last_ms_since_node_status_publish = 0;
 
     typedef uavcan_equipment_power_BatteryInfo* (*get_batteryInfo_handler)();
     get_batteryInfo_handler  _get_batteryInfo= nullptr;
-    milliseconds ms_between_battery_info_publish = 0;
-    milliseconds last_ms_since_battery_info_publish = 0;
-    milliseconds last_ms_since_clean_of_canard = 0;
+    microseconds ms_between_battery_info_publish = 0;
+    microseconds last_ms_since_battery_info_publish = 0;
+    microseconds last_ms_since_clean_of_canard = 0;
 
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};
 
     void try_initialize_CAN_bus_driver();
-    void read_can_bus_data_when_is_available(milliseconds actual_time);
+    void read_can_bus_data_when_is_available(microseconds actual_time);
     void try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec);
 
     template <typename PARAM_VALUE_TYPE>

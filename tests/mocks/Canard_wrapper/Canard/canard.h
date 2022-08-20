@@ -217,7 +217,8 @@ struct CanardInstance
 #include <common_to_all_mocks.h>
 
 inline void canardInit(CanardInstance* out_ins, void* mem_arena, size_t mem_arena_size, CanardOnTransferReception on_reception, CanardShouldAcceptTransfer should_accept, void* user_reference) {
-    mock().actualCall("canardInit");
+    mock().actualCall("canardInit")
+          .withUnsignedLongLongIntParameter("mem_arena_size", mem_arena_size);
 
 }
 
@@ -259,6 +260,22 @@ inline void canardPopTxQueue(CanardInstance* ins) {
 inline int16_t canardHandleRxFrame(CanardInstance* ins, CanardCANFrame* frame, uint64_t timestamp_usec) {
     mock().actualCall("canardHandleRxFrame")
           .withPointerParameter("frame", (void*)frame)
+          .withUnsignedLongIntParameter("frame.id", frame->id)
           .withUnsignedLongLongIntParameter("timestamp_usec", timestamp_usec);
     return mock().returnIntValueOrDefault(0);
 }
+
+inline void canardReleaseRxTransferPayload(CanardInstance* ins, CanardRxTransfer* transfer) {
+    mock().actualCall("canardReleaseRxTransferPayload")
+          .withPointerParameter("transfer", (void*)transfer);
+}
+
+inline void canardCleanupStaleTransfers(CanardInstance* ins, uint64_t current_time_usec) {
+    mock().actualCall("canardCleanupStaleTransfers")
+          .withUnsignedLongLongIntParameter("current_time_usec", current_time_usec);
+}
+
+inline CanardPoolAllocatorStatistics canardGetPoolAllocatorStatistics(CanardInstance* ins) {
+    CanardPoolAllocatorStatistics statistics{};
+    return statistics;
+} //DEBUG PURPOSE
