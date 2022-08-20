@@ -1,5 +1,6 @@
 #include "DroneCAN_service_API.h"
 #include <uavcan.protocol.param.GetSet_req.h>
+#include <uavcan.protocol.GetNodeInfo_req.h>
 #include <auxiliary_functions.h>
 #include <cstring>
 
@@ -27,6 +28,9 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
     switch(data_type_id) {
         case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
             *out_data_type_signature = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_SIGNATURE;
+            return true;
+        case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
+            *out_data_type_signature = UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_SIGNATURE;
             return true;
         default:
             return false;

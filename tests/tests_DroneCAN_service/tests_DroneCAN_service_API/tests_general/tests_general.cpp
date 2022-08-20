@@ -4,6 +4,7 @@
 #include <CAN_bus_adaptor.h>
 #include <uavcan.protocol.param.GetSet_res.h>
 #include <uavcan.protocol.param.GetSet_req.h>
+#include <uavcan.protocol.GetNodeInfo_req.h>
 
 extern bool is_there_canard_message_to_handle;
 typedef struct{
@@ -117,7 +118,10 @@ TEST(DroneCAN_service_API_general, when_uavcan_protocol_getNodeInfo_is_received_
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
     should_accept_canard_struct accept_struct{};
+    accept_struct.data_type_id = UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID;
+    CHECK_TRUE(should_accept_canard_reception(accept_struct.ins, &accept_struct.out_data_type_signature, accept_struct.data_type_id, accept_struct.transfer_type, 0));
 
+    CHECK_EQUAL(UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_SIGNATURE, accept_struct.out_data_type_signature);
 }
 
 TEST(DroneCAN_service_API_general, when_uavcan_nodeStatus_is_received_does_not_accept_it)

@@ -64,6 +64,11 @@ TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_paramGetSet_response)
     CHECK_message_type_and_message_data(data_transfer_object, message_type_info, buffer, sizeof(buffer));
 }
 
+TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_getNo)
+{
+    uavcan_protocol_GetNodeInfoResponse get_node_info_request;
+}
+
 static void CHECK_message_type_and_message_data(DSDL_to_canard_DTO& data_transfer_object, canard_message_type_info_t& message_type_info, uint8_t* buffer, uint8_t buffer_len)
 {
     canard_message_type_info_t message_type_gotten = data_transfer_object.get_type_info();
