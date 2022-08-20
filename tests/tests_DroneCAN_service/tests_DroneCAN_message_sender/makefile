@@ -45,6 +45,7 @@ create_build_folder:
 FILES = $(filter %.cpp, $(wildcard ./*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_CANARD_WRAPPER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
@@ -68,6 +69,9 @@ $(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
+	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
+
+$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_CANARD_WRAPPER_DIR)%.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 $(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)%.cpp

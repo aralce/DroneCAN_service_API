@@ -18,12 +18,14 @@ TEST_GROUP(DroneCAN_service_API_general)
 {
     CanardCANFrame_comparator can_frame_comparator;
     Uavcan_protocol_param_GetSetResponse_comparator param_GetSetResponse_comparator;
+    Uavcan_protocol_getNodeInfoResponse_comparator get_node_info_comparator;
     void setup()
     {
         memset(&canard_reception, 0, sizeof(canard_reception));
         is_there_canard_message_to_handle = false;
         mock().installComparator("CanardCANFrame", can_frame_comparator);
         mock().installComparator("uavcan_protocol_param_GetSetResponse", param_GetSetResponse_comparator);
+        mock().installComparator("uavcan_protocol_GetNodeInfoResponse", get_node_info_comparator);
     }
     void teardown()
     {
@@ -151,6 +153,34 @@ TEST(DroneCAN_service_API_general, received_message_is_handled_on_canard_recepti
 
 void set_handle_canard_reception_for_paramGetSet_message();
 
+
+TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
+{
+    mock().disable();
+    Spied_droneCAN_service spied_droneCAN_service;
+    mock().enable();
+
+    CanardInstance canard_instance{};
+    CanardRxTransfer rx_transfer{};
+    rx_transfer.data_type_id = UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID;
+    rx_transfer.source_node_id = 20;
+    handle_canard_reception(&canard_instance, &rx_transfer);
+    CHECK_TRUE(is_there_canard_message_to_handle);
+
+    uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+    get_node_info_response.status = *spied_droneCAN_service.spy_node_status_struct();
+    strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+    get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_get_node_info_response")
+          .withParameterOfType("uavcan_protocol_GetNodeInfoResponse", "get_node_info_response", (const void *)&get_node_info_response)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.source_node_id);
+    
+    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+}
+
 template <typename PARAM_VALUE_TYPE>
 void set_parameter_on_droneCAN_service(DroneCAN_service& droneCAN_service, const char* parameter_name, PARAM_VALUE_TYPE parameter_value, uavcan_protocol_param_Value_type_t data_type);
 
@@ -168,7 +198,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_p
     
     uavcan_parameter parameter_returned = droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX);
     const uint8_t* pointer_to_source_node_id = &canard_reception.source_node_id;
-    mock().expectOneCall("DroneCAN_message_sender->send_response_message") 
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response") 
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
     POINTERS_EQUAL(&canard_reception.source_node_id, pointer_to_source_node_id);
@@ -195,7 +225,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_par
     
     uavcan_parameter parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
-    mock().expectOneCall("DroneCAN_message_sender->send_response_message")
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
 
@@ -217,7 +247,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_flo
 
     uavcan_parameter parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
-    mock().expectOneCall("DroneCAN_message_sender->send_response_message")
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer->source_node_id);
     

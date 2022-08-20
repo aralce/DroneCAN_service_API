@@ -22,5 +22,9 @@ DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_NodeStatus& node_status) 
 }
 
 DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse& param_response) {
-    mock().actualCall("DSDL_to_canard_DTO->constuct_with_uavcan_protocol_param_GetSetResponse");
+    mock().actualCall("DSDL_to_canard_DTO->construct_with_uavcan_protocol_param_GetSetResponse");
+}
+
+DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_GetNodeInfoResponse& get_node_info_response) {
+    mock().actualCall("DSDL_to_canard_DTO->construct_with_uavcan_protocol_GetNodeInfoResponse");
 }

@@ -131,10 +131,29 @@ TEST(DroneCAN_message_sender, broadcast_message_with_uavcan_protocol_NodeStatus)
     message_sender->broadcast_message(node_status);
 }
 
+#define DESTINATION_NODE_ID 22
+void CHECK_response_is_sent();
 TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
 {
-    mock().expectOneCall("DSDL_to_canard_DTO->constuct_with_uavcan_protocol_param_GetSetResponse");
+    mock().expectOneCall("DSDL_to_canard_DTO->construct_with_uavcan_protocol_param_GetSetResponse");
 
+    CHECK_response_is_sent();
+
+    uavcan_protocol_param_GetSetResponse param_response;
+    message_sender->send_response_message(param_response, DESTINATION_NODE_ID);
+}
+
+TEST(DroneCAN_message_sender, send_response_message_of_uavcan_protocol_getNodeInfo)
+{
+    mock().expectOneCall("DSDL_to_canard_DTO->construct_with_uavcan_protocol_GetNodeInfoResponse");
+
+    CHECK_response_is_sent();
+
+    uavcan_protocol_GetNodeInfoResponse get_node_info_response;
+    message_sender->send_response_message(get_node_info_response, DESTINATION_NODE_ID);
+}
+
+void CHECK_response_is_sent() {
     mock().expectOneCall("DSDL_to_canard_DTO->get_type_info")
           .andReturnValue((void*)&type_info);
 
@@ -142,7 +161,6 @@ TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
           .andReturnValue((void*)&message_data);
 
     const uint16_t FRAMES_TO_TRANSFER = 9;
-    const uint8_t DESTINATION_NODE_ID = 22;
     mock().expectOneCall("canard->send_response")
           .withUnsignedIntParameter("destination_node_id", DESTINATION_NODE_ID)
           .withParameterOfType("canard_message_type_info_t", "type_info", (const void*)&type_info)
@@ -150,9 +168,6 @@ TEST(DroneCAN_message_sender, send_response_of_uavcan_protocol_paramGetSet)
           .andReturnValue(FRAMES_TO_TRANSFER);
 
     CHECK_frames_are_sent_with_CAN_bus(FRAMES_TO_TRANSFER);
-
-    uavcan_protocol_param_GetSetResponse param_response;
-    message_sender->send_response_message(param_response, DESTINATION_NODE_ID);
 }
 
 void CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(canard_message_type_info_t& type_info, canard_message_data_t& message_data)

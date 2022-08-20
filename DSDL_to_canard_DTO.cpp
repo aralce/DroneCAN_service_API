@@ -23,12 +23,23 @@ DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_NodeStatus& node_status) 
 }
 
 DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse& param_response) {
-    uint32_t message_lenght = uavcan_protocol_param_GetSetResponse_encode(&param_response, buffer);
+    uint32_t message_length = uavcan_protocol_param_GetSetResponse_encode(&param_response, buffer);
 
     type_info.signature = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_SIGNATURE;
     type_info.id = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID;
     type_info.priority = CANARD_TRANSFER_PRIORITY_MEDIUM;
 
     data.ptr = (void*)buffer;
-    data.length = (uint16_t)message_lenght;
+    data.length = (uint16_t)message_length;
+}
+
+DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_GetNodeInfoResponse& get_node_info_response) {
+    uint32_t message_length = uavcan_protocol_GetNodeInfoResponse_encode(&get_node_info_response, buffer);
+
+    type_info.signature = UAVCAN_PROTOCOL_GETNODEINFO_RESPONSE_SIGNATURE;
+    type_info.id = UAVCAN_PROTOCOL_GETNODEINFO_RESPONSE_ID;
+    type_info.priority = CANARD_TRANSFER_PRIORITY_HIGH;
+
+    data.ptr = (void*)buffer;
+    data.length = (uint16_t)message_length;
 }

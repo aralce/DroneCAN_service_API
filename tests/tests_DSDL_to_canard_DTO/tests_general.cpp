@@ -66,7 +66,19 @@ TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_paramGetSet_response)
 
 TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_getNo)
 {
-    uavcan_protocol_GetNodeInfoResponse get_node_info_request;
+    uavcan_protocol_GetNodeInfoResponse get_node_info_response;
+
+    mock().expectOneCall("uavcan_protocol_GetNodeInfoResponse_encode")
+          .withParameter("msg", (const void*)&get_node_info_response)
+          .withOutputParameterReturning("buffer", (const void*)buffer, sizeof(buffer))
+          .andReturnValue(RETURNING_VALUE);
+    
+    DSDL_to_canard_DTO data_transfer_object(get_node_info_response);
+
+    canard_message_type_info_t message_type_info = {.signature = UAVCAN_PROTOCOL_GETNODEINFO_RESPONSE_SIGNATURE,
+                                                    .id = UAVCAN_PROTOCOL_GETNODEINFO_RESPONSE_ID,
+                                                    .priority = CANARD_TRANSFER_PRIORITY_HIGH};
+    CHECK_message_type_and_message_data(data_transfer_object, message_type_info, buffer, sizeof(buffer));
 }
 
 static void CHECK_message_type_and_message_data(DSDL_to_canard_DTO& data_transfer_object, canard_message_type_info_t& message_type_info, uint8_t* buffer, uint8_t buffer_len)

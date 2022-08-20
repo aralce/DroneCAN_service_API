@@ -35,7 +35,11 @@ public:
         broadcast_message(data_transfer_object);
     }
 
-    void send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id);
+    template <typename UAVCAN_RESPONSE>
+    void send_response_message(UAVCAN_RESPONSE& response, uint8_t destination_node_id) {
+        DSDL_to_canard_DTO data_transfer_object(response);
+        send_response_message(data_transfer_object, destination_node_id);
+    }
 
 private:
     Canard& _canard;
@@ -51,6 +55,7 @@ private:
     void send_pending_CAN_frames();
 
     void broadcast_message(DSDL_to_canard_DTO& data_transfer_object);
+    void send_response_message(DSDL_to_canard_DTO& data_transfer_object, uint8_t destination_node_id);
 };
 
 #endif

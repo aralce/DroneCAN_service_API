@@ -22,13 +22,20 @@ void DroneCAN_message_sender::try_broadcast_with_canard(canard_message_type_info
         _handle_error(DroneCAN_error::FAIL_ON_PUBLISH);
 }
 
-void DroneCAN_message_sender::send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id) {
-    DSDL_to_canard_DTO data_transfer_object(param_response);
+void DroneCAN_message_sender::send_response_message(DSDL_to_canard_DTO& data_transfer_object, uint8_t destination_node_id) {
     canard_message_type_info_t message_type_info = data_transfer_object.get_type_info();
     canard_message_data_t data = data_transfer_object.get_data();
-    _canard.send_response(destination_node_id, message_type_info, data);
+    try_send_response_message_with_canard(destination_node_id, message_type_info, data);
     send_pending_CAN_frames();
 }
+
+// void DroneCAN_message_sender::send_response_message(uavcan_protocol_param_GetSetResponse& param_response, uint8_t destination_node_id) {
+//     DSDL_to_canard_DTO data_transfer_object(param_response);
+//     canard_message_type_info_t message_type_info = data_transfer_object.get_type_info();
+//     canard_message_data_t data = data_transfer_object.get_data();
+//     try_send_response_message_with_canard(destination_node_id, message_type_info, data);
+//     send_pending_CAN_frames();
+// }
 
 void DroneCAN_message_sender::try_send_response_message_with_canard(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data)
 {

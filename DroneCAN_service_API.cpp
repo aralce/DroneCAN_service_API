@@ -1,6 +1,6 @@
 #include "DroneCAN_service_API.h"
 #include <uavcan.protocol.param.GetSet_req.h>
-#include <uavcan.protocol.GetNodeInfo_req.h>
+#include <uavcan.protocol.GetNodeInfo.h>
 #include <auxiliary_functions.h>
 #include <cstring>
 
@@ -62,7 +62,6 @@ void DroneCAN_service::try_initialize_CAN_bus_driver() {
 }
 
 bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions);
-void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard, DroneCAN_message_sender* message_sender);
 
 void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
     if (is_time_to_execute(last_ms_since_node_status_publish, actual_time, MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
@@ -75,7 +74,7 @@ void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
     }
 
     read_can_bus_data_when_is_available(actual_time);
-    handle_incoming_message(this, canard, message_sender);
+    handle_incoming_message(canard, message_sender);
     if(is_time_to_execute(last_ms_since_clean_of_canard, actual_time, 1000)) {
         // CanardPoolAllocatorStatistics statistics = canard.get_pool_allocator_statistics();
         // Serial2.printf("Statistics || -capacity_blocks: %u || -current_usage_blocks: %u || -peak_usage_blocks: %u ||\n", statistics.capacity_blocks, statistics.current_usage_blocks, statistics.peak_usage_blocks);
@@ -107,27 +106,35 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
     }
 }
 
-void DroneCAN_service::try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec) {
-    if (canard.handle_rx_frame(frame, timestamp_usec) < 0)
-        _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
-}
+// void DroneCAN_service::try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec) {
+//     if (canard.handle_rx_frame(frame, timestamp_usec) < 0)
+//         _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
+// }
 
-void handle_incoming_message(DroneCAN_service* droneCAN_service, Canard& canard, DroneCAN_message_sender* message_sender) {
+void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender) {
     if (is_there_canard_message_to_handle) {
-        uavcan_protocol_param_GetSetRequest paramGetSet_request;
-        uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
-        
-        uavcan_parameter parameter_to_send;
-        if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
-            parameter_to_send = droneCAN_service->get_parameter(paramGetSet_request.index);
-        else {
-            droneCAN_service->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
-            parameter_to_send = droneCAN_service->get_parameter_by_name((char*)paramGetSet_request.name.data);
+        if (canard_reception.rx_transfer->data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID) {
+            uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+            get_node_info_response.status = nodeStatus_struct;
+            strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+            get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+            message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
         }
-        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
-            message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-
-        is_there_canard_message_to_handle = false;
+        else {
+            uavcan_protocol_param_GetSetRequest paramGetSet_request;
+            uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
+            
+            uavcan_parameter parameter_to_send;
+            if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
+                parameter_to_send = this->get_parameter(paramGetSet_request.index);
+            else {
+                this->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
+                parameter_to_send = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
+            }
+            if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
+                message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+        }
+            is_there_canard_message_to_handle = false;
     }
 }
 
