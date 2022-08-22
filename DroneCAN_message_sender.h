@@ -36,7 +36,7 @@ public:
     }
 
     template <typename UAVCAN_RESPONSE>
-    void send_response_message(UAVCAN_RESPONSE& response, uint8_t destination_node_id) {
+    void send_response_message(UAVCAN_RESPONSE response, uint8_t destination_node_id) {
         DSDL_to_canard_DTO data_transfer_object(response);
         send_response_message(data_transfer_object, destination_node_id);
     }
