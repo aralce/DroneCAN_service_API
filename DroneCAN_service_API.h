@@ -66,14 +66,12 @@ private:
     get_batteryInfo_handler  _get_batteryInfo= nullptr;
     microseconds ms_between_battery_info_publish = 0;
     microseconds last_ms_since_battery_info_publish = 0;
-    microseconds last_ms_since_clean_of_canard = 0;
 
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};
 
     void try_initialize_CAN_bus_driver();
     void read_can_bus_data_when_is_available(microseconds actual_time);
-    // void try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec);
     void handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender);
 
     template <typename PARAM_VALUE_TYPE>

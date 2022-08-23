@@ -1,7 +1,7 @@
 #include <common_to_DroneCAN_service_tests.h>
 #include <Spied_DroneCAN_service.h>
 
-const int MILLISECONDS_BETWEEN_PUBLISHES = 10000;
+const int MICROSECONDS_BETWEEN_PUBLISHES = 10e6;
 
 TEST_GROUP(DroneCAN_service_publish_regularly)
 {
@@ -29,7 +29,7 @@ TEST(DroneCAN_service_publish_regularly, publish_regularly_the_node_status_messa
           .withPointerParameter("uavcan_message", (void*)node_status);
     mock().ignoreOtherCalls();
 
-    int ACTUAL_TIME = MILLISECONDS_BETWEEN_NODE_STATUS_PUBLISHES;
+    int ACTUAL_TIME = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES;
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 }
@@ -51,15 +51,14 @@ TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
     uavcan_protocol_NodeStatus* nodeStatus = spied_droneCAN_service.spy_node_status_struct();
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message")
           .ignoreOtherParameters();
-    const microseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_PUBLISHES;
+    const microseconds ACTUAL_TIME = MICROSECONDS_BETWEEN_PUBLISHES;
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
     
     const uint8_t NODESTATUS_HEALTH_OK = 0;
     CHECK_EQUAL(NODESTATUS_HEALTH_OK, nodeStatus->health);
     const uint8_t MODE_OPERATIONAL = 0;
     CHECK_EQUAL(MODE_OPERATIONAL, nodeStatus->mode);
-    CHECK_EQUAL(ACTUAL_TIME/1000, nodeStatus->uptime_sec);
-    CHECK_EQUAL(NODE_STATUS_VENDOR_SPECIFIC_STATUS_CODE, nodeStatus->vendor_specific_status_code);
+    CHECK_EQUAL(ACTUAL_TIME/1e6, nodeStatus->uptime_sec);
 }
 
 uavcan_equipment_power_BatteryInfo* get_battery_info()
@@ -72,16 +71,16 @@ TEST(DroneCAN_service_publish_regularly, register_batteryInfo_for_regular_publis
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
-    const microseconds MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10000;
-    droneCAN_service.register_for_regular_publish(get_battery_info, MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH);
+    const microseconds MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10e6;
+    droneCAN_service.register_for_regular_publish(get_battery_info, MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH);
 
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message") //send node_status
           .ignoreOtherParameters();
 
     
-    droneCAN_service.run_pending_tasks(MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH - 1); //doesn't publish_batteryInfo_message
+    droneCAN_service.run_pending_tasks(MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH - 1); //doesn't publish_batteryInfo_message
     
-    const microseconds ACTUAL_TIME = MILLISECONDS_BETWEEN_BATTERY_INFO_PUBLISH;
+    const microseconds ACTUAL_TIME = MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH;
     uavcan_equipment_power_BatteryInfo battery_info{};
     mock().expectOneCall("get_battery_info")
           .andReturnValue((void*)&battery_info);
