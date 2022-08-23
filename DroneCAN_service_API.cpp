@@ -200,6 +200,10 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, int32_t value_to_set) {
+    return set_generic_parameter_value_by_name(name, value_to_set);
+}
+
 bool DroneCAN_service::set_parameter_value_by_name(const char* name, int64_t value_to_set) {
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
@@ -226,6 +230,10 @@ bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, bool 
 }
 
 bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set) {
+    return set_generic_parameter_value(parameter_index_from_0, value_to_set);
+}
+
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int64_t value_to_set) { //TODO: add test
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
