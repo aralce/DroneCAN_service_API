@@ -17,9 +17,11 @@ public:
     }
 
     bool send_frame(CanardCANFrame& can_frame) {
+        Serial2.println("CAN_BUS send frame init");
         bool is_success = CAN.beginExtendedPacket(can_frame.id & CANARD_CAN_EXT_ID_MASK);
         is_success &= try_CAN_write(can_frame.data, can_frame.data_len);
         is_success &= CAN.endPacket();
+        Serial2.println("CAN_BUS send frame finish");
         return is_success;
     }
 

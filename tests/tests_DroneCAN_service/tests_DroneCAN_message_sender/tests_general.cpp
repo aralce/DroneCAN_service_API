@@ -82,15 +82,15 @@ TEST(DroneCAN_message_sender, send_to_CAN_BUS)
 {
     DroneCAN_message_sender message_sender = get_DroneCAN_message_sender_instance(handle_error_function);
 
-    mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue(false);
+    const int16_t FRAMES_TO_SEND = 1;
+    mock().expectOneCall("canard->broadcast")
+          .ignoreOtherParameters()
+          .andReturnValue(FRAMES_TO_SEND);
     mock().expectOneCall("CAN_bus_adaptor->send_frame")
           .ignoreOtherParameters()
           .andReturnValue(false);
     mock().expectOneCall("handle_error_function")
           .withIntParameter("error", (int)DroneCAN_error::FAIL_ON_PUBLISH);
-    mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue(true);
     mock().ignoreOtherCalls();
 
     uavcan_equipment_power_BatteryInfo battery_info;
@@ -190,9 +190,6 @@ void CHECK_canard_message_is_sent_with_Canard_and_CAN_bus(canard_message_type_in
 void CHECK_frames_are_sent_with_CAN_bus(int16_t frames_to_transfer)
 {
     for (int frames = 0; frames < frames_to_transfer; ++frames) {
-        mock().expectOneCall("canard->is_txQueue_empty")
-              .andReturnValue(false);
-        
         CanardCANFrame* can_frame{};
         mock().expectOneCall("canard->peekTxQueue")
               .andReturnValue((void*)&can_frame);
@@ -202,6 +199,4 @@ void CHECK_frames_are_sent_with_CAN_bus(int16_t frames_to_transfer)
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame)
               .andReturnValue(true);
     }
-    mock().expectOneCall("canard->is_txQueue_empty")
-          .andReturnValue(true);
 }

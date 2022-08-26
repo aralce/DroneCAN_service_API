@@ -31,7 +31,9 @@ public:
     
     template <typename UAVCAN_MESSAGE>
     void broadcast_message(UAVCAN_MESSAGE& uavcan_message) {
+        Serial2.println("broadcast uavcan message 1");
         DSDL_to_canard_DTO data_transfer_object(uavcan_message);
+        Serial2.println("broadcast uavcan message 2");
         broadcast_message(data_transfer_object);
     }
 
@@ -48,6 +50,8 @@ private:
     droneCAN_handle_error_t _handle_error;
     bool _is_healthy = true;
     
+    int16_t can_bus_frames_to_send = 0;
+
     void try_initialize_CAN_bus_driver();
     void try_broadcast_with_canard(canard_message_type_info_t& type_info, canard_message_data_t& data);
     void try_send_response_message_with_canard(uint8_t destination_node_id, canard_message_type_info_t& type_info, canard_message_data_t& data);

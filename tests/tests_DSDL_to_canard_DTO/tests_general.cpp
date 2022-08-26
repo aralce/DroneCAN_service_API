@@ -52,8 +52,8 @@ TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_paramGetSet_response)
     uavcan_protocol_param_GetSetResponse param_response;
 
     mock().expectOneCall("uavcan_protocol_param_GetSetResponse_encode")
-          .withParameter("msg", (const void*)&param_response)
           .withOutputParameterReturning("buffer", (const void*)buffer,sizeof(buffer))
+          .ignoreOtherParameters()
           .andReturnValue(RETURNING_VALUE);
 
     DSDL_to_canard_DTO data_transfer_object(param_response);
@@ -64,13 +64,13 @@ TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_paramGetSet_response)
     CHECK_message_type_and_message_data(data_transfer_object, message_type_info, buffer, sizeof(buffer));
 }
 
-TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_getNo)
+TEST(DSDL_to_canard_DTO, convert_uavcan_protocol_getNodeInfo)
 {
     uavcan_protocol_GetNodeInfoResponse get_node_info_response;
 
     mock().expectOneCall("uavcan_protocol_GetNodeInfoResponse_encode")
-          .withParameter("msg", (const void*)&get_node_info_response)
           .withOutputParameterReturning("buffer", (const void*)buffer, sizeof(buffer))
+          .ignoreOtherParameters()
           .andReturnValue(RETURNING_VALUE);
     
     DSDL_to_canard_DTO data_transfer_object(get_node_info_response);

@@ -1,4 +1,5 @@
 #include "DSDL_to_canard_DTO.h"
+#include <cstring>
 
 DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& battery_info) {
     uint32_t message_length = uavcan_equipment_power_BatteryInfo_encode(&battery_info, buffer);
@@ -28,7 +29,7 @@ DSDL_to_canard_DTO::DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse para
     type_info.id = UAVCAN_PROTOCOL_PARAM_GETSET_RESPONSE_ID;
     type_info.priority = CANARD_TRANSFER_PRIORITY_MEDIUM;
 
-    data.ptr = (void*)buffer;
+    data.ptr = (void*)buffer;    
     data.length = (uint16_t)message_length;
 }
 
