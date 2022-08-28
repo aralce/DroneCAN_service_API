@@ -31,9 +31,7 @@ public:
     
     template <typename UAVCAN_MESSAGE>
     void broadcast_message(UAVCAN_MESSAGE& uavcan_message) {
-        Serial2.println("broadcast uavcan message 1");
         DSDL_to_canard_DTO data_transfer_object(uavcan_message);
-        Serial2.println("broadcast uavcan message 2");
         broadcast_message(data_transfer_object);
     }
 
