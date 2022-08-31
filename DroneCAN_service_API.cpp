@@ -70,7 +70,11 @@ void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
         message_sender->broadcast_message(nodeStatus_struct);
     }
+    
+    if (esp_rom_get_reset_reason(0) == RESET_REASON_CHIP_POWER_ON && esp_rom_get_reset_reason(1) == CPU0_RESETS_CPU1) //DEBUG
+        Serial2.printf("The seconds are: %lu\n", nodeStatus_struct.uptime_sec); //DEBUG
     println_only_after_hardware_reset("DroneCAN_service_API 2");
+    
     if (_get_batteryInfo != nullptr && is_time_to_execute(last_ms_since_battery_info_publish, actual_time, ms_between_battery_info_publish)) {
         uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
         message_sender->broadcast_message(*battery_info);
@@ -116,28 +120,63 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
 
 void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender) {
     if (is_there_canard_message_to_handle) {
-        if (canard_reception.rx_transfer->data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID) {
-            uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
-            get_node_info_response.status = nodeStatus_struct;
-            strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-            get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-            message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
-        }
-        else {
-            uavcan_protocol_param_GetSetRequest paramGetSet_request{};
-            uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
-            
-            static uavcan_parameter parameter_to_send; //this parameter must be on scope
-            // if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
+        uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+        uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+
+        switch(canard_reception.rx_transfer->data_type_id) {
+            case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
+                get_node_info_response.status = nodeStatus_struct;
+                strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+                get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+                println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 1");
+                message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
+                println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 2");                
+                break;
+
+            case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
+                println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 3");
+                uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
+
+                println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 4");
+                static uavcan_parameter parameter_to_send; //this parameter must be on scope
+
                 parameter_to_send = this->get_parameter(paramGetSet_request.index);
-            // else {
-            //     this->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
-            //     parameter_to_send = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
-            // }
-            if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
-                message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-            }
+
+                if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
+                    println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 5");
+                    message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+                    println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 6");
+                }                
+                break;
         }
+        // if (canard_reception.rx_transfer->data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID) {
+        //     uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+        //     get_node_info_response.status = nodeStatus_struct;
+        //     strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+        //     get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+        //     println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 1");
+        //     message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
+        //     println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 2");
+        // }
+        // else {
+            // uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+            // println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 3");
+            // uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
+            
+            // println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 4");
+            // static uavcan_parameter parameter_to_send; //this parameter must be on scope
+            // // if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
+            //     parameter_to_send = this->get_parameter(paramGetSet_request.index);
+            // // else {
+            // //     this->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
+            // //     parameter_to_send = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
+            // // }
+            // if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
+            //     println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 5");
+            //     message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+            //     println_only_after_hardware_reset("DroneCAN_service::handle_incoming_message 6");
+            // }
+        // }
             is_there_canard_message_to_handle = false;
     }
 }
