@@ -1,6 +1,6 @@
 #pragma once
 
-#define DRONECAN_NODE_NAME "Smart Battery by DroneNX"
+#define DRONECAN_NODE_NAME "Upgrade Energy Tech -- Smart Battery"
 
 #define REDUNDANT_MESSAGES 5
 
