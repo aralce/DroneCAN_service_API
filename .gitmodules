@@ -1,3 +1,6 @@
 [submodule "tests/cpputest"]
 	path = tests/cpputest
 	url = git@github.com:aralce/cpputest.git
+[submodule "lib/can2040"]
+	path = lib/libraries_for_RP2040/can2040
+	url = git@github.com:aralce/can2040.git
