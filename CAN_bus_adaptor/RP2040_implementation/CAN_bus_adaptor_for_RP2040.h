@@ -1,3 +1,5 @@
+#ifdef TARGET_RP2040
+
 #pragma once
 #include <canard.h>
 #include <lib/libraries_for_RP2040/can2040/src/can2040.h>
@@ -26,3 +28,5 @@ private:
 
     uint32_t bitrate;
 };
+
+#endif // TARGET_RP2040

@@ -1,9 +1,13 @@
+#ifdef TARGET_RP2040
+
 #include "CAN_bus_adaptor_for_RP2040.h"
 #include <pico.h>
 #include <pico-sdk/rp2_common/hardware_irq/include/hardware/irq.h>
 #include "hardware/structs/pio.h"
 #include <cstring>
 #include <cmsis.h>
+
+#include <Arduino.h>
 
 static can2040 can_bus;
 
@@ -37,6 +41,7 @@ can2040_msg rx_msg{};
 
 static void can2040_callback(can2040* , uint32_t notify, can2040_msg* msg) {
     if (notify == CAN2040_NOTIFY_RX) {
+        digitalWrite(LED_BUILTIN, !digitalRead(LED_BUILTIN));
         int packet_size = (int)msg->dlc;
         onReceive_callback(packet_size);
         memcpy((void*)&rx_msg, (const void*)msg, sizeof(can2040_msg));
@@ -66,11 +71,16 @@ void CAN_bus_adaptor::onReceive(void (*onReceive_callback)(int packet_size)) {
 int CAN_bus_adaptor::read() {
     static int msg_index = 0;
     int return_val = rx_msg.data[msg_index++];
-    if (msg_index >= 8)
+    if (msg_index >= 8) {
+        Serial.println();
         msg_index = 0;
+    }
+    Serial.print(return_val, HEX);
     return return_val;
 }
 
 long CAN_bus_adaptor::get_packet_id() {
     return rx_msg.id;
 }
+
+#endif //TARGET_RP2040
