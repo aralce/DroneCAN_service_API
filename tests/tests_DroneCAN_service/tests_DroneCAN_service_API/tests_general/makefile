@@ -8,6 +8,7 @@ TEST_MOCK_CAN_BUS_ADAPTOR_DIR = $(TEST_MOCK_DIR)CAN_BUS_adaptor/
 TEST_MOCK_CANARD_WRAPPER_DIR = $(TEST_MOCK_DIR)Canard_wrapper/
 TEST_MOCK_CANARD_DIR = $(TEST_MOCK_DIR)Canard_wrapper/Canard/
 TEST_MOCK_DSDL_MESSAGES_DIR = $(TEST_MOCK_DIR)folder_DSDL_messages/
+TEST_MOCK_HAL_SYSTEM_DIR = $(TEST_MOCK_DIR)HAL_system/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
 
@@ -48,6 +49,7 @@ FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DRONE_CAN_MESSAGE_SENDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_CANARD_WRAPPER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_HAL_SYSTEM_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_DRONE_CAN_DIR)*))
 
@@ -61,31 +63,22 @@ INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
 LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r $(files)))
 LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
 
+vpath %.cpp %.h $(TEST_MAIN_FOLDER_DIR)
+vpath %.cpp %.h $(TEST_MOCK_DIR)
+vpath %.cpp %.h $(TEST_MOCK_DRONE_CAN_MESSAGE_SENDER_DIR)
+vpath %.cpp %.h $(TEST_MOCK_CANARD_WRAPPER_DIR)
+vpath %.cpp %.h $(TEST_MOCK_DSDL_MESSAGES_DIR)
+vpath %.cpp %.h $(TEST_PROGRAM_DIR)
+vpath %.cpp %.h $(TEST_DRONE_CAN_DIR)
+vpath %.cpp %.h $(TEST_MOCK_HAL_SYSTEM_DIR)
+
 #Compile files into object files.
 $(BUILD_OUTPUT_DIR)%.o : %.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DRONE_CAN_MESSAGE_SENDER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_CANARD_WRAPPER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_PROGRAM_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_DRONE_CAN_DIR)%.cpp
+$(BUILD_OUTPUT_DIR)%.o : %.cpp %.h
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 print:
-	@echo $(TEST_MOCK_DRONE_CAN_MESSAGE_SENDER_DIR)
-	@ls $(TEST_MOCK_DRONE_CAN_MESSAGE_SENDER_DIR)
+	@echo $(OBJECTS_TO_LINK)
+	@ls $(TEST_MOCK_HAL_SYSTEM_DIR)

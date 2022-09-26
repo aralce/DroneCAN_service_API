@@ -2,11 +2,9 @@
 
 #define DRONECAN_NODE_NAME "Upgrade Energy Tech -- Smart Battery"
 
-#define REDUNDANT_MESSAGES 5
-
 #define CAN_BUS_BAUDRATE 1000000
 
-#ifdef ESP32
+#if defined (ESP32)  || defined (IS_RUNNING_TESTS)
     #define CAN_BUS_CRX_PIN 26
     #define CAN_BUS_CTX_PIN 25
 #elif defined TARGET_RP2040
@@ -25,3 +23,5 @@
 #define MAX_NUMBER_OF_PARAMETERS 25
 
 #define NAME_FOR_INVALID_PARAMETER "INVALID"
+
+#define MS_TO_CONSIDER_CAN_BUS_INACTIVE  10e3 

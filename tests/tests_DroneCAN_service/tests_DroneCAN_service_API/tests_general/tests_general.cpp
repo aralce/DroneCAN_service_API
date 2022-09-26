@@ -5,6 +5,7 @@
 #include <uavcan.protocol.param.GetSet_res.h>
 #include <uavcan.protocol.param.GetSet_req.h>
 #include <uavcan.protocol.GetNodeInfo_req.h>
+#include <mocks/HAL_system/HAL_system_singleton.h>
 
 extern bool is_there_canard_message_to_handle;
 typedef struct{
@@ -13,6 +14,8 @@ typedef struct{
     uint8_t source_node_id;
 }canard_reception_t;
 extern canard_reception_t canard_reception;
+
+HAL_system_api* device = nullptr;
 
 TEST_GROUP(DroneCAN_service_API_general)
 {
@@ -26,12 +29,14 @@ TEST_GROUP(DroneCAN_service_API_general)
         mock().installComparator("CanardCANFrame", can_frame_comparator);
         mock().installComparator("uavcan_protocol_param_GetSetResponse", param_GetSetResponse_comparator);
         mock().installComparator("uavcan_protocol_GetNodeInfoResponse", get_node_info_comparator);
+        device = HAL_system_singleton::get_HAL_system_instance();
     }
     void teardown()
     {
         mock().removeAllComparatorsAndCopiers();
         mock().checkExpectations();
         mock().clear();
+        HAL_system_singleton::delete_instance();
     }
 };
 
@@ -323,4 +328,15 @@ void set_handle_canard_reception_for_paramGetSet_message()
     rx_transfer.source_node_id = 20;
     handle_canard_reception(&canard_instance, &rx_transfer);
     CHECK_TRUE(is_there_canard_message_to_handle);
+}
+
+TEST(DroneCAN_service_API_general, GIVEN_no_received_data_from_can_bus_WHEN_ms_to_consider_inactive_can_bus_is_reached_THEN_is_can_bus_inactive_returns_true)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    device->set_millisecs_since_init(MS_TO_CONSIDER_CAN_BUS_INACTIVE);
+
+    droneCAN_service.run_pending_tasks();
+    CHECK_TRUE(droneCAN_service.is_CAN_bus_inactive());
+
 }
