@@ -16,6 +16,8 @@ public:
 
     void run_pending_tasks(microseconds actual_time);
 
+    bool is_CAN_bus_inactive(uint32_t ms_to_consider_can_bus_inactive);
+
     template <typename UAVCAN_MESSAGE>
     void publish_message(UAVCAN_MESSAGE& uavcan_message) {
         message_sender->broadcast_message(uavcan_message);

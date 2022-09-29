@@ -4,6 +4,12 @@
 #include <auxiliary_functions.h>
 #include <cstring>
 
+#ifdef IS_RUNNING_TESTS
+    #include <mocks/HAL_system/HAL_system_singleton.h>
+#else
+    #include <HAL_API/HAL_system/HAL_system_singleton.h>
+#endif
+
 CanardPoolAllocatorStatistics statistics{};
 
 void DUMMY_error_handler(DroneCAN_error error) {}
@@ -50,7 +56,11 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
 }
 
 bool is_can_data_to_read = false;
-void onReceive_on_can_bus(int packet_size) {is_can_data_to_read = true;}
+uint32_t ms_since_last_rx = 0;
+void onReceive_on_can_bus(int packet_size) {
+    is_can_data_to_read = true;
+    ms_since_last_rx = HAL_system_singleton::get_HAL_system_instance()->millisecs_since_init();
+}
 
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
@@ -58,6 +68,13 @@ void DroneCAN_service::try_initialize_CAN_bus_driver() {
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
     can_driver.onReceive(onReceive_on_can_bus);
+}
+
+bool DroneCAN_service::is_CAN_bus_inactive(uint32_t ms_to_consider_can_bus_inactive) {
+    uint32_t ms_since_init = HAL_system_singleton::get_HAL_system_instance()->millisecs_since_init();
+    if (ms_since_init - ms_since_last_rx >= ms_to_consider_can_bus_inactive)
+        return true;
+    return false;
 }
 
 bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions);
@@ -130,28 +147,6 @@ void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_
                     message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
                 break;
         }
-        // if (canard_reception.rx_transfer->data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID) {
-        //     uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
-        //     get_node_info_response.status = nodeStatus_struct;
-        //     strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-        //     get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-        //     message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
-        // }
-        // else {
-            // uavcan_protocol_param_GetSetRequest paramGetSet_request{};
-            // uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
-            
-            // static uavcan_parameter parameter_to_send; //this parameter must be on scope
-            // // if (paramGetSet_request.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY)
-            //     parameter_to_send = this->get_parameter(paramGetSet_request.index);
-            // // else {
-            // //     this->set_parameter_value_by_name((char*)paramGetSet_request.name.data, (void*)&paramGetSet_request.value.integer_value, paramGetSet_request.value.union_tag);
-            // //     parameter_to_send = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
-            // // }
-            // if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
-            //     message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-            // }
-        // }
             is_there_canard_message_to_handle = false;
     }
 }
