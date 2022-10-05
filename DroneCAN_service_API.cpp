@@ -60,7 +60,7 @@ bool is_can_data_to_read = false;
 uint32_t ms_since_last_rx = 0;
 void onReceive_on_can_bus(int packet_size) {
     is_can_data_to_read = true;
-    Serial.println("CAN BUS MESSAGE RECIEVED");
+    // Serial.println("CAN BUS MESSAGE RECIEVED");
     ms_since_last_rx = HAL_system_singleton::get_HAL_system_instance()->millisecs_since_init();
 }
 
