@@ -48,7 +48,7 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
 DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
     _handle_error = handle_error == nullptr ? DUMMY_error_handler : handle_error;
     
-    message_sender = new DroneCAN_message_sender(canard, can_driver, _handle_error);
+    message_sender = new DroneCAN_message_sender(canard, *can_driver, _handle_error);
 
     canard.init(handle_canard_reception, should_accept_canard_reception);
     canard.set_node_ID(node_ID);
@@ -65,11 +65,11 @@ void onReceive_on_can_bus(int packet_size) {
 }
 
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
-    can_driver.setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
-    _is_healthy = can_driver.begin(CAN_BUS_BAUDRATE);
+    can_driver->setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
+    _is_healthy = can_driver->begin(CAN_BUS_BAUDRATE);
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
-    can_driver.onReceive(onReceive_on_can_bus);
+    can_driver->onReceive(onReceive_on_can_bus);
 }
 
 bool DroneCAN_service::is_CAN_bus_inactive(uint32_t ms_to_consider_can_bus_inactive) {
@@ -109,11 +109,11 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
     if (is_can_data_to_read) {
         CanardCANFrame canard_frame;
-        canard_frame.id = can_driver.get_packet_id();
+        canard_frame.id = can_driver->get_packet_id();
         
         canard_frame.data_len = 8;
         for (int byte = 0; byte < canard_frame.data_len; ++byte)
-            canard_frame.data[byte] = can_driver.read();
+            canard_frame.data[byte] = can_driver->read();
 
         canard.handle_rx_frame(canard_frame, actual_time);
         

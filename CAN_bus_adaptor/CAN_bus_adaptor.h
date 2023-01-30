@@ -1,5 +1,18 @@
-#if defined ESP32
-    #include "ESP32_implementation/CAN_bus_for_ESP32.h"
-#elif defined TARGET_RP2040
-    #include "RP2040_implementation/CAN_bus_adaptor_for_RP2040.h"
-#endif
+#pragma once
+#include <canard.h>
+
+class CAN_bus_adaptor {
+public:
+    virtual ~CAN_bus_adaptor() {}
+
+    virtual bool begin(long baudRate) = 0;
+    virtual void setPins(int rx, int tx) = 0;
+
+    virtual bool send_frame(CanardCANFrame& can_frame) = 0;
+
+    virtual void onReceive(void (*onReceive_callback)(int packet_size)) = 0;
+
+    virtual int read() = 0;
+
+    virtual long get_packet_id() = 0;
+};

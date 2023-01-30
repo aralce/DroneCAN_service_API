@@ -1,46 +1,46 @@
 #include <common_to_all_tests.h>
-#include <CAN_bus_adaptor.h>
+#include <CAN_bus_adaptor/CAN_bus_adaptor_factory.h>
 #include <cstring>
 
 #define COUNT_OF(x) sizeof(x)/sizeof(x[0])
+CAN_bus_adaptor* can = nullptr;
 
-TEST_GROUP(CAN_bus_adaptor)
+TEST_GROUP(CAN_arduino_driver)
 {
+    void setup ()
+    {
+        can = CAN_bus_adaptor_factory::get_CAN_bus_adaptor(CAN_bus_driver::ARDUINO_CAN);
+    }
     void teardown()
     {
+        delete can;
         mock().checkExpectations();
         mock().clear();
     }
 };
 
-TEST(CAN_bus_adaptor, begin)
+TEST(CAN_arduino_driver, begin)
 {
-    CAN_bus_adaptor can;
-
     const long BAUDRATE = 1e6;
     mock().expectOneCall("can_class->begin")
           .withLongIntParameter("baudRate", BAUDRATE);
 
-    can.begin(BAUDRATE);
+    can->begin(BAUDRATE);
 }
 
-TEST(CAN_bus_adaptor, setPins)
+TEST(CAN_arduino_driver, setPins)
 {
-    CAN_bus_adaptor can;
-
     const int RX_PIN = 0;
     const int TX_PIN = 1;
     mock().expectOneCall("can_class->setPins")
           .withIntParameter("rx", RX_PIN)
           .withIntParameter("tx", TX_PIN);
 
-    can.setPins(RX_PIN, TX_PIN);
+    can->setPins(RX_PIN, TX_PIN);
 }
 
-TEST(CAN_bus_adaptor, send_can_frame_with_success)
+TEST(CAN_arduino_driver, send_can_frame_with_success)
 {
-    CAN_bus_adaptor can;
-
     CanardCANFrame can_frame;
     can_frame.id = 32;
     uint8_t frame_data[8] = {1, 2, 3, 4, 5, 6, 7, 8};
@@ -59,26 +59,22 @@ TEST(CAN_bus_adaptor, send_can_frame_with_success)
     mock().expectOneCall("can_class->endPacket")
           .andReturnValue(true);
 
-    CHECK_TRUE(can.send_frame(can_frame));
+    CHECK_TRUE(can->send_frame(can_frame));
 }
 
-TEST(CAN_bus_adaptor, send_can_frame_fails_on_beginExtendedPacket)
+TEST(CAN_arduino_driver, send_can_frame_fails_on_beginExtendedPacket)
 {
-    CAN_bus_adaptor can;
-
     mock().expectOneCall("can_class->beginExtendedPacket")
           .ignoreOtherParameters()
           .andReturnValue(false);
     mock().ignoreOtherCalls();
 
     CanardCANFrame can_frame;
-    CHECK_FALSE(can.send_frame(can_frame));
+    CHECK_FALSE(can->send_frame(can_frame));
 }
 
-TEST(CAN_bus_adaptor, send_can_frame_fails_on_write_function)
+TEST(CAN_arduino_driver, send_can_frame_fails_on_write_function)
 {
-    CAN_bus_adaptor can;
-
     const size_t CAN_FRAME_SIZE = 8;
     const size_t VALUE_DIFFERENT_FROM_CAN_FRAME_SIZE = CAN_FRAME_SIZE - 1;
     mock().expectOneCall("can_class->write")
@@ -89,46 +85,40 @@ TEST(CAN_bus_adaptor, send_can_frame_fails_on_write_function)
 
     CanardCANFrame can_frame;
     can_frame.data_len = CAN_FRAME_SIZE;
-    CHECK_FALSE(can.send_frame(can_frame));
+    CHECK_FALSE(can->send_frame(can_frame));
 }
 
 typedef void (*onReceive_callback)(int packet_size);
 void onReceive_callback_dummy(int) {}
 
-TEST(CAN_bus_adaptor, register_an_on_receive_callback_function)
+TEST(CAN_arduino_driver, register_an_on_receive_callback_function)
 {
-    CAN_bus_adaptor can;
-
     onReceive_callback callback = onReceive_callback_dummy;
 
     mock().expectOneCall("can_class->onReceive")
           .withPointerParameter("onReceive_callback", (void*)callback);
-    can.onReceive(callback);
+    can->onReceive(callback);
 }
 
-TEST(CAN_bus_adaptor, read_from_can)
+TEST(CAN_arduino_driver, read_from_can)
 {
-    CAN_bus_adaptor can;
-
     uint8_t packet_bytes[8] = {1, 2, 3, 4, 5, 6, 7, 8};
     
     for (int bytes = 0; bytes < 8; ++bytes) {
         mock().expectOneCall("can_class->read")
               .andReturnValue(packet_bytes[bytes]);
-        can.read();
+        can->read();
     }
 
     mock().expectOneCall("can_class->read")
           .andReturnValue(-1);
-    can.read();
+    can->read();
 }
 
-TEST(CAN_bus_adaptor, get_packet_id) {
-    CAN_bus_adaptor can;
-
+TEST(CAN_arduino_driver, get_packet_id) {
     long PACKET_ID = 99;
     mock().expectOneCall("can_class->packetId")
           .andReturnValue(PACKET_ID);
     
-    CHECK_EQUAL(PACKET_ID, can.get_packet_id());
+    CHECK_EQUAL(PACKET_ID, can->get_packet_id());
 }

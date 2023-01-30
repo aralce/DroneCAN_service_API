@@ -3,6 +3,7 @@
 
 #include <DroneCAN_message_sender.h>
 #include <list>
+#include "CAN_bus_adaptor/CAN_bus_adaptor_factory.h"
 
 using microseconds = uint64_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
@@ -57,7 +58,7 @@ protected:
 
 private:
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
-    CAN_bus_adaptor can_driver;
+    CAN_bus_adaptor* can_driver = CAN_bus_adaptor_factory::get_CAN_bus_adaptor(CAN_bus_driver::ARDUINO_CAN);
     DroneCAN_message_sender* message_sender;
 
     bool _is_healthy = true;

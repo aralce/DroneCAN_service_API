@@ -1,16 +1,11 @@
 #pragma once
-#include <common_to_all_mocks.h>
+#include "arduino_CAN_library/CAN.h"
 #include <canard.h>
 
-typedef struct {
-    uint8_t* pointer;
-    uint32_t length;
-}CAN_data_t;
+#include "../../../../../CAN_bus_adaptor/CAN_bus_adaptor.h"
 
-typedef struct {
-    long id;
-    CAN_data_t data;
-}CAN_bus_driver_frame_t;
+#include "CppUTest/TestHarness.h"
+#include "CppUTestExt/MockSupport.h"
 
 class CAN_bus_adaptor {
 public:
@@ -41,12 +36,12 @@ public:
               .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
     }
 
-    int read() {
+    int read()  {
         mock().actualCall("CAN_bus_adaptor->read");
         return mock().returnIntValueOrDefault(0);
     }
 
-    long get_packet_id() {
+    long get_packet_id()  {
         mock().actualCall("CAN_bus_adaptor->get_packet_id");
         return mock().returnLongIntValueOrDefault(0);
     }
@@ -80,3 +75,4 @@ public:
         return StringFrom(can_frame);
     }
 };
+
