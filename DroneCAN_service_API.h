@@ -26,7 +26,7 @@ public:
 
     void register_for_regular_publish(uavcan_equipment_power_BatteryInfo* (*get_battery_info)(), microseconds time_between_publish) {
         _get_batteryInfo = get_battery_info;
-        ms_between_battery_info_publish = time_between_publish;
+        microsecs_between_battery_info_publish = time_between_publish;
     }
 
     //parameters
@@ -63,12 +63,12 @@ private:
 
     bool _is_healthy = true;
     uint8_t _node_ID;
-    microseconds last_ms_since_node_status_publish = 0;
+    microseconds last_microsecs_since_node_status_publish = 0;
 
     typedef uavcan_equipment_power_BatteryInfo* (*get_batteryInfo_handler)();
     get_batteryInfo_handler  _get_batteryInfo= nullptr;
-    microseconds ms_between_battery_info_publish = 0;
-    microseconds last_ms_since_battery_info_publish = 0;
+    microseconds microsecs_between_battery_info_publish = 0;
+    microseconds last_microsecs_since_battery_info_publish = 0;
 
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};

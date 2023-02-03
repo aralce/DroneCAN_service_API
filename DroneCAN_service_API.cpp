@@ -83,12 +83,12 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 #define MICROSECONDS_IN_SECOND (uint32_t)1e6
 void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
-    if (is_time_to_execute(last_ms_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
+    if (is_time_to_execute(last_microsecs_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
         message_sender->broadcast_message(nodeStatus_struct);
     }
     
-    if (_get_batteryInfo != nullptr && is_time_to_execute(last_ms_since_battery_info_publish, actual_time, ms_between_battery_info_publish)) {
+    if (_get_batteryInfo != nullptr && is_time_to_execute(last_microsecs_since_battery_info_publish, actual_time, microsecs_between_battery_info_publish)) {
         uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
         message_sender->broadcast_message(*battery_info);
     }
