@@ -4,13 +4,8 @@
 
 #define CAN_BUS_BAUDRATE 1000000
 
-#if defined (ESP32)  || defined (IS_RUNNING_TESTS)
-    #define CAN_BUS_CRX_PIN 26
-    #define CAN_BUS_CTX_PIN 25
-#elif defined TARGET_RP2040
-    #define CAN_BUS_CRX_PIN 0
-    #define CAN_BUS_CTX_PIN 1
-#endif
+#define CAN_BUS_CRX_PIN 26
+#define CAN_BUS_CTX_PIN 25
 
 #define LIBCANARD_ALLOCATION_BUFFER_IN_BYTES 5000//minimun 1000 bytes
 
