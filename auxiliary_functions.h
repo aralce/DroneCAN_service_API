@@ -11,8 +11,8 @@ uavcan_protocol_param_Value package_uavcan_param_value(int64_t value_to_package)
 uavcan_protocol_param_Value package_uavcan_param_value(float value_to_package);
 uavcan_protocol_param_Value package_uavcan_param_value(bool value_to_package);
 
-uavcan_protocol_param_Value package_uavcan_param_value_string(const uint8_t* value_to_package);
-uavcan_protocol_param_Value package_uavcan_param_value_string(const char* value_to_package);
+uavcan_protocol_param_Value package_uavcan_param_value(const uint8_t* value_to_package);
+uavcan_protocol_param_Value package_uavcan_param_value(const char* value_to_package);
 
 uavcan_protocol_param_Value package_uavcan_param_value_empty();
 

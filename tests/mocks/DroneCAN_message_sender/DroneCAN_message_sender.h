@@ -6,7 +6,7 @@
 
 
 #include <Canard_wrapper.h>
-#include <CAN_bus_adaptor.h>
+#include <CAN_BUS_adaptor/Can_bus_adaptor.h>
 #include <DSDL_to_canard_DTO.h>
 #include "DroneCAN_service_configuration.h"
 

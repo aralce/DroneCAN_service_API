@@ -1,14 +1,13 @@
-#ifdef IS_RUNNING_TESTS
-    #include <CAN_BUS_adaptor/Can_bus_adaptor.h>
-#else
-    #include "CAN_bus_adaptor/CAN_bus_adaptor.h"
-#endif
+#include "Can_bus_adaptor.h"
 
 enum class CAN_bus_driver{ESP_IDF, ARDUINO_CAN};
 
 class CAN_bus_adaptor_factory {
 public:
-    static CAN_bus_adaptor* get_CAN_bus_adaptor(CAN_bus_driver driver);
+    static CAN_bus_adaptor* get_CAN_bus_adaptor(CAN_bus_driver driver) {
+        CAN_bus_adaptor* can = new CAN_bus_adaptor();
+        return can;
+    }
 
 private:
     CAN_bus_adaptor_factory() {}

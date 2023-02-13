@@ -80,5 +80,4 @@ $(BUILD_OUTPUT_DIR)%.o : %.cpp %.h
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 print:
-	@echo $(OBJECTS_TO_LINK)
-	@ls $(TEST_MOCK_HAL_SYSTEM_DIR)
+	@ls $(TEST_PROGRAM_DIR)

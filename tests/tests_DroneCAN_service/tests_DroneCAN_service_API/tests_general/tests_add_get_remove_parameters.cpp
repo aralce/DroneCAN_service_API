@@ -5,6 +5,7 @@
 #include <cstring>
 
 DroneCAN_service* droneCAN_service = nullptr;
+#define UAVCAN_PROTOCOL_PARAM_VALUE_MAX_SIZE 130
 
 TEST_GROUP(DroneCAN_service_paramGetSet_parameters)
 {
@@ -206,6 +207,19 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_float_parameter
     droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
     uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
     CHECK_EQUAL(NEW_VALUE, parameter_changed.value.real_value);
+}
+
+TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_a_string_parameter)
+{
+    set_parameter_for_change_parameter(UAVCAN_PROTOCOL_PARAM_VALUE_STRING_VALUE, PARAMETER_INDEX);
+
+    char NEW_VALUE[] = "NEW_VALUE";
+    droneCAN_service->set_parameter_value(PARAMETER_INDEX, NEW_VALUE);
+    uavcan_parameter parameter_changed = droneCAN_service->get_parameter(PARAMETER_INDEX);
+    
+    char OBTAINED_VALUE[UAVCAN_PROTOCOL_PARAM_VALUE_MAX_SIZE] = {};
+    memcpy(OBTAINED_VALUE, parameter_changed.value.string_value.data, parameter_changed.value.string_value.len);
+    STRCMP_EQUAL(NEW_VALUE, OBTAINED_VALUE);
 }
 
 TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_returns_true_on_success)

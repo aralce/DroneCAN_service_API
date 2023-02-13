@@ -26,11 +26,11 @@ uavcan_protocol_param_Value package_uavcan_param_value(bool value_to_package) {
     return param_value;
 }
 
-uavcan_protocol_param_Value package_uavcan_param_value_string(const uint8_t* value_to_package) {
-    return package_uavcan_param_value_string((const char*)value_to_package);
+uavcan_protocol_param_Value package_uavcan_param_value(const uint8_t* value_to_package) {
+    return package_uavcan_param_value((const char*)value_to_package);
 }
 
-uavcan_protocol_param_Value package_uavcan_param_value_string(const char* value_to_package) {
+uavcan_protocol_param_Value package_uavcan_param_value(const char* value_to_package) {
     uavcan_protocol_param_Value param_value{};
     param_value.union_tag = UAVCAN_PROTOCOL_PARAM_VALUE_STRING_VALUE;
     param_value.string_value.len = strlen(value_to_package);

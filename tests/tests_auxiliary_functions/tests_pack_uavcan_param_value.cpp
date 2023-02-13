@@ -79,7 +79,7 @@ TEST(Auxiliary_functions_package_parameter_value, package_string_with_uint8_t_pt
 
 template <typename STRING_VALUE>
 void check_package_value_string(STRING_VALUE value_to_package) {
-    uavcan_protocol_param_Value param_value = package_uavcan_param_value_string(value_to_package);
+    uavcan_protocol_param_Value param_value = package_uavcan_param_value(value_to_package);
     CHECK_EQUAL(UAVCAN_PROTOCOL_PARAM_VALUE_STRING_VALUE, param_value.union_tag);
     CHECK_EQUAL(strlen((const char*)value_to_package), param_value.string_value.len);
     STRCMP_EQUAL((char*)value_to_package, (const char*)param_value.string_value.data);
@@ -94,7 +94,7 @@ TEST(Auxiliary_functions_package_parameter_value, package_string_with_more_than_
     const int LAST_CHAR_INDEX = UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH;
     value_to_package[LAST_CHAR_INDEX] = '\0';
 
-    uavcan_protocol_param_Value param_value = package_uavcan_param_value_string(value_to_package);
+    uavcan_protocol_param_Value param_value = package_uavcan_param_value(value_to_package);
 
     int count_of_chars = 0;
     while (param_value.string_value.data[count_of_chars] != '\0')

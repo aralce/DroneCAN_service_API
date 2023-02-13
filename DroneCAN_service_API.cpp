@@ -250,6 +250,10 @@ bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, float
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, char* value_to_set) {
+    return set_generic_parameter_value(parameter_index_from_0, value_to_set);
+}
+
 template <typename PARAM_VALUE_TYPE>
 bool DroneCAN_service::set_generic_parameter_value(uint8_t parameter_index_from_0, PARAM_VALUE_TYPE value_to_set) {
     if (parameter_index_from_0 >= parameter_list.size())

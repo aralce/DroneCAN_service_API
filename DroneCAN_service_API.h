@@ -3,8 +3,12 @@
 
 #include <DroneCAN_message_sender.h>
 #include <list>
-#include "CAN_bus_adaptor/CAN_bus_adaptor_factory.h"
 
+#ifdef IS_RUNNING_TESTS
+    #include <CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
+#else
+    #include "CAN_bus_adaptor/CAN_bus_adaptor_factory.h"
+#endif
 using microseconds = uint64_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
@@ -13,7 +17,7 @@ enum class uavcan_message_type{BATTERY_INFO};
 class DroneCAN_service {
 public:
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = nullptr);
-    ~DroneCAN_service() {delete message_sender;};
+    ~DroneCAN_service() {delete message_sender; delete can_driver;};
 
     void run_pending_tasks(microseconds actual_time);
 
@@ -47,6 +51,7 @@ public:
     bool set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, int64_t value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, float value_to_set);
+    bool set_parameter_value(uint8_t parameter_index_from_0, char* value_to_set);
     //
 
     bool is_healthy() {return _is_healthy;}
