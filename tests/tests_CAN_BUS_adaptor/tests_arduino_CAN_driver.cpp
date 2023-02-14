@@ -1,5 +1,5 @@
 #include <common_to_all_tests.h>
-#include <CAN_bus_adaptor/CAN_bus_adaptor_factory.h>
+#include <CAN_bus_adaptor/CAN_drivers_implementation/Arduino/Arduino_CAN_driver.h>
 #include <cstring>
 
 #define COUNT_OF(x) sizeof(x)/sizeof(x[0])
@@ -9,7 +9,7 @@ TEST_GROUP(CAN_arduino_driver)
 {
     void setup ()
     {
-        can = CAN_bus_adaptor_factory::get_CAN_bus_adaptor(CAN_bus_driver::ARDUINO_CAN);
+        can = new Arduino_CAN_driver();
     }
     void teardown()
     {

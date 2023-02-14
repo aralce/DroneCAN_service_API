@@ -50,6 +50,7 @@ FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_DRONE_CAN_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)HAL_system/*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
@@ -61,30 +62,18 @@ INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
 LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r $(files)))
 LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
 
+vpath %.cpp $(TEST_MAIN_FOLDER_DIR)
+vpath %.cpp $(TEST_MOCK_DIR)
+vpath %.cpp $(TEST_MOCK_CANARD_WRAPPER_DIR)
+vpath %.cpp $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)
+vpath %.cpp $(TEST_MOCK_DSDL_MESSAGES_DIR)
+vpath %.cpp $(TEST_MOCK_DIR)HAL_system/
+vpath %.cpp $(TEST_PROGRAM_DIR)
+vpath %.cpp $(TEST_DRONE_CAN_DIR)
+
 #Compile files into object files.
 $(BUILD_OUTPUT_DIR)%.o : %.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_CANARD_WRAPPER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_PROGRAM_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_DRONE_CAN_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
 print:
-	 @echo $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)
+	 @echo $(OBJECTS_TO_LINK)

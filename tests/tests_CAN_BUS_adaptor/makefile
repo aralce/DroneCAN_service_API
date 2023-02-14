@@ -41,7 +41,6 @@ FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)/CAN_BUS_adaptor/CAN_driver_implementation/Arduino_CAN_driver/*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_CAN_LIBRARY)*))
-FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)CAN_bus_adaptor/*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)CAN_bus_adaptor/CAN_drivers_implementation/Arduino/*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
@@ -54,7 +53,6 @@ compile_tests: $(OBJECTS_TO_LINK)
 vpath %.cpp %.h $(TEST_MAIN_FOLDER_DIR)
 vpath %.cpp %.h $(TEST_MOCK_DIR)
 vpath %.cpp %.h $(TEST_MOCK_CAN_LIBRARY)
-vpath %.cpp %.h $(TEST_PROGRAM_DIR)CAN_bus_adaptor/
 vpath %.cpp %.h $(TEST_PROGRAM_DIR)CAN_bus_adaptor/CAN_drivers_implementation/Arduino/
 vpath %.cpp %.h $(TEST_MOCK_DIR)/CAN_BUS_adaptor/CAN_driver_implementation/Arduino_CAN_driver/
 
@@ -62,4 +60,4 @@ $(BUILD_OUTPUT_DIR)%.o : %.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 print:
-	@ls $(TEST_MOCK_DIR)/CAN_BUS_adaptor/CAN_driver_implementation/Arduino_CAN_driver/
+	@echo $(OBJECTS_TO_LINK)
