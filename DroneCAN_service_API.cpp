@@ -221,6 +221,10 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, float value
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, char* value_to_set) {
+    return set_generic_parameter_value_by_name(name, value_to_set);
+}
+
 template <typename PARAM_VALUE_TYPE>
 bool DroneCAN_service::set_generic_parameter_value_by_name(const char* name, PARAM_VALUE_TYPE value_to_set) {
     auto iterator = parameter_list.begin();

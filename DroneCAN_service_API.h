@@ -47,6 +47,7 @@ public:
     bool set_parameter_value_by_name(const char* name, int32_t value_to_set);
     bool set_parameter_value_by_name(const char* name, int64_t value_to_set);
     bool set_parameter_value_by_name(const char* name, float value_to_set);
+    bool set_parameter_value_by_name(const char* name, char* value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set);
     bool set_parameter_value(uint8_t parameter_index_from_0, int64_t value_to_set);
