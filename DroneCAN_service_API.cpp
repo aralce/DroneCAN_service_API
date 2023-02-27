@@ -8,7 +8,7 @@
 #ifdef IS_RUNNING_TESTS
     #include <mocks/HAL_system/HAL_system_singleton.h>
 #else
-    #include <HAL_API/HAL_system/HAL_system_singleton.h>
+    #include <HAL_system/HAL_system_singleton.h>
 #endif
 
 CanardPoolAllocatorStatistics statistics{};
