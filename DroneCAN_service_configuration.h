@@ -2,7 +2,9 @@
 
 #define DRONECAN_NODE_NAME "Upgrade Energy Tech -- Smart Battery"
 
-#define CAN_BUS_BAUDRATE 1000000
+#define CAN_BUS_DRIVER_TO_USE    CAN_bus_driver::ESP_IDF
+
+#define CAN_BUS_BAUDRATE CAN_bitrate::CAN_1MBITS
 
 #define CAN_BUS_CRX_PIN 26
 #define CAN_BUS_CTX_PIN 25

@@ -1,12 +1,13 @@
 #include "Arduino_CAN_driver.h"
-#ifndef IS_RUNNING_TESTS
-    #include <CAN.h>
-#else
+#if defined(IS_RUNNING_TESTS)
     #include <CAN_BUS_adaptor/CAN_driver_implementation/Arduino_CAN_driver/CAN.h>
+#else
+    #include <CAN.h>
 #endif
 
-bool Arduino_CAN_driver::begin(long baudRate) {
-    return CAN.begin(baudRate);
+bool Arduino_CAN_driver::begin(CAN_bitrate bitrate) {
+    long bitrate_to_use = CAN_enum_class_to_number(bitrate);
+    return CAN.begin(bitrate_to_use);
 }
 
 void Arduino_CAN_driver::setPins(int rx, int tx) {

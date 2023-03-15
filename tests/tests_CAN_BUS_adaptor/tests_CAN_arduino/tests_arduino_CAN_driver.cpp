@@ -3,7 +3,7 @@
 #include <cstring>
 
 #define COUNT_OF(x) sizeof(x)/sizeof(x[0])
-CAN_bus_adaptor* can = nullptr;
+static CAN_bus_adaptor* can = nullptr;
 
 TEST_GROUP(CAN_arduino_driver)
 {
@@ -25,7 +25,7 @@ TEST(CAN_arduino_driver, begin)
     mock().expectOneCall("can_class->begin")
           .withLongIntParameter("baudRate", BAUDRATE);
 
-    can->begin(BAUDRATE);
+    can->begin(CAN_bitrate::CAN_1MBITS);
 }
 
 TEST(CAN_arduino_driver, setPins)
