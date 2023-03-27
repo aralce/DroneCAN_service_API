@@ -3,7 +3,6 @@
 #include <uavcan.protocol.GetNodeInfo.h>
 #include <auxiliary_functions.h>
 #include <cstring>
-#include <Arduino.h>
 
 #ifdef IS_RUNNING_TESTS
     #include <mocks/HAL_system/HAL_system_singleton.h>
