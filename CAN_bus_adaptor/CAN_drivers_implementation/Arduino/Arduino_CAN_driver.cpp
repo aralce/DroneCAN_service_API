@@ -1,4 +1,7 @@
 #include "Arduino_CAN_driver.h"
+
+#if defined(ESP32_WITH_ARDUINO)
+
 #if defined(IS_RUNNING_TESTS)
     #include <CAN_BUS_adaptor/CAN_driver_implementation/Arduino_CAN_driver/CAN.h>
 #else
@@ -38,3 +41,5 @@ bool Arduino_CAN_driver::try_CAN_write(const uint8_t* buffer, size_t size) {
     bool was_writing_successful = (bytes_written == size);
     return was_writing_successful;
 }
+
+#endif //ESP32_WITH_ARDUINO

@@ -4,15 +4,14 @@
     #include "CAN_drivers_implementation/ESP_IDF/ESP_IDF_CAN_driver.h"
 #endif
 
-CAN_bus_adaptor* CAN_bus_adaptor_factory::get_CAN_bus_adaptor(CAN_bus_driver driver) {
+CAN_bus_adaptor* CAN_bus_adaptor_factory::get_CAN_bus_adaptor() {
     CAN_bus_adaptor* can = nullptr;
-    switch (driver) {
-        case CAN_bus_driver::ARDUINO_CAN:
-            can = new Arduino_CAN_driver();
-            break;
-        case CAN_bus_driver::ESP_IDF:
-            can = new ESP_IDF_CAN_driver();
-            break;
-    }
+    #if defined(ESP32_WITH_ARDUINO)
+        can = new Arduino_CAN_driver();
+    #elif defined(ESP32_WITH_ESP_IDF)
+        can = new ESP_IDF_CAN_driver();
+    #else
+        #error "CAN_bus_adaptor without driver is not supported"
+    #endif
     return can;
 }

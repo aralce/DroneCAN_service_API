@@ -4,11 +4,11 @@
     #include "CAN_bus_adaptor/CAN_bus_adaptor.h"
 #endif
 
-enum class CAN_bus_driver{ESP_IDF, ARDUINO_CAN};
+// enum class CAN_bus_driver{ESP_IDF, ARDUINO_CAN};
 
 class CAN_bus_adaptor_factory {
 public:
-    static CAN_bus_adaptor* get_CAN_bus_adaptor(CAN_bus_driver driver);
+    static CAN_bus_adaptor* get_CAN_bus_adaptor();
 
 private:
     CAN_bus_adaptor_factory() {}

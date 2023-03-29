@@ -1,4 +1,9 @@
 #pragma once
+
+#include "../../CAN_bus_adaptor_config.h"
+
+#if defined(ESP32_WITH_ARDUINO)
+
 #include "CAN_bus_adaptor/CAN_bus_adaptor.h"
 #include <canard.h>
 
@@ -19,3 +24,5 @@ public:
 private:
     bool try_CAN_write(const uint8_t* buffer, size_t size);
 };
+
+#endif //ESP32_WITH_ARDUINO
