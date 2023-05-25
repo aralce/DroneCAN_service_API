@@ -95,6 +95,9 @@ extern "C" {
 #define CANARD_ERROR_RX_SHORT_FRAME                    16
 #define CANARD_ERROR_RX_BAD_CRC                        17
 
+#define UNDEFINED_ERROR 20
+
+
 /// The size of a memory block in bytes.
 #if CANARD_ENABLE_CANFD
 #define CANARD_MEM_BLOCK_SIZE                       128U

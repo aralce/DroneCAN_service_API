@@ -351,7 +351,7 @@ int16_t canardHandleRxFrame(CanardInstance* ins, const CanardCANFrame* frame, ui
     {
         rx_state = findRxState(ins->rx_states, transfer_descriptor);
 
-        if (rx_state == NULL)
+        if (rx_state == NULL || rx_state->buffer_blocks != NULL)
         {
             return -CANARD_ERROR_RX_MISSED_START;
         }
@@ -405,6 +405,12 @@ int16_t canardHandleRxFrame(CanardInstance* ins, const CanardCANFrame* frame, ui
 
         ins->on_reception(ins, &rx_transfer);
 
+        if (rx_state->buffer_blocks != NULL) {
+            releaseStatePayload(ins, rx_state);
+            prepareForNextTransfer(rx_state);
+            return -UNDEFINED_ERROR;
+        }
+        CANARD_ASSERT(rx_state->buffer_blocks == NULL); //DEBUG
         prepareForNextTransfer(rx_state);
         return CANARD_OK;
     }
@@ -433,6 +439,7 @@ int16_t canardHandleRxFrame(CanardInstance* ins, const CanardCANFrame* frame, ui
         if (ret < 0)
         {
             releaseStatePayload(ins, rx_state);
+            CANARD_ASSERT(rx_state->buffer_blocks == NULL); //DEBUG
             prepareForNextTransfer(rx_state);
             return CANARD_ERROR_OUT_OF_MEMORY;
         }
@@ -447,6 +454,7 @@ int16_t canardHandleRxFrame(CanardInstance* ins, const CanardCANFrame* frame, ui
         if (ret < 0)
         {
             releaseStatePayload(ins, rx_state);
+            CANARD_ASSERT(rx_state->buffer_blocks == NULL); //DEBUG
             prepareForNextTransfer(rx_state);
             return CANARD_ERROR_OUT_OF_MEMORY;
         }
@@ -526,6 +534,7 @@ int16_t canardHandleRxFrame(CanardInstance* ins, const CanardCANFrame* frame, ui
 
         // Making sure the payload is released even if the application didn't bother with it
         canardReleaseRxTransferPayload(ins, &rx_transfer);
+        CANARD_ASSERT(rx_state->buffer_blocks == NULL); //DEBUG
         prepareForNextTransfer(rx_state);
 
         if (rx_state->calculated_crc == rx_state->payload_crc)

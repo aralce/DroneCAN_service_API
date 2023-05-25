@@ -124,6 +124,7 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
 //     if (canard.handle_rx_frame(frame, timestamp_usec) < 0)
 //         _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
 // }
+#include <driver/twai.h>
 
 void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender) {
     if (is_there_canard_message_to_handle) {
@@ -131,6 +132,9 @@ void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_
         uavcan_protocol_param_GetSetRequest paramGetSet_request{};
 
         printf("Received Canard type: %d\r\n", canard_reception.rx_transfer->data_type_id);  //DEBUG
+        twai_status_info_t status_info{};
+        twai_get_status_info(&status_info); //DEBUG
+        printf("Rx queue: %d\r\n", status_info.msgs_to_rx);  //DEBUG
 
         switch(canard_reception.rx_transfer->data_type_id) {
             case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:

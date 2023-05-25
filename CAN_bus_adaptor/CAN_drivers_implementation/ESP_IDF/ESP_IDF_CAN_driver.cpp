@@ -33,6 +33,7 @@ static void on_receive_caller_task(void* received_frame_buffer);
 bool ESP_IDF_CAN_driver::begin(CAN_bitrate bitrate) {
     _bitrate = bitrate;
     twai_general_config_t general_config = TWAI_GENERAL_CONFIG_DEFAULT((gpio_num_t)tx_pin, (gpio_num_t)rx_pin, TWAI_MODE_NORMAL);
+    general_config.rx_queue_len = 500;//DEBUG
     twai_timing_config_t timing_config = get_twai_config_from_CAN_bitrate(bitrate);
     twai_filter_config_t filter_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
