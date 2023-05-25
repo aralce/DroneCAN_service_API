@@ -9,7 +9,7 @@
  * 
  * **/
 
-#define USE_ESP32_WITH_ARDUINO
+// #define USE_ESP32_WITH_ARDUINO
 #define USE_ESP32_WITH_ESP_IDF
 
 

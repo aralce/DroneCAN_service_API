@@ -3,6 +3,7 @@
 #include "CAN_bus_adaptor/CAN_bus_adaptor.h"
 #include <canard.h>
 
+
 class ESP_IDF_CAN_driver: public CAN_bus_adaptor {
 public:
     ~ESP_IDF_CAN_driver();
@@ -26,9 +27,18 @@ private:
     static const int MAX_BYTES_PER_FRAME = 8;
     uint8_t received_frame_buffer[MAX_BYTES_PER_FRAME] = {};
     uint8_t index_of_byte_read_from_buffer = 0;
+    uint8_t msg_data_length = 0;
+
+    uint32_t received_frame_id;
+    bool was_packet_id_gotten = false;
 
     bool is_driver_running = false;
     CAN_bitrate _bitrate = CAN_bitrate::CAN_1MBITS;
 
+    bool is_there_error_on_frame_reception = false;
+
     bool try_CAN_write(const uint8_t* buffer, size_t size);
+    bool should_request_a_new_frame();
+    void clear_should_request_new_frame_flag();
+    void receive_new_CAN_frame_from_buffer();
 };

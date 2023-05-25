@@ -499,7 +499,7 @@ inline esp_err_t twai_initiate_recovery(void) {
  */
 inline esp_err_t twai_get_status_info(twai_status_info_t *status_info) {
     mock().actualCall("twai_get_status_info")
-          .withParameterOfType("twai_status_info_t", "status_info", (const void*)status_info);
+          .withOutputParameterOfType("twai_status_info_t", "status_info", (void*)status_info);
     return mock().returnIntValueOrDefault(ESP_OK);
 }
 
@@ -726,6 +726,83 @@ public:
         output->rtr = input->rtr;
         output->self = input->self;
         output->ss = input->self;
+    }
+};
+
+class Twai_status_info_t : public MockNamedValueComparator
+{
+public:
+    virtual bool isEqual(const void* object1, const void* object2)
+    {
+        const twai_status_info_t* status1 = static_cast<const twai_status_info_t*>(object1);
+        const twai_status_info_t* status2 = static_cast<const twai_status_info_t*>(object2);
+
+        if (status1->state != status2->state) {
+            printf("status_mismatch: %d || %d\r\n", status1->state, status2->state);
+            return false;
+        }
+        if (status1->msgs_to_tx != status2->msgs_to_tx) {
+            printf("msgs_to_tx mismatch: %d || %d\r\n", status1->msgs_to_tx, status2->msgs_to_tx);
+            return false;
+        }
+        if (status1->msgs_to_rx != status2->msgs_to_rx) {
+            printf("msgs_to_rx mismatch: %d || %d\r\n", status1->msgs_to_rx, status2->msgs_to_rx);
+            return false;
+        }
+        if (status1->tx_error_counter != status2->tx_error_counter) {
+            printf("tx_error_counter mismatch: %d || %d\r\n", status1->tx_error_counter, status2->tx_error_counter);
+            return false;
+        }
+        if (status1->rx_error_counter != status2->rx_error_counter) {
+            printf("rx_error_counter mismatch: %d || %d\r\n", status1->rx_error_counter, status2->rx_error_counter);
+            return false;
+        }
+        if (status1->tx_failed_count != status2->tx_failed_count) {
+            printf("tx_failed_count mismatch: %d || %d\r\n", status1->tx_failed_count, status2->tx_failed_count);
+            return false;
+        }
+        if (status1->rx_missed_count != status2->rx_missed_count) {
+            printf("rx_missed_count mismatch: %d || %d\r\n", status1->rx_missed_count, status2->rx_missed_count);
+            return false;
+        }
+        if (status1->rx_overrun_count != status2->rx_overrun_count) {
+            printf("rx_overrun_count mismatch: %d || %d\r\n", status1->rx_overrun_count, status2->rx_overrun_count);
+            return false;
+        }
+        if (status1->arb_lost_count != status2->arb_lost_count) {
+            printf("arb_lost_count mismatch: %d || %d\r\n", status1->arb_lost_count, status2->arb_lost_count);
+            return false;
+        }
+        if (status1->bus_error_count != status2->bus_error_count) {
+            printf("bus_error_count mismatch: %d || %d\r\n", status1->bus_error_count, status2->bus_error_count);
+            return false;
+        }
+        return true;
+    }
+    virtual SimpleString valueToString(const void* object)
+    {
+        return StringFrom(object);
+    }
+};
+
+
+class Twai_status_info_t_copier : public MockNamedValueCopier
+{
+public:
+    virtual void copy(void* out, const void* in)
+    {
+        const twai_status_info_t* input = static_cast<const twai_status_info_t*>(in);
+        twai_status_info_t* output = static_cast<twai_status_info_t*>(out);
+
+        output->state = input->state;
+        output->msgs_to_tx = input->msgs_to_tx;
+        output->msgs_to_rx = input->msgs_to_rx;
+        output->tx_error_counter = input->tx_error_counter;
+        output->tx_failed_count = input->tx_failed_count;
+        output->rx_missed_count = input->rx_missed_count;
+        output->rx_overrun_count = input->rx_overrun_count;
+        output->arb_lost_count = input->arb_lost_count;
+        output->bus_error_count = input->bus_error_count;
     }
 };
 

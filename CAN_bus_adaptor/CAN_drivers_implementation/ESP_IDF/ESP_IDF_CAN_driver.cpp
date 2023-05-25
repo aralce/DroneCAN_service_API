@@ -27,6 +27,7 @@ ESP_IDF_CAN_driver::~ESP_IDF_CAN_driver() {
     vTaskDelete(receiver_task_handler);
 }
 
+#define CORE_0 0
 static void on_receive_caller_task(void* received_frame_buffer);
 
 bool ESP_IDF_CAN_driver::begin(CAN_bitrate bitrate) {
@@ -44,7 +45,7 @@ bool ESP_IDF_CAN_driver::begin(CAN_bitrate bitrate) {
 
     const uint32_t TASK_STACK_1KB  = 1000;
     UBaseType_t main_task_priority = uxTaskPriorityGet(nullptr);
-    xTaskCreatePinnedToCore(on_receive_caller_task, "CAN_BUS_receiver_task", TASK_STACK_1KB, received_frame_buffer, main_task_priority+1, &receiver_task_handler, tskNO_AFFINITY);
+    xTaskCreatePinnedToCore(on_receive_caller_task, "CAN_BUS_receiver_task", TASK_STACK_1KB, received_frame_buffer, main_task_priority+1, &receiver_task_handler, CORE_0);
     is_driver_running = true;
     return true;
 }
@@ -72,22 +73,15 @@ twai_timing_config_t get_twai_config_from_CAN_bitrate(CAN_bitrate bitrate) {
     }
 }
 
-static uint32_t received_frame_id = 0;
-
 static void on_receive_caller_task(void* received_frame_buffer) {
-    twai_message_t received_message;
-    
+    twai_status_info_t status_info{};
+
     #ifndef IS_RUNNING_TESTS
     for(;;) {
     #endif
-        twai_receive(&received_message, portMAX_DELAY);
+        twai_get_status_info(&status_info);
 
-        int bytes_to_copy = received_message.data_length_code > 8 ? 8 : received_message.data_length_code;
-        memcpy(received_frame_buffer, received_message.data, bytes_to_copy);
-
-        received_frame_id = received_message.identifier;
-
-        if (onReceive_callback != nullptr)
+        if (onReceive_callback != nullptr && status_info.msgs_to_rx > 0)
             onReceive_callback(0);
     #ifndef IS_RUNNING_TESTS
     }
@@ -123,14 +117,47 @@ void ESP_IDF_CAN_driver::onReceive(onReceive_callback_t onReceive_function) {
 
 #define NO_MORE_BYTES_TO_READ -1
 int ESP_IDF_CAN_driver::read() {
-    if (index_of_byte_read_from_buffer >= MAX_BYTES_PER_FRAME)
+    if (should_request_a_new_frame())
+        receive_new_CAN_frame_from_buffer();
+
+    if (is_there_error_on_frame_reception)
         return NO_MORE_BYTES_TO_READ;
+
+    uint8_t last_byte = msg_data_length - 1;
+    if (index_of_byte_read_from_buffer == last_byte) {
+        clear_should_request_new_frame_flag();
+        return received_frame_buffer[last_byte];
+    }
     else
         return received_frame_buffer[index_of_byte_read_from_buffer++];
 }
 
+void ESP_IDF_CAN_driver::clear_should_request_new_frame_flag() {
+    index_of_byte_read_from_buffer = 0;
+    was_packet_id_gotten = false;
+}
+
 long ESP_IDF_CAN_driver::get_packet_id() {
+    if (should_request_a_new_frame())
+        receive_new_CAN_frame_from_buffer();
+    
+    was_packet_id_gotten = true;
     return received_frame_id;
+}
+
+bool ESP_IDF_CAN_driver::should_request_a_new_frame() {
+    return (index_of_byte_read_from_buffer == 0) && (was_packet_id_gotten == false);
+}
+
+void ESP_IDF_CAN_driver::receive_new_CAN_frame_from_buffer() {
+    twai_message_t received_msg{};
+
+    esp_err_t error = twai_receive(&received_msg, 0);
+
+    is_there_error_on_frame_reception = error != ESP_OK ? true : false;
+    received_frame_id = received_msg.identifier;
+    msg_data_length = received_msg.data_length_code;
+    memcpy(received_frame_buffer, received_msg.data, msg_data_length);
 }
 
 bool ESP_IDF_CAN_driver::try_CAN_write(const uint8_t* buffer, size_t size) {

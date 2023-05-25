@@ -101,7 +101,9 @@ TEST_GROUP(CAN_ESP_IDF_driver)
     Twai_timing_config_t_comparator twai_timing_config_t_comparator;
     Twai_filter_config_t_comparator twai_filter_config_t_comparator;
     Twai_message_t_comparator twai_message_t_comparator;
+    Twai_status_info_t_copier twai_status_info_t_copier;
     Twai_message_t_copier twai_message_t_copier;
+
     void setup ()
     {
         can = new ESP_IDF_CAN_driver();
@@ -110,8 +112,9 @@ TEST_GROUP(CAN_ESP_IDF_driver)
         mock().installComparator("twai_timing_config_t", twai_timing_config_t_comparator);
         mock().installComparator("twai_filter_config_t", twai_filter_config_t_comparator);
         mock().installComparator("twai_message_t", twai_message_t_comparator);
+        mock().installCopier("twai_status_info_t", twai_status_info_t_copier);
         mock().installCopier("twai_message_t", twai_message_t_copier);
-        
+
         mock().disable();
         can->begin(CAN_bitrate::CAN_1MBITS);
         mock().enable();
@@ -129,14 +132,14 @@ TEST_GROUP(CAN_ESP_IDF_driver)
     }
 };
 
-TEST(CAN_ESP_IDF_driver, GIVEN_driver_is_begun_WHEN_receiver_task_runs_THEN_receive_msg_from_CAN_with_blocking)
-{
-    TaskFunction_t call_receiver_task_function = spy_task_function();
-    mock().expectOneCall("twai_receive")
-          .withUnsignedLongIntParameter("ticks_to_wait", portMAX_DELAY)
-          .ignoreOtherParameters();
-    call_receiver_task_function(spy_parameter_passed_to_task_function());
-}
+// TEST(CAN_ESP_IDF_driver, GIVEN_driver_is_begun_WHEN_receiver_task_runs_THEN_receive_msg_from_CAN_with_blocking)
+// {
+//     TaskFunction_t call_receiver_task_function = spy_task_function();
+//     mock().expectOneCall("twai_receive")
+//           .withUnsignedLongIntParameter("ticks_to_wait", portMAX_DELAY)
+//           .ignoreOtherParameters();
+//     call_receiver_task_function(spy_parameter_passed_to_task_function());
+// }
 
 TEST(CAN_ESP_IDF_driver, GIVEN_the_system_is_begun_WHEN_setPins_THEN_system_is_re_init)
 {
@@ -168,9 +171,10 @@ void CHECK_system_is_init(twai_general_config_t* g_config, twai_timing_config_t*
           .andReturnValue(PRIORITY);
 
     const int HIGHER_PRIORITY = PRIORITY + 1;
+    const uint32_t CORE_0 = 0;
     mock().expectOneCall("xTaskCreatePinnedToCore")
           .withIntParameter("uxPriority", HIGHER_PRIORITY)
-          .withIntParameter("xCoreID", tskNO_AFFINITY)
+          .withIntParameter("xCoreID", CORE_0)
           .ignoreOtherParameters();
 }
 
@@ -220,57 +224,169 @@ TEST(CAN_ESP_IDF_driver, send_can_frame_fails)
 }
 
 typedef void (*onReceive_callback)(int packet_size);
-void onReceive_callback_dummy(int) {
+static void onReceive_callback_dummy(int);
+
+TEST(CAN_ESP_IDF_driver, GIVEN_register_an_on_receive_callback_function_WHEN_frame_is_received_THEN_call_callback)
+{
+    onReceive_callback callback = onReceive_callback_dummy;
+    can->onReceive(callback);
+
+    twai_status_info_t status{};
+    status.msgs_to_rx = 1;
+    mock().expectOneCall("twai_get_status_info")
+          .withOutputParameterOfTypeReturning("twai_status_info_t", "status_info", (const void*)&status);
+    mock().expectOneCall("onReceive_callback");
+    
+    TaskFunction_t call_receiver_task_function = spy_task_function();
+    call_receiver_task_function(spy_parameter_passed_to_task_function());
+}
+
+TEST(CAN_ESP_IDF_driver, GIVEN_register_an_on_receive_callback_function_WHEN_frame_is_NOT_received_THEN_do_NOT_call_callback)
+{
+    onReceive_callback callback = onReceive_callback_dummy;
+    can->onReceive(callback);
+
+    twai_status_info_t status{};
+    status.msgs_to_rx = 0;
+    mock().expectOneCall("twai_get_status_info")
+          .withOutputParameterOfTypeReturning("twai_status_info_t", "status_info", (const void*)&status);
+    mock().expectNoCall("onReceive_callback");
+
+    TaskFunction_t call_receiver_task_function = spy_task_function();
+    call_receiver_task_function(spy_parameter_passed_to_task_function());
+}
+
+static void onReceive_callback_dummy(int) {
     mock().actualCall("onReceive_callback");
 }
 
-TEST(CAN_ESP_IDF_driver, register_an_on_receive_callback_function_for_the_first_time)
+#define NO_MORE_BYTES_TO_READ -1
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_NOT_received_WHEN_read_bytes_from_can_THEN_get_there_is_no_data)
 {
-    onReceive_callback callback = onReceive_callback_dummy;
+    mock().expectOneCall("twai_receive")
+          .ignoreOtherParameters()
+          .andReturnValue(ESP_ERR_TIMEOUT);
 
-    can->onReceive(callback);
-
-    TaskFunction_t call_task_function = spy_task_function();
-    mock().expectOneCall("onReceive_callback");
-    mock().ignoreOtherCalls();
-    call_task_function(spy_parameter_passed_to_task_function());
+    CHECK_EQUAL(NO_MORE_BYTES_TO_READ, can->read());
 }
+
+static void CHECK_frame_message_is_received(uint8_t* data, uint8_t data_len);
 
 TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_WHEN_read_bytes_from_can_THEN_get_the_correct_data)
 {
-    twai_message_t received_message = {
-        .data_length_code = 8,
-        .data = {1, 2, 3, 4, 5, 6, 7, 8},
-    };
-    received_message.extd = 1;
-    mock().expectOneCall("twai_receive")
-          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_message)
-          .ignoreOtherParameters();
-    
-    TaskFunction_t call_receiver_task_function = spy_task_function();
-    call_receiver_task_function(spy_parameter_passed_to_task_function());
+    uint8_t data_len = 8;
+    uint8_t data[8] = {1,2,3,4,5,6,7,8};
+    CHECK_frame_message_is_received(data, data_len);
 
-    for(int i = 0; i < received_message.data_length_code; i++) {
-        int expected_byte = received_message.data[i];
-        int actual_value = can->read();
-        CHECK_EQUAL(expected_byte, actual_value);
-    }
-    
-    int NO_MORE_DATA_TO_READ = -1;
-    int actual_value = can->read();
-    CHECK_EQUAL(NO_MORE_DATA_TO_READ, actual_value);
+    for (int i = 0; i < data_len; ++i)
+        CHECK_EQUAL(data[i], can->read());
 }
 
-TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_WHEN_get_packet_id_THEN_receive_the_correct_packet_id) {
-    uint32_t MESSAGE_ID = 12345 & CANARD_CAN_EXT_ID_MASK;
-    twai_message_t received_message = {.identifier = MESSAGE_ID};
+TEST(CAN_ESP_IDF_driver, GIVEN_more_than_one_can_frame_is_received_WHEN_read_bytes_THEN_get_correct_data)
+{
+    uint8_t data_len = 8;
+
+    uint8_t data1[data_len] = {11, 12, 13, 14, 15, 16, 17, 18};
+    CHECK_frame_message_is_received(data1, data_len);
+    
+    for (int i = 0; i < data_len; ++i)
+        CHECK_EQUAL(data1[i], can->read());
+    
+    uint8_t data2[data_len] = {21, 22, 23, 24, 25, 26, 27, 28};
+    CHECK_frame_message_is_received(data2, data_len);
+
+    for (int i = 0; i < data_len; ++i)
+        CHECK_EQUAL(data2[i], can->read());
+}
+
+static void CHECK_frame_message_is_received(uint8_t* data, uint8_t data_len)
+{
+    static twai_message_t message{};
+
+    message.data_length_code = data_len;
+    memcpy(message.data, data, message.data_length_code);
+
     mock().expectOneCall("twai_receive")
-          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_message)
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", &message)
+          .withUnsignedLongIntParameter("ticks_to_wait", 0);
+}
+
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_and_data_was_NOT_read_WHEN_get_packet_id_THEN_receive_frame_and_read_id)
+{
+    uint32_t MESSAGE_ID = 12345 & CANARD_CAN_EXT_ID_MASK;
+    twai_message_t received_msg = {.identifier = MESSAGE_ID};
+    mock().expectOneCall("twai_receive")
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_msg)
           .ignoreOtherParameters();
+    
+    uint32_t msg_id_reading = can->get_packet_id();
+    CHECK_EQUAL(MESSAGE_ID, msg_id_reading);
+}
 
-    TaskFunction_t call_receiver_task_function = spy_task_function();
-    call_receiver_task_function(spy_parameter_passed_to_task_function());
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_and_data_WAS_read_WHEN_get_packet_id_THEN_just_read_id)
+{
+    uint32_t MESSAGE_ID = 67890 & CANARD_CAN_EXT_ID_MASK;
+    twai_message_t received_msg = {.identifier = MESSAGE_ID};
 
-    uint32_t actual_value = can->get_packet_id();
-    CHECK_EQUAL(MESSAGE_ID, actual_value);
+    mock().expectOneCall("twai_receive")
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_msg)
+          .ignoreOtherParameters();
+    can->read();
+    mock().checkExpectations();
+    mock().clear();
+
+    mock().expectNoCall("twai_receive");
+    can->get_packet_id();
+}
+
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_and_data_was_NOT_read_WHEN_get_packet_id_twice_THEN_just_request_one_frame)
+{
+    mock().expectOneCall("twai_receive")
+          .ignoreOtherParameters();
+    can->get_packet_id();
+    can->get_packet_id();
+}
+
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_and_id_was_read_WHEN_get_data__THEN_do_not_request_a_new_frame)
+{
+    twai_message_t received_msg{};
+    uint8_t data_length = 8;
+    uint8_t data[data_length] = {1,2,3,4,5,6,7,8};
+    received_msg.data_length_code = data_length;
+    memcpy(&received_msg.data, data, data_length);
+
+    mock().expectOneCall("twai_receive")
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_msg)
+          .ignoreOtherParameters();
+    can->get_packet_id();
+    mock().checkExpectations();
+    mock().clear();
+
+    mock().expectNoCall("twai_receive");
+    for (int i = 0; i < data_length; i++)
+        CHECK_EQUAL(data[i], can->read());
+}
+
+TEST(CAN_ESP_IDF_driver, GIVEN_can_frame_is_received_and_id_was_read_WHEN_finish_to_read_frame_and_read_the_next_one_THEN_request_the_next_frame)
+{
+    twai_message_t received_msg{};
+    uint8_t data_length = 8;
+    uint8_t data[data_length] = {1,2,3,4,5,6,7,8};
+    received_msg.data_length_code = data_length;
+    memcpy(received_msg.data, data, data_length);
+
+    mock().expectOneCall("twai_receive")
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_msg)
+          .ignoreOtherParameters();
+    can->get_packet_id();
+
+    for (int i = 0; i < data_length; ++i)
+        can->read();
+    mock().checkExpectations();
+    mock().clear();
+
+    mock().expectOneCall("twai_receive")
+          .withOutputParameterOfTypeReturning("twai_message_t", "message", (void*)&received_msg)
+          .ignoreOtherParameters();
+    can->read();
 }
