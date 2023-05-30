@@ -131,11 +131,6 @@ void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_
         uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
         uavcan_protocol_param_GetSetRequest paramGetSet_request{};
 
-        printf("Received Canard type: %d\r\n", canard_reception.rx_transfer->data_type_id);  //DEBUG
-        twai_status_info_t status_info{};
-        twai_get_status_info(&status_info); //DEBUG
-        printf("Rx queue: %d\r\n", status_info.msgs_to_rx);  //DEBUG
-
         switch(canard_reception.rx_transfer->data_type_id) {
             case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
                 get_node_info_response.status = nodeStatus_struct;
@@ -150,12 +145,8 @@ void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_
                 static uavcan_parameter parameter_to_send; //this parameter must be on scope
                 parameter_to_send = this->get_parameter(paramGetSet_request.index);
 
-                printf("to send parameter: %d\r\n", paramGetSet_request.index);  //DEBUG
-
-                if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0) {
+                if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
                     message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-                    printf("Canad parameter sent!!!\r\n");  //DEBUG
-                }
                 break;
         }
             is_there_canard_message_to_handle = false;
