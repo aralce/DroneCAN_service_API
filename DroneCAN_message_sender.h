@@ -9,7 +9,7 @@
     #include <DSDL_to_canard_DTO.h>
 #else
     #include "Canard_wrapper.h"
-    #include "CAN_bus_adaptor/CAN_bus_adaptor.h"
+    #include <CAN_bus_adaptor.h>
     #include "DSDL_to_canard_DTO.h"
 #endif
 #include "DroneCAN_service_configuration.h"

@@ -7,7 +7,7 @@
 #ifdef IS_RUNNING_TESTS
     #include <CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
 #else
-    #include "CAN_bus_adaptor/CAN_bus_adaptor_factory.h"
+    #include <CAN_bus_adaptor_factory.h>
 #endif
 using microseconds = uint64_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
