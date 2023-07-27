@@ -1,7 +1,7 @@
 #include <common_to_DroneCAN_service_tests.h>
 #include <DroneCAN_message_sender.h>
 #include <auxiliary_functions.h>
-#include <CAN_BUS_adaptor/Can_bus_adaptor.h>
+#include <CAN_bus_adaptor.h>
 #include <uavcan.protocol.param.GetSet_res.h>
 #include <uavcan.protocol.param.GetSet_req.h>
 #include <uavcan.protocol.GetNodeInfo_req.h>

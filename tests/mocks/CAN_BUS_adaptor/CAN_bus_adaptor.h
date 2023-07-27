@@ -1,11 +1,10 @@
 #pragma once
-#include "CAN_driver_implementation/Arduino_CAN_driver/CAN.h"
 #include <canard.h>
-
-// #include "../../../../../CAN_bus_adaptor/CAN_bus_adaptor.h"
 
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
+
+enum class CAN_bitrate {CAN_1MBITS, CAN_800KBITS, CAN_500KBITS, CAN_250KBITS, CAN_125KBITS, CAN_100KBITS, CAN_50KBITS, CAN_25KBITS};
 
 class CAN_bus_adaptor {
 public:
@@ -13,9 +12,9 @@ public:
 
     }
 
-    bool begin(long baudRate) {
+    bool begin(CAN_bitrate baudRate) {
         mock().actualCall("CAN_bus_adaptor->begin")
-            .withLongIntParameter("baudRate", baudRate);
+            .withLongIntParameter("baudRate", (long int)baudRate);
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 

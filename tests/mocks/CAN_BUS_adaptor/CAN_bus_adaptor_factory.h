@@ -1,10 +1,8 @@
-#include "Can_bus_adaptor.h"
-
-enum class CAN_bus_driver{ESP_IDF, ARDUINO_CAN};
+#include <CAN_bus_adaptor.h>
 
 class CAN_bus_adaptor_factory {
 public:
-    static CAN_bus_adaptor* get_CAN_bus_adaptor(CAN_bus_driver driver) {
+    static CAN_bus_adaptor* get_CAN_bus_adaptor() {
         CAN_bus_adaptor* can = new CAN_bus_adaptor();
         return can;
     }

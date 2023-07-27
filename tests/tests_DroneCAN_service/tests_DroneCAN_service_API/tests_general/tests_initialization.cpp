@@ -64,7 +64,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
           .withParameter("tx", CAN_BUS_CTX_PIN);
     
     mock().expectOneCall("CAN_bus_adaptor->begin")
-          .withParameter("baudRate", CAN_BUS_BAUDRATE)
+          .withParameter("baudRate", (long int)CAN_BUS_BAUDRATE)
           .andReturnValue(INITIALIZATION_SUCCESSFUL);
     
     mock().expectOneCall("CAN_bus_adaptor->onReceive")
@@ -76,7 +76,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
 TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
 {
     mock().expectOneCall("CAN_bus_adaptor->begin")
-          .withParameter("baudRate", CAN_BUS_BAUDRATE)
+          .withParameter("baudRate", (long int)CAN_BUS_BAUDRATE)
           .andReturnValue(FAILURE_IN_INITIALIZATION);
     
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};

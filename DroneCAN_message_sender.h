@@ -3,13 +3,14 @@
 
 #include <cstdio>
 #include <cstdint>
+
+#include <CAN_bus_adaptor.h>
+
 #ifdef IS_RUNNING_TESTS
     #include <Canard_wrapper.h>
-    #include <CAN_BUS_adaptor/Can_bus_adaptor.h>
     #include <DSDL_to_canard_DTO.h>
 #else
     #include "Canard_wrapper.h"
-    #include <CAN_bus_adaptor.h>
     #include "DSDL_to_canard_DTO.h"
 #endif
 #include "DroneCAN_service_configuration.h"
