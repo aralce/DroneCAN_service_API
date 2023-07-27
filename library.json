@@ -1,0 +1,12 @@
+{
+    "name": "DroneCAN_service_API",
+    "version": "1.0.0",
+    "author": "Ariel Cerfoglia <ariel.cerfoglia@gmail.com>",
+    "build": {
+        "srcDir": ".",
+        "srcFilter": "+<*> +<implementation/*> -<tests/*>",
+        "includeDir": ".",
+        "flags": "-I uavcan_driver/uavcan_messages",
+      }
+  }
+  
