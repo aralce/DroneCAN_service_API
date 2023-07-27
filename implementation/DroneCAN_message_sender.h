@@ -7,7 +7,7 @@
 #include <CAN_bus_adaptor.h>
 
 #ifdef IS_RUNNING_TESTS
-    #include <Canard_wrapper.h>
+    #include <mocks/Canard_wrapper/Canard_wrapper.h>
     #include <DSDL_to_canard_DTO.h>
 #else
     #include "Canard_wrapper.h"

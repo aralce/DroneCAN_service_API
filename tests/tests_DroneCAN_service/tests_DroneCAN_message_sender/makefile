@@ -1,4 +1,7 @@
 TEST_MAIN_FOLDER_DIR = ../../
+IMPLEMENTATION_DIR = $(TEST_PROGRAM_DIR)implementation/
+UAVCAN_DRIVER_DIR = $(TEST_PROGRAM_DIR)implementation/uavcan_driver/
+UAVCAN_MSG_DIR = $(UAVCAN_DRIVER_DIR)uavcan_messages/
 TEST_DRONE_CAN_DIR = ../
 TEST_PROGRAM_DIR = $(TEST_MAIN_FOLDER_DIR)../
 TEST_MOCK_DIR = $(TEST_MAIN_FOLDER_DIR)mocks/
@@ -14,7 +17,7 @@ INCLUDE_DIR  = $(TEST_MAIN_FOLDER_DIR) $(TEST_DRONE_CAN_DIR)
 INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_CAN_BUS_ADAPTOR_DIR) 
 INCLUDE_DIR += $(TEST_MOCK_CANARD_WRAPPER_DIR) $(TEST_MOCK_CANARD_DIR)
 INCLUDE_DIR += $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR) $(TEST_MOCK_DSDL_MESSAGES_DIR)
-INCLUDE_DIR += $(TEST_PROGRAM_DIR)
+INCLUDE_DIR += $(TEST_PROGRAM_DIR) $(IMPLEMENTATION_DIR) $(UAVCAN_DRIVER_DIR) $(UAVCAN_MSG_DIR)
 INCLUDE_DIR += $(CPPUTEST_HOME)/include/
 
 COMPILER_INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIR))
@@ -42,12 +45,13 @@ create_build_folder:
 	@mkdir -p $(BUILD_OUTPUT_DIR)
 
 FILES = $(filter %.cpp, $(wildcard ./*))
-FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
+FILES += DroneCAN_message_sender.cpp
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_CANARD_WRAPPER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_PROGRAM_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(UAVCAN_MSG_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_DRONE_CAN_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)HAL_system/*))
 
@@ -61,7 +65,7 @@ INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
 LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r $(files)))
 LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
 
-vpath %.cpp $(TEST_MAIN_FOLDER_DIR)
+vpath %.cpp $(UAVCAN_MSG_DIR)
 vpath %.cpp $(TEST_MOCK_DIR)
 vpath %.cpp $(TEST_MOCK_CANARD_WRAPPER_DIR)
 vpath %.cpp $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)
@@ -69,11 +73,12 @@ vpath %.cpp $(TEST_MOCK_DSDL_MESSAGES_DIR)
 vpath %.cpp $(TEST_MOCK_DIR)HAL_system/
 vpath %.cpp $(TEST_PROGRAM_DIR)
 vpath %.cpp $(TEST_DRONE_CAN_DIR)
+vpath %.cpp $(IMPLEMENTATION_DIR)
 
 #Compile files into object files.
 $(BUILD_OUTPUT_DIR)%.o : %.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
 print:
-	 @echo $(TEST_MOCK_CAN_BUS_ADAPTOR_DIR)
-	 @ls $(TEST_MOCK_CAN_BUS_ADAPTOR_DIR)
+	 @echo $(foreach file,$(FILES),"\r\n"$(file))
+	 @ls $(TEST_MOCK_DSDL_TO_CANARD_DTO_DIR)

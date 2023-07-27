@@ -1,14 +1,17 @@
 TEST_MAIN_FOLDER_DIR = ../
 TEST_PROGRAM_DIR = $(TEST_MAIN_FOLDER_DIR)../
+IMPLEMENTATION_DIR = $(TEST_PROGRAM_DIR)implementation/
+UAVCAN_MESSAGES_DIR = $(IMPLEMENTATION_DIR)uavcan_driver/uavcan_messages/
 TEST_MOCK_DIR = $(TEST_MAIN_FOLDER_DIR)mocks/
-TEST_MOCK_CANARD_DIR = $(TEST_MOCK_DIR)Canard_wrapper/Canard/
+TEST_MOCK_CANARD_DIR = $(TEST_MOCK_DIR)Canard_wrapper/
 TEST_MOCK_DSDL_MESSAGES_DIR = $(TEST_MOCK_DIR)/folder_DSDL_messages/
 
 CPPUTEST_HOME = $(TEST_MAIN_FOLDER_DIR)cpputest
 
 INCLUDE_DIR = $(TEST_MAIN_FOLDER_DIR)
-INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_CANARD_DIR) $(TEST_MOCK_DSDL_MESSAGES_DIR)
-INCLUDE_DIR += $(TEST_PROGRAM_DIR)
+INCLUDE_DIR += $(TEST_MOCK_DIR) $(TEST_MOCK_CANARD_DIR) 
+INCLUDE_DIR += $(TEST_MOCK_DSDL_MESSAGES_DIR)
+INCLUDE_DIR += $(TEST_PROGRAM_DIR) $(IMPLEMENTATION_DIR) $(UAVCAN_MESSAGES_DIR)
 INCLUDE_DIR += $(CPPUTEST_HOME)/include/
 
 COMPILER_INCLUDE_FLAGS = $(addprefix -I, $(INCLUDE_DIR))
@@ -38,10 +41,11 @@ create_build_folder:
 FILES = $(filter %.cpp, $(wildcard ./*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
+FILES += auxiliary_functions.cpp
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 
-compile_tests: $(OBJECTS_TO_LINK) $(TEST_PROGRAM_DIR)auxiliary_functions.cpp
+compile_tests: $(OBJECTS_TO_LINK)
 	@echo "auxiliary_functions"
 	@$(CXX) $(CXXFLAGS) $^ $(LD_LIBRARIES) -o $(BUILD_OUTPUT_DIR)tests.out
 
@@ -49,19 +53,15 @@ INCLUDE_FILES = $(sort $(filter %.h, $(shell find $(INCLUDE_DIR))))
 LIST_OF_MODIFIED_TIMES = $(foreach files, $(INCLUDE_FILES), $(shell date +%s -r $(files)))
 LAST_LIBRARY_MODIFIED_TIME = $(lastword $(sort $(LIST_OF_MODIFIED_TIMES)))
 
+vpath %.cpp $(TEST_MAIN_FOLDER_DIR)
+vpath %.cpp $(TEST_MOCK_DIR)
+vpath %.cpp $(TEST_MOCK_DSDL_MESSAGES_DIR)
+vpath %.cpp $(IMPLEMENTATION_DIR)
+
 #Compile files into object files.
 $(BUILD_OUTPUT_DIR)%.o : %.cpp
 	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
 
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MAIN_FOLDER_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
-$(BUILD_OUTPUT_DIR)%.o : $(TEST_MOCK_DSDL_MESSAGES_DIR)%.cpp
-	@$(CXX) $(CXXFLAGS) $(LD_LIBRARIES) $? -c -o $@;
-
 print:
-	@echo $(TEST_MAIN_FOLDER_DIR)
-	@ls $(TEST_MAIN_FOLDER_DIR)
+	@echo $(foreach file,$(OBJECTS_TO_LINK),"\r\n"$(file))
+	@echo

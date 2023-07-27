@@ -1,6 +1,10 @@
 #pragma once
 #include <canard.h>
-#include <Canard_wrapper.h>
+#if defined(IS_RUNNING_TESTS)
+    #include <mocks/Canard_wrapper/Canard_wrapper.h>
+#else
+    #include <Canard_wrapper.h>
+#endif
 #include <uavcan.equipment.power.BatteryInfo.h>
 #include <uavcan.protocol.NodeStatus.h>
 #include <uavcan.protocol.param.GetSet_res.h>
