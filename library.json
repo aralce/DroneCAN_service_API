@@ -6,7 +6,10 @@
         "srcDir": ".",
         "srcFilter": "+<*> +<implementation/*> -<tests/*>",
         "includeDir": ".",
-        "flags": "-I uavcan_driver/uavcan_messages"
+        "flags": [
+            "-I implementation/",
+            "-I implementation/uavcan_driver/",
+            "-I implementation/uavcan_driver/uavcan_messages"]
       }
   }
   
