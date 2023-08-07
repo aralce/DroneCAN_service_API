@@ -1,11 +1,9 @@
 #This makefile run the different unit tests
 
 all:
-	@printf "\r\n" && \
-	echo STARTING TO TEST WITH ALL TESTS && \
-	echo ------------------------------- && \
-	printf "\r\n"
-	
+	@echo "==================================="
+	@echo "| DroneCAN_service_API UNIT TESTS |"
+	@echo "==================================="	
 	@$(MAKE) --no-print-directory -C tests_auxiliary_functions/
 	@$(MAKE) --no-print-directory -C tests_Canard_wrapper/
 	@$(MAKE) --no-print-directory -C tests_DroneCAN_service/
