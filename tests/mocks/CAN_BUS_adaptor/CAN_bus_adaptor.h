@@ -35,8 +35,8 @@ public:
               .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
     }
 
-    int read()  {
-        mock().actualCall("CAN_bus_adaptor->read");
+    int read_byte()  {
+        mock().actualCall("CAN_bus_adaptor->read_byte");
         return mock().returnIntValueOrDefault(0);
     }
 

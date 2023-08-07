@@ -60,7 +60,7 @@ TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it
           .andReturnValue(CAN_BUS_PACKET_ID);
 
     for (int byte = 0; byte < CAN_BUS_PACKET_SIZE; ++byte) {
-        mock().expectOneCall("CAN_bus_adaptor->read")
+        mock().expectOneCall("CAN_bus_adaptor->read_byte")
               .andReturnValue(can_bus_packet[byte]);
     }
 

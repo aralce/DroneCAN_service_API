@@ -112,7 +112,7 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
         
         canard_frame.data_len = 8;
         for (int byte = 0; byte < canard_frame.data_len; ++byte)
-            canard_frame.data[byte] = can_driver->read();
+            canard_frame.data[byte] = can_driver->read_byte();
 
         canard.handle_rx_frame(canard_frame, actual_time);
 
