@@ -35,6 +35,12 @@ public:
               .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
     }
 
+    CanardCANFrame read() {
+        static CanardCANFrame frame{};
+        mock().actualCall("CAN_bus_adaptor->read");
+        return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
+    }
+
     int read_byte()  {
         mock().actualCall("CAN_bus_adaptor->read_byte");
         return mock().returnIntValueOrDefault(0);

@@ -107,15 +107,8 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
     if (is_can_data_to_read) {
-        CanardCANFrame canard_frame;
-        canard_frame.id = can_driver->get_packet_id();
-        
-        canard_frame.data_len = 8;
-        for (int byte = 0; byte < canard_frame.data_len; ++byte)
-            canard_frame.data[byte] = can_driver->read_byte();
-
+        CanardCANFrame canard_frame{can_driver->read()};
         canard.handle_rx_frame(canard_frame, actual_time);
-
         is_can_data_to_read = false;
     }
 }

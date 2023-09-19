@@ -52,23 +52,18 @@ TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it
     
     const int CAN_BUS_PACKET_SIZE = 8;
     uint8_t can_bus_packet[CAN_BUS_PACKET_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8};
-    
+    const long CAN_BUS_PACKET_ID = 99;
     is_can_data_to_read = true;
 
-    const long CAN_BUS_PACKET_ID = 99;
-    mock().expectOneCall("CAN_bus_adaptor->get_packet_id")
-          .andReturnValue(CAN_BUS_PACKET_ID);
-
-    for (int byte = 0; byte < CAN_BUS_PACKET_SIZE; ++byte) {
-        mock().expectOneCall("CAN_bus_adaptor->read_byte")
-              .andReturnValue(can_bus_packet[byte]);
-    }
-
-    microseconds ACTUAL_TIME = 100;
     CanardCANFrame can_frame{};
     can_frame.id = CAN_BUS_PACKET_ID;
     memcpy(can_frame.data, can_bus_packet, CAN_BUS_PACKET_SIZE);
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
+
+    mock().expectOneCall("CAN_bus_adaptor->read")
+          .andReturnValue((void*)&can_frame);
+
+    microseconds ACTUAL_TIME = 100;
     mock().expectOneCall("canard->handle_rx_frame")
           .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame)
           .withUnsignedLongLongIntParameter("timestamp_usec", ACTUAL_TIME);
