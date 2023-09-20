@@ -60,7 +60,7 @@ TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it
     memcpy(can_frame.data, can_bus_packet, CAN_BUS_PACKET_SIZE);
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
 
-    mock().expectOneCall("CAN_bus_adaptor->read")
+    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
           .andReturnValue((void*)&can_frame);
 
     microseconds ACTUAL_TIME = 100;

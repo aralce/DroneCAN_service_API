@@ -66,6 +66,7 @@ void onReceive_on_can_bus(int packet_size) {
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver->setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
     _is_healthy = can_driver->begin(CAN_BUS_BAUDRATE);
+    _is_healthy &= can_driver->add_master_mailbox();
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
     can_driver->onReceive(onReceive_on_can_bus);
@@ -107,7 +108,7 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
     if (is_can_data_to_read) {
-        CanardCANFrame canard_frame{can_driver->read()};
+        CanardCANFrame canard_frame{can_driver->read_master_mailbox()};
         canard.handle_rx_frame(canard_frame, actual_time);
         is_can_data_to_read = false;
     }

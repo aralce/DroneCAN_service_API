@@ -70,6 +70,7 @@ TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
     mock().expectOneCall("CAN_bus_adaptor->onReceive")
           .withPointerParameter("onReceive_callback", (void*)onReceive_on_can_bus);
 
+    mock().expectOneCall("CAN_bus_adaptor->add_master_mailbox");
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
 }
 
@@ -79,6 +80,14 @@ TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
           .withParameter("baudRate", (long int)CAN_BUS_BAUDRATE)
           .andReturnValue(FAILURE_IN_INITIALIZATION);
     
+    DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
+    CHECK_FALSE(droneCAN_service.is_healthy());
+}
+
+TEST(DroneCAN_service_initialization, WHEN_add_master_mailbox_fails_THEN_system_is_unhealthy)
+{
+    mock().expectOneCall("CAN_bus_adaptor->add_master_mailbox")
+          .andReturnValue(false);
     DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
     CHECK_FALSE(droneCAN_service.is_healthy());
 }

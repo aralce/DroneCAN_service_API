@@ -51,6 +51,17 @@ public:
         return mock().returnLongIntValueOrDefault(0);
     }
 
+    bool add_master_mailbox() {
+        mock().actualCall("CAN_bus_adaptor->add_master_mailbox");
+        return mock().returnBoolValueOrDefault(true);
+    }
+
+    CanardCANFrame read_master_mailbox() {
+        static CanardCANFrame frame{};
+        mock().actualCall("CAN_bus_adaptor->read_master_mailbox");
+        return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
+    }
+
 private:
     const int SUCCESS = true;
 };
