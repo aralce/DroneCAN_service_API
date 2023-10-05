@@ -10,18 +10,21 @@
     #include <CAN_bus_adaptor_factory.h>
 #endif
 using microseconds = uint64_t;
+using milliseconds = uint32_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
 enum class uavcan_message_type{BATTERY_INFO};
 
 class DroneCAN_service {
 public:
+    explicit DroneCAN_service(CAN_bus_adaptor* can_bus, uint8_t node_ID = DEFAULT_NODE_ID,
+                              droneCAN_handle_error_t handle_error = nullptr);
     explicit DroneCAN_service(uint8_t node_ID = DEFAULT_NODE_ID, droneCAN_handle_error_t handle_error = nullptr);
-    ~DroneCAN_service() {delete message_sender; delete can_driver;};
+    ~DroneCAN_service() {delete message_sender;};
 
     void run_pending_tasks(microseconds actual_time);
 
-    bool is_CAN_bus_inactive(uint32_t ms_to_consider_can_bus_inactive);
+    bool is_CAN_bus_inactive(milliseconds to_consider_can_bus_inactive, milliseconds actual_time);
 
     template <typename UAVCAN_MESSAGE>
     void publish_message(UAVCAN_MESSAGE& uavcan_message) {
@@ -63,12 +66,14 @@ protected:
     uavcan_protocol_NodeStatus nodeStatus_struct{};
 
 private:
+    friend class DroneCAN_service_spy;
     Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
-    CAN_bus_adaptor* can_driver = CAN_bus_adaptor_factory::get_CAN_bus_adaptor();
+    CAN_bus_adaptor* can_driver;
     DroneCAN_message_sender* message_sender;
 
     bool _is_healthy = true;
     uint8_t _node_ID;
+    milliseconds ms_on_last_rx = 0;
     microseconds last_microsecs_since_node_status_publish = 0;
 
     typedef uavcan_equipment_power_BatteryInfo* (*get_batteryInfo_handler)();
@@ -78,6 +83,8 @@ private:
 
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};
+
+    void initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error);
 
     void try_initialize_CAN_bus_driver();
     void read_can_bus_data_when_is_available(microseconds actual_time);

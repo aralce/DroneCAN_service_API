@@ -38,6 +38,7 @@ TEST(DroneCAN_service_publish_regularly, is_not_time_yet_to_publish_node_status_
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().expectNoCall("DroneCAN_message_sender->broadcast_message");
+    mock().ignoreOtherCalls();
     const microseconds INITIAL_TIME = 0; 
     droneCAN_service.run_pending_tasks(INITIAL_TIME);
 }
@@ -47,6 +48,7 @@ TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
     mock().disable();
     Spied_droneCAN_service spied_droneCAN_service;
     mock().enable();
+    mock().ignoreOtherCalls();
 
     uavcan_protocol_NodeStatus* nodeStatus = spied_droneCAN_service.spy_node_status_struct();
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message")
@@ -70,6 +72,7 @@ uavcan_equipment_power_BatteryInfo* get_battery_info()
 TEST(DroneCAN_service_publish_regularly, register_batteryInfo_for_regular_publish_then_after_registered_time_publish_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
 
     const microseconds MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10e6;
     droneCAN_service.register_for_regular_publish(get_battery_info, MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH);

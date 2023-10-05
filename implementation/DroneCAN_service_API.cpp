@@ -4,12 +4,6 @@
 #include <auxiliary_functions.h>
 #include <cstring>
 
-#ifdef IS_RUNNING_TESTS
-    #include <mocks/HAL_system/HAL_system_singleton.h>
-#else
-    #include <HAL_system/HAL_system_singleton.h>
-#endif
-
 CanardPoolAllocatorStatistics statistics{};
 
 void DUMMY_error_handler(DroneCAN_error error) {}
@@ -44,7 +38,21 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
     }
 }
 
-DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error) : _node_ID(node_ID) {
+DroneCAN_service::DroneCAN_service(CAN_bus_adaptor* can_bus, uint8_t node_ID,
+                                   droneCAN_handle_error_t handle_error)
+: can_driver(can_bus), _node_ID(node_ID)
+{
+    initialize_system(node_ID, handle_error);
+}
+
+DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
+: can_driver(CAN_bus_adapter_singleton::get_CAN_bus_adaptor()), _node_ID(node_ID)
+{
+    initialize_system(node_ID, handle_error);
+}
+
+void DroneCAN_service::initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error)
+{
     _handle_error = handle_error == nullptr ? DUMMY_error_handler : handle_error;
     
     message_sender = new DroneCAN_message_sender(canard, *can_driver, _handle_error);
@@ -55,26 +63,18 @@ DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t hand
     try_initialize_CAN_bus_driver();
 }
 
-bool is_can_data_to_read = false;
-uint32_t ms_since_last_rx = 0;
-void onReceive_on_can_bus(int packet_size) {
-    is_can_data_to_read = true;
-    // Serial.println("CAN BUS MESSAGE RECIEVED");
-    ms_since_last_rx = HAL_system_singleton::get_HAL_system_instance()->millisecs_since_init();
-}
-
 void DroneCAN_service::try_initialize_CAN_bus_driver() {
     can_driver->setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
     _is_healthy = can_driver->begin(CAN_BUS_BAUDRATE);
     _is_healthy &= can_driver->add_master_mailbox();
     if (!_is_healthy)
         _handle_error(DroneCAN_error::ON_INITIALIZATION);
-    can_driver->onReceive(onReceive_on_can_bus);
 }
 
-bool DroneCAN_service::is_CAN_bus_inactive(uint32_t ms_to_consider_can_bus_inactive) {
-    uint32_t ms_since_init = HAL_system_singleton::get_HAL_system_instance()->millisecs_since_init();
-    if (ms_since_init - ms_since_last_rx >= ms_to_consider_can_bus_inactive)
+bool DroneCAN_service::is_CAN_bus_inactive(milliseconds ms_to_consider_can_bus_inactive,
+                                           milliseconds actual_time)
+{
+    if (actual_time - ms_on_last_rx >= ms_to_consider_can_bus_inactive)
         return true;
     return false;
 }
@@ -106,19 +106,20 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
         return false;
 }
 
+#define are_there_data_to_receive()  memcmp(&canard_frame, &no_data_frame, \
+                                            sizeof(no_data_frame)) != 0
+#define USECS_TO_MS(x) x/1000
+
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
-    if (is_can_data_to_read) {
-        CanardCANFrame canard_frame{can_driver->read_master_mailbox()};
+    CanardCANFrame canard_frame{can_driver->read_master_mailbox()};
+    CanardCANFrame no_data_frame{};
+    
+    if (are_there_data_to_receive())
+    {
+        ms_on_last_rx = USECS_TO_MS(actual_time);
         canard.handle_rx_frame(canard_frame, actual_time);
-        is_can_data_to_read = false;
     }
 }
-
-// void DroneCAN_service::try_handle_rx_frame_with_canard(CanardCANFrame& frame, uint64_t timestamp_usec) { //TODO: handle error only on desired error codes
-//     if (canard.handle_rx_frame(frame, timestamp_usec) < 0)
-//         _handle_error(DroneCAN_error::FAIL_ON_RECEPTION);
-// }
-// #include <driver/twai.h>
 
 void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender) {
     if (is_there_canard_message_to_handle) {

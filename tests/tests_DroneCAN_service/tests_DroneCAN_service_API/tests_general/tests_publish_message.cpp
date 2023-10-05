@@ -5,8 +5,7 @@ TEST_GROUP(DroneCAN_service_API)
 {
     void teardown()
     {
-        mock().checkExpectations();
-        mock().clear();
+        execute_test_teardown();
     }
 };
 

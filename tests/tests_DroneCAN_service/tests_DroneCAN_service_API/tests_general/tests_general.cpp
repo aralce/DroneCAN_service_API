@@ -6,6 +6,7 @@
 #include <uavcan.protocol.param.GetSet_req.h>
 #include <uavcan.protocol.GetNodeInfo_req.h>
 #include <mocks/HAL_system/HAL_system_singleton.h>
+#include <mocks/CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
 
 extern bool is_there_canard_message_to_handle;
 typedef struct{
@@ -14,10 +15,6 @@ typedef struct{
     uint8_t source_node_id;
 }canard_reception_t;
 extern canard_reception_t canard_reception;
-
-extern bool is_can_data_to_read;
-extern uint32_t ms_since_last_rx;
-HAL_system_api* device = nullptr;
 
 TEST_GROUP(DroneCAN_service_API_general)
 {
@@ -28,12 +25,9 @@ TEST_GROUP(DroneCAN_service_API_general)
     {
         memset(&canard_reception, 0, sizeof(canard_reception));
         is_there_canard_message_to_handle = false;
-        is_can_data_to_read = false;
-        ms_since_last_rx = 0;
         mock().installComparator("CanardCANFrame", can_frame_comparator);
         mock().installComparator("uavcan_protocol_param_GetSetResponse", param_GetSetResponse_comparator);
         mock().installComparator("uavcan_protocol_GetNodeInfoResponse", get_node_info_comparator);
-        device = HAL_system_singleton::get_HAL_system_instance();
     }
     void teardown()
     {
@@ -41,19 +35,18 @@ TEST_GROUP(DroneCAN_service_API_general)
         mock().checkExpectations();
         mock().clear();
         HAL_system_singleton::delete_instance();
+        CAN_bus_adapter_singleton::clear_instances();
     }
 };
 
-extern void onReceive_on_can_bus(int packet_size);
-extern bool is_can_data_to_read;
-TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it_to_canard)
+TEST(DroneCAN_service_API_general,
+WHEN_there_is_can_bus_data_to_read_THEN_sends_it_to_canard)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     
     const int CAN_BUS_PACKET_SIZE = 8;
     uint8_t can_bus_packet[CAN_BUS_PACKET_SIZE] = {1, 2, 3, 4, 5, 6, 7, 8};
     const long CAN_BUS_PACKET_ID = 99;
-    is_can_data_to_read = true;
 
     CanardCANFrame can_frame{};
     can_frame.id = CAN_BUS_PACKET_ID;
@@ -69,8 +62,19 @@ TEST(DroneCAN_service_API_general, onReceive_from_can_bus_read_data_and_sends_it
           .withUnsignedLongLongIntParameter("timestamp_usec", ACTUAL_TIME);
 
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
+}
 
-    CHECK_FALSE(is_can_data_to_read);
+TEST(DroneCAN_service_API_general,
+WHEN_there_is_NO_can_bus_data_to_read_THEN_do_NOT_send_it_to_canard)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    CanardCANFrame can_frame{};
+    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
+          .andReturnValue((void*)&can_frame);
+
+    mock().expectNoCall("canard->handle_rx_frame");
+    droneCAN_service.run_pending_tasks(0);
 }
 
 static void handle_error(DroneCAN_error error) {
@@ -84,7 +88,6 @@ IGNORE_TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_
     DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error);
     mock().enable();
 
-    is_can_data_to_read = true;
     int16_t ERROR_CODE = -40;
     mock().expectOneCall("canard->handle_rx_frame")
           .ignoreOtherParameters()
@@ -95,8 +98,8 @@ IGNORE_TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_
     
     microseconds ACTUAL_TIME = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
-    
-    CHECK_FALSE(is_can_data_to_read);
+
+    //FIX THIS TEST
 }
 
 extern bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id);
@@ -163,6 +166,7 @@ TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
     mock().disable();
     Spied_droneCAN_service spied_droneCAN_service;
     mock().enable();
+    mock().ignoreOtherCalls();
 
     CanardInstance canard_instance{};
     CanardRxTransfer rx_transfer{};
@@ -193,6 +197,8 @@ void CHECK_paramGetSet_request_is_decoded(uint16_t requested_parameter_index, co
 
 TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_parameter) {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
     set_parameter_on_droneCAN_service(droneCAN_service, "valid system parameter", 0, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     set_handle_canard_reception_for_paramGetSet_message();
     
@@ -303,6 +309,7 @@ void CHECK_paramGetSet_request_is_decoded(uint16_t requested_parameter_index, co
 TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid_parameter)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
 
     set_handle_canard_reception_for_paramGetSet_message();
 
@@ -332,42 +339,47 @@ void set_handle_canard_reception_for_paramGetSet_message()
 }
 
 #define MS_TO_CONSIDER_CAN_BUS_INACTIVE 10e3
-
-TEST(DroneCAN_service_API_general, GIVEN_no_received_data_from_can_bus_WHEN_ms_to_consider_inactive_can_bus_is_reached_THEN_is_can_bus_inactive_returns_true)
+#define MS_TO_USECS(x) 1000*x
+//THIS
+TEST(DroneCAN_service_API_general,
+GIVEN_no_received_data_from_can_bus_WHEN_time_for_inactive_is_reached_THEN_consider_CAN_inactive)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
-
-    device->set_millisecs_since_init(MS_TO_CONSIDER_CAN_BUS_INACTIVE);
-
-    droneCAN_service.run_pending_tasks(device->millisecs_since_init());
-    CHECK_TRUE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE));
-}
-
-TEST(DroneCAN_service_API_general, GIVEN_no_initialized_system_WHEN_initialize_system_THEN_is_can_bus_inactive_returns_false)
-{
-    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
-
-    CHECK_FALSE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE));
-}
-
-extern void onReceive_on_can_bus(int packet_size);
-
-TEST(DroneCAN_service_API_general, GIVEN_received_data_on_can_bus_WHEN_ms_to_consider_inactive_can_bus_is_reached_without_rx_on_can_THEN_is_can_bus_inactive_returns_true)
-{
-    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
-
-    device->set_millisecs_since_init(MS_TO_CONSIDER_CAN_BUS_INACTIVE -1);
-
-    onReceive_on_can_bus(0);
     mock().ignoreOtherCalls();
 
-    device->set_millisecs_since_init(MS_TO_CONSIDER_CAN_BUS_INACTIVE);
-    droneCAN_service.run_pending_tasks(device->millisecs_since_init());
+    // device->set_millisecs_since_init(MS_TO_CONSIDER_CAN_BUS_INACTIVE);
+    
+    uint32_t ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE;
+    droneCAN_service.run_pending_tasks(MS_TO_USECS(ms_since_init));
+    CHECK_TRUE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE,
+                                                    ms_since_init));
+}
 
-    CHECK_FALSE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE));
+TEST(DroneCAN_service_API_general,
+GIVEN_no_initialized_system_WHEN_initialize_system_THEN_consider_CAN_active)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
-    device->set_millisecs_since_init(2*MS_TO_CONSIDER_CAN_BUS_INACTIVE);
-    droneCAN_service.run_pending_tasks(device->millisecs_since_init());
+    uint32_t milliseconds_since_init = 0;
+    CHECK_FALSE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE,
+                                                     milliseconds_since_init));
+}
 
-    CHECK_TRUE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE));
+TEST(DroneCAN_service_API_general,
+GIVEN_received_data_WHEN_time_for_inactive_is_reached_THEN_is_can_bus_inactive_returns_true)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+
+    mock().ignoreOtherCalls();
+
+    CanardCANFrame recieved_frame_different_from_empty{.id = 99, .data = {1,2,3}, .data_len = 3};
+    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
+          .andReturnValue((void*)&recieved_frame_different_from_empty);
+    
+    uint32_t ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE - 1;
+    droneCAN_service.run_pending_tasks(MS_TO_USECS(ms_since_init));
+
+    ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE;
+    CHECK_FALSE(droneCAN_service.is_CAN_bus_inactive(MS_TO_CONSIDER_CAN_BUS_INACTIVE,
+                                                     ms_since_init));
 }

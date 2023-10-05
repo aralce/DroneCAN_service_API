@@ -1,9 +1,11 @@
 #include "common_to_DroneCAN_service_tests.h"
+#include <CAN_bus_adaptor_factory.h>
 
 void teardown_mocks()
 {
     mock().checkExpectations();
     mock().clear();
+    CAN_bus_adapter_singleton::clear_instances();
 }
 
 void execute_test_teardown() {

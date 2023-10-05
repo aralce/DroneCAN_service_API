@@ -1,15 +1,24 @@
-#include <CAN_bus_adaptor.h>
+#pragma once
+#include "CAN_bus_adaptor.h"
 
-class CAN_bus_adaptor_factory {
+class CAN_bus_adapter_singleton {
 public:
-    static CAN_bus_adaptor* get_CAN_bus_adaptor() {
-        CAN_bus_adaptor* can = new CAN_bus_adaptor();
-        return can;
+    static CAN_bus_adaptor* get_CAN_bus_adaptor()
+    {
+        if (can_bus == nullptr)
+            can_bus = new CAN_bus_adaptor();
+        return can_bus;
+    }
+
+    static void clear_instances()
+    {
+        if (can_bus != nullptr)
+        {
+            delete can_bus;
+            can_bus = nullptr;
+        }
     }
 
 private:
-    CAN_bus_adaptor_factory() {}
-    CAN_bus_adaptor_factory(const CAN_bus_adaptor_factory&) = delete;
-    CAN_bus_adaptor_factory& operator=(const CAN_bus_adaptor_factory&) = delete;
-    CAN_bus_adaptor_factory& operator=(CAN_bus_adaptor_factory&&) = delete;
+    static CAN_bus_adaptor* can_bus;
 };

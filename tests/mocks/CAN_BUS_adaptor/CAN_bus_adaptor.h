@@ -12,13 +12,15 @@ public:
 
     }
 
-    bool begin(CAN_bitrate baudRate) {
+    virtual ~CAN_bus_adaptor() {}
+
+    virtual bool begin(CAN_bitrate baudRate) {
         mock().actualCall("CAN_bus_adaptor->begin")
             .withLongIntParameter("baudRate", (long int)baudRate);
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
-    void setPins(int rx, int tx) {
+    virtual void setPins(int rx, int tx) {
         mock().actualCall("CAN_bus_adaptor->setPins")
             .withIntParameter("rx", rx)
             .withIntParameter("tx", tx);
@@ -51,7 +53,7 @@ public:
         return mock().returnLongIntValueOrDefault(0);
     }
 
-    bool add_master_mailbox() {
+    virtual bool add_master_mailbox() {
         mock().actualCall("CAN_bus_adaptor->add_master_mailbox");
         return mock().returnBoolValueOrDefault(true);
     }
