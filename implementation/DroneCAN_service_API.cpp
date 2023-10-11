@@ -83,6 +83,9 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 #define MICROSECONDS_IN_SECOND (uint32_t)1e6
 void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
+
+    can_driver->run_pending_tasks(actual_time/MICROSECONDS_IN_SECOND);
+
     if (is_time_to_execute(last_microsecs_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
         message_sender->broadcast_message(nodeStatus_struct);
