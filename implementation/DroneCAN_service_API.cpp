@@ -140,8 +140,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_
             case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
                 uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
 
-                static uavcan_parameter parameter_to_send; //this parameter must be on scope
-                parameter_to_send = this->get_parameter(paramGetSet_request.index);
+                uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
 
                 if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
                     message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
