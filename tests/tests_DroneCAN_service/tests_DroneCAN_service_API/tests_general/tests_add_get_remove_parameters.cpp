@@ -5,6 +5,7 @@
 #include <cstring>
 
 DroneCAN_service* droneCAN_service = nullptr;
+CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
 #define UAVCAN_PROTOCOL_PARAM_VALUE_MAX_SIZE 130
 
 TEST_GROUP(DroneCAN_service_paramGetSet_parameters)
@@ -12,7 +13,7 @@ TEST_GROUP(DroneCAN_service_paramGetSet_parameters)
     void setup()
     {
         mock().ignoreOtherCalls();
-        droneCAN_service = new DroneCAN_service;
+        droneCAN_service = new DroneCAN_service(can_driver);
     }
     void teardown()
     {
@@ -37,7 +38,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, try_to_remove_a_parameter_when_num
     CHECK_EQUAL(0, droneCAN_service->get_number_of_parameters());
 }
 
-void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type = UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+static void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type = UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
 
 TEST(DroneCAN_service_paramGetSet_parameters, when_a_parameter_is_added_then_the_number_of_parameters_is_increased)
 {
@@ -177,7 +178,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_a_valid_parameter_
 }
 
 const uint8_t PARAMETER_INDEX = 0;
-void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index);
+static void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index);
 
 TEST(DroneCAN_service_paramGetSet_parameters, change_value_to_an_int32_t_parameter)
 {
@@ -313,7 +314,7 @@ TEST(DroneCAN_service_paramGetSet_parameters, change_value_by_name_with_union_ta
     DOUBLES_EQUAL(NEW_VALUE, parameter_changed.value.real_value, 0.00001f);
 }
 
-void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index)
+static void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value_type, uint8_t parameter_index)
 {
     add_generic_parameter(value_type);
     uavcan_parameter parameter_added = droneCAN_service->get_parameter(parameter_index);
@@ -322,7 +323,7 @@ void set_parameter_for_change_parameter(uavcan_protocol_param_Value_type_t value
     CHECK_EQUAL(OLD_VALUE, parameter_added.value.integer_value);
 }
 
-void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type)
+static void add_generic_parameter(uavcan_protocol_param_Value_type_t value_type)
 {
     uavcan_parameter parameter_to_add{};
     strcpy((char*)parameter_to_add.name.data, "parameter_to_add");

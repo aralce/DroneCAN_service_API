@@ -2,6 +2,7 @@
 #include <Spied_DroneCAN_service.h>
 
 const int MICROSECONDS_BETWEEN_PUBLISHES = 10e6;
+static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
 
 TEST_GROUP(DroneCAN_service_publish_regularly)
 {
@@ -21,7 +22,7 @@ TEST_GROUP(DroneCAN_service_publish_regularly)
 TEST(DroneCAN_service_publish_regularly, publish_regularly_the_node_status_message_without_register_when_is_time_and_only_once)
 {
     mock().disable();
-    Spied_droneCAN_service spied_droneCAN_service;
+    Spied_droneCAN_service spied_droneCAN_service(can_driver);
     mock().enable();
 
     uavcan_protocol_NodeStatus* node_status = spied_droneCAN_service.spy_node_status_struct();
@@ -46,7 +47,7 @@ TEST(DroneCAN_service_publish_regularly, is_not_time_yet_to_publish_node_status_
 TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
 {
     mock().disable();
-    Spied_droneCAN_service spied_droneCAN_service;
+    Spied_droneCAN_service spied_droneCAN_service(can_driver);
     mock().enable();
     mock().ignoreOtherCalls();
 

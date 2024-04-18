@@ -20,6 +20,10 @@ public:
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
+    virtual void run_pending_tasks(uint32_t milliseconds) {
+        
+    }
+
     virtual void setPins(int rx, int tx) {
         mock().actualCall("CAN_bus_adaptor->setPins")
             .withIntParameter("rx", rx)

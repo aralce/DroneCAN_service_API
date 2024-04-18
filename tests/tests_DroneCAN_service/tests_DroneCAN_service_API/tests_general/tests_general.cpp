@@ -8,6 +8,8 @@
 #include <mocks/HAL_system/HAL_system_singleton.h>
 #include <mocks/CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
 
+static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
+
 extern bool is_there_canard_message_to_handle;
 typedef struct{
     CanardInstance *instance;
@@ -85,7 +87,7 @@ static void handle_error(DroneCAN_error error) {
 IGNORE_TEST(DroneCAN_service_API_general, when_onReceive_from_can_bus_has_error_then_indicates_it) //TODO: add an exception for ERROR codes that are not real errors like: NOT_DESIRED_MESSAGE
 {
     mock().disable();
-    DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error);
+    DroneCAN_service droneCAN_service(can_driver, DEFAULT_NODE_ID, handle_error);
     mock().enable();
 
     int16_t ERROR_CODE = -40;
@@ -164,7 +166,7 @@ void set_handle_canard_reception_for_paramGetSet_message();
 TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
 {
     mock().disable();
-    Spied_droneCAN_service spied_droneCAN_service;
+    Spied_droneCAN_service spied_droneCAN_service(can_driver);
     mock().enable();
     mock().ignoreOtherCalls();
 

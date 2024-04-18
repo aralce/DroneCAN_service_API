@@ -2,11 +2,12 @@
 #include <support/DroneCAN_service_spy.h>
 
 CAN_bus_custom* custom_can = nullptr;
+static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls()
 {
     mock().ignoreOtherCalls();
-    return DroneCAN_service();
+    return DroneCAN_service(can_driver);
 }
 
 TEST_GROUP(DroneCAN_service_initialization)
@@ -39,7 +40,7 @@ TEST(DroneCAN_service_initialization, on_initialization_DroneCAN_message_sender_
     mock().expectOneCall("DroneCAN_message_sender->constructor")
           .ignoreOtherParameters();
     mock().ignoreOtherCalls();
-    DroneCAN_service droneCAN_service;
+    DroneCAN_service droneCAN_service(can_driver);
 }
 
 extern void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer);
@@ -55,7 +56,7 @@ on_initialization_libcanard_is_initialized_with_reception_functions)
           .withPointerParameter("handle_reception", (void*)handle_canard_reception)
           .withPointerParameter("handle_acceptance", (void*)should_accept_canard_reception);
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service spied_dronceCAN_service;
+    Spied_droneCAN_service spied_dronceCAN_service(can_driver);
 }
 
 TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_default_ID) {
@@ -72,40 +73,8 @@ TEST(DroneCAN_service_initialization, node_ID_is_provided) {
           .withUnsignedIntParameter("self_node_id", NODE_ID);
     mock().ignoreOtherCalls();
     
-    DroneCAN_service droneCAN_service(NODE_ID);
+    DroneCAN_service droneCAN_service(can_driver, NODE_ID);
     CHECK_EQUAL(NODE_ID, droneCAN_service.get_node_ID());
-}
-
-// extern void onReceive_on_can_bus(int packet_size);
-TEST(DroneCAN_service_initialization, on_initialization_CAN_BUS_is_initialized)
-{
-    mock().expectOneCall("CAN_bus_adaptor->setPins").withParameter("rx", CAN_BUS_CRX_PIN)
-          .withParameter("tx", CAN_BUS_CTX_PIN);
-    
-    mock().expectOneCall("CAN_bus_adaptor->begin")
-          .withParameter("baudRate", (long int)CAN_BUS_BAUDRATE)
-          .andReturnValue(INITIALIZATION_SUCCESSFUL);
-    
-    mock().expectOneCall("CAN_bus_adaptor->add_master_mailbox");
-    DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
-}
-
-TEST(DroneCAN_service_initialization, failed_initialization_system_is_unhealthy)
-{
-    mock().expectOneCall("CAN_bus_adaptor->begin")
-          .withParameter("baudRate", (long int)CAN_BUS_BAUDRATE)
-          .andReturnValue(FAILURE_IN_INITIALIZATION);
-    
-    DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
-    CHECK_FALSE(droneCAN_service.is_healthy());
-}
-
-TEST(DroneCAN_service_initialization, WHEN_add_master_mailbox_fails_THEN_system_is_unhealthy)
-{
-    mock().expectOneCall("CAN_bus_adaptor->add_master_mailbox")
-          .andReturnValue(false);
-    DroneCAN_service droneCAN_service{get_DroneCAN_ignoring_other_calls()};
-    CHECK_FALSE(droneCAN_service.is_healthy());
 }
 
 extern void DUMMY_error_handler(DroneCAN_error error);
@@ -113,7 +82,7 @@ extern void DUMMY_error_handler(DroneCAN_error error);
 TEST(DroneCAN_service_initialization, droneCAN_without_handle_error_function)
 {
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service droneCAN_service;
+    Spied_droneCAN_service droneCAN_service(can_driver);
     
     droneCAN_handle_error_t handle_error = droneCAN_service.get_pointer_to_handle_error_function();
     
@@ -125,90 +94,9 @@ void handle_error_function(DroneCAN_error error) {}
 TEST(DroneCAN_service_initialization, droneCAN_with_handle_error_function)
 {
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error_function);
+    Spied_droneCAN_service droneCAN_service(can_driver, DEFAULT_NODE_ID,
+                                            handle_error_function);
     droneCAN_handle_error_t handle_error = droneCAN_service.get_pointer_to_handle_error_function();
     
     POINTERS_EQUAL(handle_error_function, handle_error);
-}
-
-void handle_error_init_fail(DroneCAN_error error)
-{
-    mock().actualCall("handle_error_init_fail")
-          .withIntParameter("error", (int)error);
-} 
-
-TEST(DroneCAN_service_initialization, when_fails_the_error_to_handle_is_ON_INITIALIZATION)
-{
-    mock().expectOneCall("CAN_bus_adaptor->begin")
-          .ignoreOtherParameters()
-          .andReturnValue(FAILURE_IN_INITIALIZATION);
-
-    mock().expectOneCall("handle_error_init_fail")
-          .withParameter("error", (int)DroneCAN_error::ON_INITIALIZATION);
-    
-    mock().ignoreOtherCalls();
-    DroneCAN_service droneCAN_service(DEFAULT_NODE_ID, handle_error_init_fail);
-}
-
-TEST(DroneCAN_service_initialization,
-WHEN_instantiated_with_custom_can_driver_THEN_use_custom_can_driver)
-{
-    mock().ignoreOtherCalls();
-
-    DroneCAN_service droneCAN_service(custom_can);
-
-    DroneCAN_service_spy spy(&droneCAN_service);
-    POINTERS_EQUAL(custom_can, spy.spy_bus_adaptor());
-}
-
-TEST(DroneCAN_service_initialization,
-WHEN_instantiated_with_custom_can_driver_THEN_droneCAN_message_sender_is_init)
-{
-    mock().expectOneCall("DroneCAN_message_sender->constructor")
-      .ignoreOtherParameters();
-    mock().ignoreOtherCalls();
-    DroneCAN_service droneCAN_service(custom_can);
-}
-
-extern void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer);
-extern bool should_accept_canard_reception(const CanardInstance* ins, 
-                                           uint64_t* out_data_type_signature, 
-                                           uint16_t data_type_id, CanardTransferType transfer_type,
-                                           uint8_t source_node_id);
-
-TEST(DroneCAN_service_initialization,
-WHEN_instantiated_with_custom_can_driver_THEN_libcanard_is_initialized)
-{
-    mock().expectOneCall("canard->init_with_reception_handler")
-          .withPointerParameter("handle_reception", (void*)handle_canard_reception)
-          .withPointerParameter("handle_acceptance", (void*)should_accept_canard_reception);
-    mock().ignoreOtherCalls();
-    mock().expectOneCall("canard->set_node_ID")
-          .ignoreOtherParameters();
-
-    DroneCAN_service droneCAN_service(custom_can);
-}
-
-TEST(DroneCAN_service_initialization,
-WHEN_instantiated_with_custom_can_driver_THEN_can_bus_is_initialized)
-{
-    mock().expectOneCall("CAN_bus_custom->begin").ignoreOtherParameters();
-    mock().expectOneCall("CAN_bus_custom->setPins").ignoreOtherParameters();
-    mock().expectOneCall("CAN_bus_custom->add_master_mailbox");
-    mock().ignoreOtherCalls();
-    DroneCAN_service droneCAN_service(custom_can);
-}
-
-extern void DUMMY_error_handler(DroneCAN_error error);
-
-TEST(DroneCAN_service_initialization,
-WHEN_instantiated_with_custom_can_driver_THEN_initialize_error_function)
-{
-    mock().ignoreOtherCalls();
-    DroneCAN_service droneCAN_service(custom_can);
-    
-    DroneCAN_service_spy spy(&droneCAN_service);
-    droneCAN_handle_error_t handle_error = spy.spy_handle_error();
-    
-    POINTERS_EQUAL(DUMMY_error_handler , handle_error);
 }

@@ -38,15 +38,9 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
     }
 }
 
-DroneCAN_service::DroneCAN_service(CAN_bus_adaptor* can_bus, uint8_t node_ID,
+DroneCAN_service::DroneCAN_service(CAN_bus_adaptor& can_bus, uint8_t node_ID,
                                    droneCAN_handle_error_t handle_error)
 : can_driver(can_bus), _node_ID(node_ID)
-{
-    initialize_system(node_ID, handle_error);
-}
-
-DroneCAN_service::DroneCAN_service(uint8_t node_ID, droneCAN_handle_error_t handle_error)
-: can_driver(CAN_bus_adapter_singleton::get_CAN_bus_adaptor()), _node_ID(node_ID)
 {
     initialize_system(node_ID, handle_error);
 }
@@ -55,20 +49,10 @@ void DroneCAN_service::initialize_system(uint8_t node_ID, droneCAN_handle_error_
 {
     _handle_error = handle_error == nullptr ? DUMMY_error_handler : handle_error;
     
-    message_sender = new DroneCAN_message_sender(canard, *can_driver, _handle_error);
+    message_sender = new DroneCAN_message_sender(canard, can_driver, _handle_error);
 
     canard.init(handle_canard_reception, should_accept_canard_reception);
     canard.set_node_ID(node_ID);
-    
-    try_initialize_CAN_bus_driver();
-}
-
-void DroneCAN_service::try_initialize_CAN_bus_driver() {
-    can_driver->setPins(CAN_BUS_CRX_PIN, CAN_BUS_CTX_PIN);
-    _is_healthy = can_driver->begin(CAN_BUS_BAUDRATE);
-    _is_healthy &= can_driver->add_master_mailbox();
-    if (!_is_healthy)
-        _handle_error(DroneCAN_error::ON_INITIALIZATION);
 }
 
 bool DroneCAN_service::is_CAN_bus_inactive(milliseconds ms_to_consider_can_bus_inactive,
@@ -84,7 +68,7 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 #define MICROSECONDS_IN_SECOND (uint32_t)1e6
 void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
 
-    can_driver->run_pending_tasks(actual_time/MICROSECONDS_IN_SECOND);
+    can_driver.run_pending_tasks(actual_time/MICROSECONDS_IN_SECOND);
 
     if (is_time_to_execute(last_microsecs_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
@@ -114,7 +98,7 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 #define USECS_TO_MS(x) x/1000
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
-    CanardCANFrame canard_frame{can_driver->read_master_mailbox()};
+    CanardCANFrame canard_frame{can_driver.read_master_mailbox()};
     CanardCANFrame no_data_frame{};
     
     if (are_there_data_to_receive())
