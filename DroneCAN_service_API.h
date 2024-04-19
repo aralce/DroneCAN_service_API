@@ -21,7 +21,7 @@ public:
 
     ~DroneCAN_service() {delete message_sender;};
 
-    void run_pending_tasks(microseconds actual_time);
+    uint32_t run_pending_tasks(microseconds actual_time);
 
     bool is_CAN_bus_inactive(milliseconds to_consider_can_bus_inactive,
                              milliseconds actual_time);
@@ -87,7 +87,6 @@ private:
 
     void initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error);
 
-    void try_initialize_CAN_bus_driver();
     void read_can_bus_data_when_is_available(microseconds actual_time);
     void handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender);
 

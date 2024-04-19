@@ -35,6 +35,24 @@ TEST(DroneCAN_service_publish_regularly, publish_regularly_the_node_status_messa
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 }
 
+//TODO: ADD test for run_pending_tasks pending time
+TEST(DroneCAN_service_publish_regularly,
+WHEN_only_node_status_msg_is_sent_THEN_run_pending_tasks_return_ms_for_next_msg)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    uint32_t ms_between_msgs = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES/1000;
+    constexpr microseconds usecs_between_msgs = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES;
+    CHECK_EQUAL(ms_between_msgs, droneCAN_service.run_pending_tasks(0));
+    CHECK_EQUAL(ms_between_msgs/2, droneCAN_service.run_pending_tasks(usecs_between_msgs/2));
+    
+    //publish msg
+    CHECK_EQUAL(ms_between_msgs, droneCAN_service.run_pending_tasks(usecs_between_msgs));
+    
+    CHECK_EQUAL(ms_between_msgs/2, droneCAN_service.run_pending_tasks(3*usecs_between_msgs/2));
+}
+
 TEST(DroneCAN_service_publish_regularly, is_not_time_yet_to_publish_node_status_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();

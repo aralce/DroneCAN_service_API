@@ -4,11 +4,16 @@
 #include <auxiliary_functions.h>
 #include <cstring>
 
-CanardPoolAllocatorStatistics statistics{};
+CanardPoolAllocatorStatistics statistics
+{
+};
 
-void DUMMY_error_handler(DroneCAN_error error) {}
+void DUMMY_error_handler(DroneCAN_error error)
+{
+}
 
-typedef struct{
+typedef struct
+{
     CanardInstance *instance;
     CanardRxTransfer *rx_transfer;
     uint8_t source_node_id;
@@ -17,14 +22,18 @@ typedef struct{
 canard_reception_t canard_reception;
 bool is_there_canard_message_to_handle = false;
 
-void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer) {
+void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer)
+{
     canard_reception.instance = ins;
     canard_reception.rx_transfer = transfer;
     canard_reception.source_node_id = transfer->source_node_id;
     is_there_canard_message_to_handle = true;
 }
 
-bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature, uint16_t data_type_id, CanardTransferType transfer_type, uint8_t source_node_id) {
+bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_data_type_signature,
+                                    uint16_t data_type_id, CanardTransferType transfer_type,
+                                    uint8_t source_node_id)
+{
 
     switch(data_type_id) {
         case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
@@ -63,16 +72,22 @@ bool DroneCAN_service::is_CAN_bus_inactive(milliseconds ms_to_consider_can_bus_i
     return false;
 }
 
-bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions);
+bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time,
+                        microseconds time_between_executions);
 
 #define MICROSECONDS_IN_SECOND (uint32_t)1e6
 
-void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
+uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
+{
     if (is_time_to_execute(last_microsecs_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
         message_sender->broadcast_message(nodeStatus_struct);
     }
-    
+    uint32_t last_publish_in_ms = last_microsecs_since_node_status_publish/1000;
+    constexpr uint32_t ms_publish = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES/1000;
+    uint32_t actual_ms = actual_time/1000;
+    uint32_t remaining_ms_for_node_status_publish = ms_publish - (actual_ms - last_publish_in_ms);
+
     if (_get_batteryInfo != nullptr && is_time_to_execute(last_microsecs_since_battery_info_publish, actual_time, microsecs_between_battery_info_publish)) {
         uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
         message_sender->broadcast_message(*battery_info);
@@ -80,6 +95,8 @@ void DroneCAN_service::run_pending_tasks(microseconds actual_time) {
 
     read_can_bus_data_when_is_available(actual_time);
     handle_incoming_message(canard, message_sender);
+
+    return remaining_ms_for_node_status_publish;
 }
 
 bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions) {
@@ -95,7 +112,8 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
                                             sizeof(no_data_frame)) != 0
 #define USECS_TO_MS(x) x/1000
 
-void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
+void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time)
+{
     CanardCANFrame canard_frame{can_driver.read_frame()};
     CanardCANFrame no_data_frame{};
     
@@ -106,30 +124,36 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
     }
 }
 
-void DroneCAN_service::handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender) {
-    if (is_there_canard_message_to_handle) {
-        uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
-        uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+void DroneCAN_service::handle_incoming_message(Canard& canard,
+                                               DroneCAN_message_sender* message_sender)
+{
+    if (is_there_canard_message_to_handle == false)
+        return;
 
-        switch(canard_reception.rx_transfer->data_type_id) {
-            case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
-                get_node_info_response.status = nodeStatus_struct;
-                strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-                get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-                message_sender->send_response_message(get_node_info_response, canard_reception.source_node_id);
-                break;
+    uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+    uavcan_protocol_param_GetSetRequest paramGetSet_request{};
 
-            case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
-                uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer, &paramGetSet_request);
+    switch(canard_reception.rx_transfer->data_type_id) {
+        case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
+            get_node_info_response.status = nodeStatus_struct;
+            strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+            get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+            message_sender->send_response_message(get_node_info_response,
+                                                  canard_reception.source_node_id);
+            break;
 
-                uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
+        case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
+            uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer,
+                                                       &paramGetSet_request);
 
-                if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
-                    message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
-                break;
-        }
-            is_there_canard_message_to_handle = false;
+            uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
+
+            if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
+                message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+            break;
     }
+        is_there_canard_message_to_handle = false;
+
 }
 
 void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
@@ -148,7 +172,9 @@ void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
     }
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set, uavcan_protocol_param_Value_type_t data_type) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set,
+                                                   uavcan_protocol_param_Value_type_t data_type)
+{
     switch (data_type) {
         case UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE:
             return set_parameter_value_by_name(name, *(bool*)pointer_to_value_to_set);
