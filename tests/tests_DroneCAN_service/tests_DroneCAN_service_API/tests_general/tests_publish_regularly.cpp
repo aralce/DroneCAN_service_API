@@ -82,21 +82,15 @@ TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
     CHECK_EQUAL(ACTUAL_TIME/1e6, nodeStatus->uptime_sec);
 }
 
-static uavcan_equipment_power_BatteryInfo battery_info{};
-uavcan_equipment_power_BatteryInfo* get_battery_info()
-{
-    mock().actualCall("get_battery_info");
-    return (uavcan_equipment_power_BatteryInfo*)mock().returnPointerValueOrDefault(&battery_info);
-}
-
 TEST(DroneCAN_service_publish_regularly,
 register_batteryInfo_for_regular_publish_then_after_registered_time_publish_message)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
+    uavcan_equipment_power_BatteryInfo battery_info{};
     const microseconds MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH = 10e6;
-    droneCAN_service.register_for_regular_publish(get_battery_info,
+    droneCAN_service.register_for_regular_publish(&battery_info,
                                                   MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH);
 
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message") //send node_status
@@ -104,11 +98,9 @@ register_batteryInfo_for_regular_publish_then_after_registered_time_publish_mess
 
     //doesn't publish_batteryInfo_message
     droneCAN_service.run_pending_tasks(MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH - 1);
-    
+
     const microseconds ACTUAL_TIME = MICROSECONDS_BETWEEN_BATTERY_INFO_PUBLISH;
-    uavcan_equipment_power_BatteryInfo battery_info{};
-    mock().expectOneCall("get_battery_info")
-          .andReturnValue((void*)&battery_info);
+
     mock().expectOneCall("DroneCAN_message_sender->broadcast_message")
           .withPointerParameter("uavcan_message", (void*)&battery_info);
 
@@ -121,9 +113,10 @@ WHEN_register_battery_Info_with_double_freq_than_nodeStatus_msg_THEN_get_time_un
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
+    uavcan_equipment_power_BatteryInfo battery_info{};
     constexpr microseconds node_status_publishes = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES;
     constexpr microseconds MICROSECONDS_PUBLISH_BATTERY_INFO = node_status_publishes/2;
-    droneCAN_service.register_for_regular_publish(get_battery_info,
+    droneCAN_service.register_for_regular_publish(&battery_info,
                                                   MICROSECONDS_PUBLISH_BATTERY_INFO);
 
     constexpr uint32_t ms_for_publish_batteryInfo = MICROSECONDS_PUBLISH_BATTERY_INFO/1000;

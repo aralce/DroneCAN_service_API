@@ -88,10 +88,7 @@ uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
     uint32_t ms_until_next_nodeStatus_publish = get_ms_until_next_nodeStatus_publish(actual_time);
 
     if (is_time_to_publish_batteryInfo_msg(actual_time))
-    {
-        uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
-        message_sender->broadcast_message(*battery_info);
-    }
+        message_sender->broadcast_message(*_batteryInfo_msg);
     uint32_t ms_until_next_batteryInfo_publish = get_ms_until_next_batteryInfo_publish(actual_time);
 
     read_can_bus_data_when_is_available(actual_time);
@@ -117,7 +114,7 @@ uint32_t DroneCAN_service::get_ms_until_next_nodeStatus_publish(microseconds act
 
 bool DroneCAN_service::is_time_to_publish_batteryInfo_msg(microseconds actual_time)
 {
-    if (_get_batteryInfo == nullptr)
+    if (_batteryInfo_msg == nullptr)
         return false;
     return is_time_to_execute(last_microsecs_since_battery_info_publish,
                               actual_time, microsecs_between_battery_info_publish);
@@ -125,7 +122,7 @@ bool DroneCAN_service::is_time_to_publish_batteryInfo_msg(microseconds actual_ti
 
 uint32_t DroneCAN_service::get_ms_until_next_batteryInfo_publish(microseconds actual_time)
 {
-    if (_get_batteryInfo == nullptr)
+    if (_batteryInfo_msg == nullptr)
         return std::numeric_limits<uint32_t>::max();
     uint32_t last_publish_in_ms = last_microsecs_since_battery_info_publish/1000;
     uint32_t ms_publish = microsecs_between_battery_info_publish/1000;

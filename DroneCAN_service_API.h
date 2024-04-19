@@ -32,8 +32,10 @@ public:
         message_sender->broadcast_message(uavcan_message);
     }
 
-    void register_for_regular_publish(uavcan_equipment_power_BatteryInfo* (*get_battery_info)(), microseconds time_between_publish) {
-        _get_batteryInfo = get_battery_info;
+    void register_for_regular_publish(uavcan_equipment_power_BatteryInfo* batteryInfo_msg,
+                                      microseconds time_between_publish)
+    {
+        _batteryInfo_msg = batteryInfo_msg;
         microsecs_between_battery_info_publish = time_between_publish;
     }
 
@@ -77,8 +79,7 @@ private:
     milliseconds ms_on_last_rx = 0;
     microseconds last_microsecs_since_node_status_publish = 0;
 
-    typedef uavcan_equipment_power_BatteryInfo* (*get_batteryInfo_handler)();
-    get_batteryInfo_handler  _get_batteryInfo= nullptr;
+    uavcan_equipment_power_BatteryInfo*  _batteryInfo_msg = nullptr;
     microseconds microsecs_between_battery_info_publish = 0;
     microseconds last_microsecs_since_battery_info_publish = 0;
 
