@@ -4,16 +4,8 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
-enum class CAN_bitrate {CAN_1MBITS, CAN_800KBITS, CAN_500KBITS, CAN_250KBITS, CAN_125KBITS, CAN_100KBITS, CAN_50KBITS, CAN_25KBITS};
-
 class CAN_bus_adaptor {
 public:
-    CAN_bus_adaptor() {
-
-    }
-
-    virtual ~CAN_bus_adaptor() {}
-
     bool send_frame(CanardCANFrame& can_frame) {
         mock().actualCall("CAN_bus_adaptor->send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame);

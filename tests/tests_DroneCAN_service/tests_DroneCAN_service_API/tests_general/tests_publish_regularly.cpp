@@ -2,7 +2,7 @@
 #include <Spied_DroneCAN_service.h>
 
 const int MICROSECONDS_BETWEEN_PUBLISHES = 10e6;
-static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
+static CAN_bus_adaptor can_driver;
 
 TEST_GROUP(DroneCAN_service_publish_regularly)
 {

@@ -5,9 +5,7 @@
 #include <list>
 
 #ifdef IS_RUNNING_TESTS
-    #include <CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
-#else
-    #include <CAN_bus_adaptor_factory.h>
+    #include <CAN_BUS_adaptor/CAN_bus_adaptor.h>
 #endif
 using microseconds = uint64_t;
 using milliseconds = uint32_t;

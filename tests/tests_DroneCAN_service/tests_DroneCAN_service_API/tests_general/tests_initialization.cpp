@@ -2,7 +2,7 @@
 #include <support/DroneCAN_service_spy.h>
 
 CAN_bus_custom* custom_can = nullptr;
-static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
+static CAN_bus_adaptor can_driver;
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls()
 {

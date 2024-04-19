@@ -6,9 +6,8 @@
 #include <uavcan.protocol.param.GetSet_req.h>
 #include <uavcan.protocol.GetNodeInfo_req.h>
 #include <mocks/HAL_system/HAL_system_singleton.h>
-#include <mocks/CAN_BUS_adaptor/CAN_bus_adaptor_factory.h>
 
-static CAN_bus_adaptor can_driver = *CAN_bus_adapter_singleton::get_CAN_bus_adaptor();
+static CAN_bus_adaptor can_driver;
 
 extern bool is_there_canard_message_to_handle;
 typedef struct{
@@ -37,7 +36,6 @@ TEST_GROUP(DroneCAN_service_API_general)
         mock().checkExpectations();
         mock().clear();
         HAL_system_singleton::delete_instance();
-        CAN_bus_adapter_singleton::clear_instances();
     }
 };
 
