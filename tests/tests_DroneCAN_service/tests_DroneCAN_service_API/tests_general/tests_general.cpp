@@ -53,7 +53,7 @@ WHEN_there_is_can_bus_data_to_read_THEN_sends_it_to_canard)
     memcpy(can_frame.data, can_bus_packet, CAN_BUS_PACKET_SIZE);
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
 
-    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
+    mock().expectOneCall("CAN_bus_adaptor->read_frame")
           .andReturnValue((void*)&can_frame);
 
     microseconds ACTUAL_TIME = 100;
@@ -70,7 +70,7 @@ WHEN_there_is_NO_can_bus_data_to_read_THEN_do_NOT_send_it_to_canard)
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
     CanardCANFrame can_frame{};
-    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
+    mock().expectOneCall("CAN_bus_adaptor->read_frame")
           .andReturnValue((void*)&can_frame);
 
     mock().expectNoCall("canard->handle_rx_frame");
@@ -373,7 +373,7 @@ GIVEN_received_data_WHEN_time_for_inactive_is_reached_THEN_is_can_bus_inactive_r
     mock().ignoreOtherCalls();
 
     CanardCANFrame recieved_frame_different_from_empty{.id = 99, .data = {1,2,3}, .data_len = 3};
-    mock().expectOneCall("CAN_bus_adaptor->read_master_mailbox")
+    mock().expectOneCall("CAN_bus_adaptor->read_frame")
           .andReturnValue((void*)&recieved_frame_different_from_empty);
     
     uint32_t ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE - 1;

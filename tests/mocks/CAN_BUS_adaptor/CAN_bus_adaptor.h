@@ -12,15 +12,9 @@ public:
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
-    CanardCANFrame read() {
+    CanardCANFrame read_frame() {
         static CanardCANFrame frame{};
-        mock().actualCall("CAN_bus_adaptor->read");
-        return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
-    }
-
-    CanardCANFrame read_master_mailbox() {
-        static CanardCANFrame frame{};
-        mock().actualCall("CAN_bus_adaptor->read_master_mailbox");
+        mock().actualCall("CAN_bus_adaptor->read_frame");
         return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
     }
 

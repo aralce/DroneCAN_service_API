@@ -96,7 +96,7 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 #define USECS_TO_MS(x) x/1000
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time) {
-    CanardCANFrame canard_frame{can_driver.read_master_mailbox()};
+    CanardCANFrame canard_frame{can_driver.read_frame()};
     CanardCANFrame no_data_frame{};
     
     if (are_there_data_to_receive())
