@@ -18,23 +18,5 @@ private:
 
 class CAN_bus_custom : public CAN_bus_adaptor
 {
-    bool begin(CAN_bitrate baudrate) override
-    {
-        mock().actualCall("CAN_bus_custom->begin")
-              .withLongIntParameter("baudrate", (long int)baudrate);
-        return mock().returnBoolValueOrDefault(true);
-    }
 
-    void setPins(int rx, int tx) override
-    {
-        mock().actualCall("CAN_bus_custom->setPins")
-             .withIntParameter("rx", rx)
-             .withIntParameter("tx", tx);
-    }
-
-    bool add_master_mailbox() override
-    {
-        mock().actualCall("CAN_bus_custom->add_master_mailbox");
-        return mock().returnBoolValueOrDefault(true);
-    }
 };

@@ -14,52 +14,16 @@ public:
 
     virtual ~CAN_bus_adaptor() {}
 
-    virtual bool begin(CAN_bitrate baudRate) {
-        mock().actualCall("CAN_bus_adaptor->begin")
-            .withLongIntParameter("baudRate", (long int)baudRate);
-        return mock().returnBoolValueOrDefault(SUCCESS);
-    }
-
-    virtual void run_pending_tasks(uint32_t milliseconds) {
-        
-    }
-
-    virtual void setPins(int rx, int tx) {
-        mock().actualCall("CAN_bus_adaptor->setPins")
-            .withIntParameter("rx", rx)
-            .withIntParameter("tx", tx);
-    }
-
     bool send_frame(CanardCANFrame& can_frame) {
         mock().actualCall("CAN_bus_adaptor->send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame);
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
-    void onReceive(void (*onReceive_callback)(int packet_size)) {
-        mock().actualCall("CAN_bus_adaptor->onReceive")
-              .withPointerParameter("onReceive_callback", (void*)onReceive_callback);
-    }
-
     CanardCANFrame read() {
         static CanardCANFrame frame{};
         mock().actualCall("CAN_bus_adaptor->read");
         return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
-    }
-
-    int read_byte()  {
-        mock().actualCall("CAN_bus_adaptor->read_byte");
-        return mock().returnIntValueOrDefault(0);
-    }
-
-    long get_packet_id()  {
-        mock().actualCall("CAN_bus_adaptor->get_packet_id");
-        return mock().returnLongIntValueOrDefault(0);
-    }
-
-    virtual bool add_master_mailbox() {
-        mock().actualCall("CAN_bus_adaptor->add_master_mailbox");
-        return mock().returnBoolValueOrDefault(true);
     }
 
     CanardCANFrame read_master_mailbox() {
