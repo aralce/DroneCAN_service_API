@@ -2,13 +2,6 @@
 
 #define DRONECAN_NODE_NAME "Upgrade Energy Tech -- Smart Battery"
 
-// #define CAN_BUS_DRIVER_TO_USE    CAN_bus_driver::ESP_IDF
-
-#define CAN_BUS_BAUDRATE CAN_bitrate::CAN_1MBITS
-
-#define CAN_BUS_CRX_PIN 26
-#define CAN_BUS_CTX_PIN 25
-
 #define LIBCANARD_ALLOCATION_BUFFER_IN_BYTES 5000//minimun 1000 bytes
 
 #define UAVCAN_MAX_BYTES_ON_MESSAGE 255 //UAVCAN_v1 up to 255 bytes
