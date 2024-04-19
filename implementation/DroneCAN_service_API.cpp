@@ -79,16 +79,15 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
 {
-    if (is_time_to_execute(last_microsecs_since_node_status_publish, actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES)) {
+    if (is_time_to_publish_nodeStatus_msg(actual_time))
+    {
         nodeStatus_struct.uptime_sec = actual_time/MICROSECONDS_IN_SECOND;
         message_sender->broadcast_message(nodeStatus_struct);
     }
-    uint32_t last_publish_in_ms = last_microsecs_since_node_status_publish/1000;
-    constexpr uint32_t ms_publish = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES/1000;
-    uint32_t actual_ms = actual_time/1000;
-    uint32_t remaining_ms_for_node_status_publish = ms_publish - (actual_ms - last_publish_in_ms);
+    uint32_t ms_until_next_nodeStatus_publish = get_ms_until_next_nodeStatus_publish(actual_time);
 
-    if (_get_batteryInfo != nullptr && is_time_to_execute(last_microsecs_since_battery_info_publish, actual_time, microsecs_between_battery_info_publish)) {
+    if (is_time_to_publish_batteryInfo_msg(actual_time))
+    {
         uavcan_equipment_power_BatteryInfo* battery_info = _get_batteryInfo();
         message_sender->broadcast_message(*battery_info);
     }
@@ -96,10 +95,35 @@ uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
     read_can_bus_data_when_is_available(actual_time);
     handle_incoming_message(canard, message_sender);
 
-    return remaining_ms_for_node_status_publish;
+    return ms_until_next_nodeStatus_publish;
 }
 
-bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time, microseconds time_between_executions) {
+bool DroneCAN_service::is_time_to_publish_nodeStatus_msg(microseconds actual_time)
+{
+    return is_time_to_execute(last_microsecs_since_node_status_publish,
+                              actual_time, MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES);
+}
+
+uint32_t DroneCAN_service::get_ms_until_next_nodeStatus_publish(microseconds actual_time)
+{
+    uint32_t last_publish_in_ms = last_microsecs_since_node_status_publish/1000;
+    constexpr uint32_t ms_publish = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES/1000;
+    uint32_t actual_ms = actual_time/1000;
+    
+    return ms_publish - (actual_ms - last_publish_in_ms);
+}
+
+bool DroneCAN_service::is_time_to_publish_batteryInfo_msg(microseconds actual_time)
+{
+    if (_get_batteryInfo == nullptr)
+        return false;
+    return is_time_to_execute(last_microsecs_since_battery_info_publish,
+                              actual_time, microsecs_between_battery_info_publish);
+}
+
+bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time,
+                        microseconds time_between_executions)
+{
     bool is_time_to_execute_now = actual_time - last_time_executed >=  time_between_executions;
     if (is_time_to_execute_now) {
         last_time_executed = actual_time;
@@ -149,21 +173,24 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
             uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
 
             if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
-                message_sender->send_response_message(parameter_to_send, canard_reception.source_node_id);
+                message_sender->send_response_message(parameter_to_send,
+                                                      canard_reception.source_node_id);
             break;
     }
         is_there_canard_message_to_handle = false;
 
 }
 
-void DroneCAN_service::add_parameter(uavcan_parameter& parameter) {
+void DroneCAN_service::add_parameter(uavcan_parameter& parameter)
+{
     if (number_of_parameters < MAX_NUMBER_OF_PARAMETERS) {
         ++number_of_parameters;
         parameter_list.push_back(parameter);
     }
 }
 
-void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0) {
+void DroneCAN_service::remove_parameter(uint8_t parameter_index_from_0)
+{
     if (number_of_parameters != 0) {
         --number_of_parameters;
         auto iterator = parameter_list.begin();
@@ -187,7 +214,8 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* point
     }
 }
 
-uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name) {
+uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name)
+{
     auto iterator = parameter_list.begin();
     while(iterator != parameter_list.end()) {
         if (strcmp((char*)iterator->name.data, name) == 0)
@@ -199,8 +227,10 @@ uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name) {
     return invalid_parameter;
 }
 
-uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0) {
-    if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size()) {
+uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
+{
+    if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size())
+    {
         uavcan_parameter invalid_param;
         strcpy((char*)invalid_param.name.data, NAME_FOR_INVALID_PARAMETER);
         return invalid_param;
@@ -210,28 +240,35 @@ uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
     return *iterator;
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_to_set)
+{
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, int32_t value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, int32_t value_to_set)
+{
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, int64_t value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, int64_t value_to_set)
+{
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, float value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, float value_to_set)
+{
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value_by_name(const char* name, char* value_to_set) {
+bool DroneCAN_service::set_parameter_value_by_name(const char* name, char* value_to_set)
+{
     return set_generic_parameter_value_by_name(name, value_to_set);
 }
 
 template <typename PARAM_VALUE_TYPE>
-bool DroneCAN_service::set_generic_parameter_value_by_name(const char* name, PARAM_VALUE_TYPE value_to_set) {
+bool DroneCAN_service::set_generic_parameter_value_by_name(const char* name,
+                                                           PARAM_VALUE_TYPE value_to_set)
+{
     auto iterator = parameter_list.begin();
     while (iterator != parameter_list.end()) {
         if (strcmp((char*)iterator->name.data, name) == 0) {
@@ -243,28 +280,35 @@ bool DroneCAN_service::set_generic_parameter_value_by_name(const char* name, PAR
     return false;
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set) {
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, bool value_to_set)
+{
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set) {
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int32_t value_to_set)
+{
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int64_t value_to_set) { //TODO: add test
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, int64_t value_to_set)
+{ //TODO: add test
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, float value_to_set) {
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, float value_to_set)
+{
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
-bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, char* value_to_set) {
+bool DroneCAN_service::set_parameter_value(uint8_t parameter_index_from_0, char* value_to_set)
+{
     return set_generic_parameter_value(parameter_index_from_0, value_to_set);
 }
 
 template <typename PARAM_VALUE_TYPE>
-bool DroneCAN_service::set_generic_parameter_value(uint8_t parameter_index_from_0, PARAM_VALUE_TYPE value_to_set) {
+bool DroneCAN_service::set_generic_parameter_value(uint8_t parameter_index_from_0,
+                                                   PARAM_VALUE_TYPE value_to_set)
+{
     if (parameter_index_from_0 >= parameter_list.size())
         return false;
     auto iterator = parameter_list.begin();

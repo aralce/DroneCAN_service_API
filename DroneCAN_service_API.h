@@ -87,6 +87,10 @@ private:
 
     void initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error);
 
+    bool is_time_to_publish_nodeStatus_msg(microseconds actual_time);
+    uint32_t get_ms_until_next_nodeStatus_publish(microseconds actual_time);
+    bool is_time_to_publish_batteryInfo_msg(microseconds actual_time);
+
     void read_can_bus_data_when_is_available(microseconds actual_time);
     void handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender);
 
