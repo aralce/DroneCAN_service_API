@@ -7,13 +7,14 @@
 # 1. Introduction  
 The library is in charge of managing the DroneCAN messages to have a DroneCAN node. The intention is to have a simple library to manage messages without too much effort.  
   
-This library depends on [CAN library](https://github.com/aralce/arduino-CAN). You need to add [CAN library](https://github.com/aralce/arduino-CAN) to your enviroment before use this library.
+This library needs the implementation of a simple CAN driver. The [CAN_bus_adaptor.h](https://github.com/aralce/DroneCAN_service_API/blob/develop/CAN_bus_adaptor.h) contains the prototype of the interface.  
+Read and send frames are the only two functions required.
   
 # 2. API reference  
 The library has 3 files to have in mind:  
 - DroneCAN_service_api.h: Contains the interface for use in the library.  
 - DroneCAN_service_configuration.h: Contains important configurations as the desired pins to use for CAN bus and CAN bus baud rate.   
-- CAN_bus_adaptor.h: In case you need to use another microcontroller you can replace the internal functions with the functions of your own library.  
+- CAN_bus_adaptor.h: Interface for the CAN bus driver. It is required to implement read and send frame functions. 
 
 ### DroneCAN_service_api.h  
 #### Initialization  
@@ -47,27 +48,32 @@ void loop() {
   unsigned long actual_time = millis();
   droneCAN_service.run_pending_tasks(actual_time);
 }
-```  
+```
+***`run_pending_tasks` returns the ms necessary for the next call to the function. Since DroneCAN msg have a great tolerance, the next time to call the function can vary in at least 100ms*** 
 
 #### Register a message to publish  
-The library can register a message to be published on intervals of time defined by the user. By the moment, the library only supports battery_info messages. To register a battery message you need to provide a function to get the battery info:  
+The library can register a message to be published on intervals of time defined by the user. By the moment, the library only supports batteryInfo messages. To register a battery message you need to provide a function to get the battery info:  
 ```  
-DroneCAN_service droneCAN_service;  
+CAN_bus_adaptor can_driver;
+DroneCAN_service droneCAN_service(can_driver);  
   
-uavcan_equipment_power_BatteryInfo&  get_battery_info() { //this function should be implemented by you.  
-                                                          //IMPORTANT: your uavcan_equipment_power_BatteryInfo must be static  
-  static uavcan_equipment_power_BatteryInfo your_battery_info_message{};  
-  return your_battery_info_message;  
-}  
+uavcan_equipment_power_BatteryInfo msg_to_send; //Complete the struct with the values you want to send
   
-void setup() {  
+void setup()
+{  
   const int MILLISECONDS_BETWEEN_BATTERY_MESSAGE_PUBLISH = 500;  
-  droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_BATTERY_MESSAGE_PUBLISH);  
+  droneCAN_service.publish_regularly(get_battery_info, MILLISECONDS_BETWEEN_BATTERY_MESSAGE_PUBLISH);
 }  
   
-void loop() {
+void loop()
+{
   unsigned long actual_time = millis();
   droneCAN_service.run_pending_tasks(actual_time);
+
+  if (need_to_change_param_in_msg_to_send)
+  {
+    msg_to_send.param = new_value;
+  }
 }  
 ```
 
