@@ -36,7 +36,6 @@ publish_regularly_the_node_status_message_without_register_when_is_time_and_only
     spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 }
 
-//TODO: ADD test for run_pending_tasks pending time
 TEST(DroneCAN_service_publish_regularly,
 WHEN_only_node_status_msg_is_sent_THEN_run_pending_tasks_return_ms_for_next_msg)
 {
@@ -83,10 +82,11 @@ TEST(DroneCAN_service_publish_regularly, node_status_is_sent_with_right_data)
     CHECK_EQUAL(ACTUAL_TIME/1e6, nodeStatus->uptime_sec);
 }
 
+static uavcan_equipment_power_BatteryInfo battery_info{};
 uavcan_equipment_power_BatteryInfo* get_battery_info()
 {
     mock().actualCall("get_battery_info");
-    return (uavcan_equipment_power_BatteryInfo*)mock().pointerReturnValue();
+    return (uavcan_equipment_power_BatteryInfo*)mock().returnPointerValueOrDefault(&battery_info);
 }
 
 TEST(DroneCAN_service_publish_regularly,
@@ -113,4 +113,26 @@ register_batteryInfo_for_regular_publish_then_after_registered_time_publish_mess
           .withPointerParameter("uavcan_message", (void*)&battery_info);
 
     droneCAN_service.run_pending_tasks(ACTUAL_TIME); //publish_batteryInfo_message
+}
+
+TEST(DroneCAN_service_publish_regularly,
+WHEN_register_battery_Info_with_double_freq_than_nodeStatus_msg_THEN_get_time_until_next_publish)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    constexpr microseconds node_status_publishes = MICROSECONDS_BETWEEN_NODE_STATUS_PUBLISHES;
+    constexpr microseconds MICROSECONDS_PUBLISH_BATTERY_INFO = node_status_publishes/2;
+    droneCAN_service.register_for_regular_publish(get_battery_info,
+                                                  MICROSECONDS_PUBLISH_BATTERY_INFO);
+
+    constexpr uint32_t ms_for_publish_batteryInfo = MICROSECONDS_PUBLISH_BATTERY_INFO/1000;
+
+    //battery info is the half time node status publish time, so max time is batteryInfo time.
+    CHECK_EQUAL(ms_for_publish_batteryInfo, droneCAN_service.run_pending_tasks(0));
+
+    CHECK_EQUAL(ms_for_publish_batteryInfo,
+                droneCAN_service.run_pending_tasks(MICROSECONDS_PUBLISH_BATTERY_INFO));
+    CHECK_EQUAL(ms_for_publish_batteryInfo,
+                droneCAN_service.run_pending_tasks(node_status_publishes));
 }
