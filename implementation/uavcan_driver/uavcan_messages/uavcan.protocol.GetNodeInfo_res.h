@@ -1,10 +1,14 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
-#include <canard.h>
-#include <uavcan.protocol.NodeStatus.h>
-#include <uavcan.protocol.SoftwareVersion.h>
-#include <uavcan.protocol.HardwareVersion.h>
+// #include <canard.h>
+#include "../canard.h"
+// #include <uavcan.protocol.NodeStatus.h>
+#include "uavcan.protocol.NodeStatus.h"
+// #include <uavcan.protocol.SoftwareVersion.h>
+#include "uavcan.protocol.SoftwareVersion.h"
+// #include <uavcan.protocol.HardwareVersion.h>
+#include "uavcan.protocol.HardwareVersion.h"
 
 #ifdef __cplusplus
 extern "C"

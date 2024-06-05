@@ -1,9 +1,12 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
-#include <canard.h>
-#include <uavcan.protocol.param.NumericValue.h>
-#include <uavcan.protocol.param.Value.h>
+// #include <canard.h>
+#include "../canard.h"
+// #include <uavcan.protocol.param.NumericValue.h>
+#include "uavcan.protocol.param.NumericValue.h"
+// #include <uavcan.protocol.param.Value.h>
+#include "uavcan.protocol.param.Value.h"
 
 #ifdef __cplusplus
 extern "C"

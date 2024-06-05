@@ -1,5 +1,6 @@
 #pragma once
-#include <canard.h>
+// #include <canard.h>
+#include "implementation/uavcan_driver/canard.h"
 
 /**This file has a prototype for the interface of the CAN bus driver the DroneCAN service API
  * uses.
@@ -12,7 +13,7 @@
 class CAN_bus_adaptor {
 public:
     CAN_bus_adaptor() {}
-    virtual ~CAN_bus_adaptor() {}
+    ~CAN_bus_adaptor() {}
 
     /**
      * @brief Send frame with CAN bus
@@ -21,7 +22,10 @@ public:
      * @param can_frame frame to send through CAN bus
      * @return True if the frame was sent successfully. False otherwise.
     */
-    virtual bool send_frame(CanardCANFrame& can_frame) = 0;
+    bool send_frame(CanardCANFrame& can_frame)
+    {
+        return true;
+    };
 
     /**
      * @brief Read frame with CAN bus
@@ -31,5 +35,8 @@ public:
      * 
      * @return An empty frame if there is no frame available. Return the read frame otherwise.
     */
-    virtual CanardCANFrame read_frame() = 0;
+    CanardCANFrame read_frame() 
+    {
+        return CanardCANFrame{};
+    };
 };
