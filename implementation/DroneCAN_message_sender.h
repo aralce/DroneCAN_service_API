@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstdint>
 
-// #include <CAN_bus_adaptor.h>
 #include "../CAN_bus_adaptor.h"
 
 #ifdef IS_RUNNING_TESTS
@@ -14,7 +13,6 @@
     #include "uavcan_driver/Canard_wrapper.h"
     #include "DSDL_to_canard_DTO.h"
 #endif
-// #include "DroneCAN_service_configuration.h"
 #include "../DroneCAN_service_configuration.h"
 
 //TODO: move this somewhere

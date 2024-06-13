@@ -12,8 +12,7 @@
 
 class CAN_bus_adaptor {
 public:
-    CAN_bus_adaptor() {}
-    ~CAN_bus_adaptor() {}
+    CAN_bus_adaptor();
 
     /**
      * @brief Send frame with CAN bus
@@ -22,10 +21,7 @@ public:
      * @param can_frame frame to send through CAN bus
      * @return True if the frame was sent successfully. False otherwise.
     */
-    bool send_frame(CanardCANFrame& can_frame)
-    {
-        return true;
-    };
+    bool send_frame(CanardCANFrame& can_frame);
 
     /**
      * @brief Read frame with CAN bus
@@ -35,8 +31,5 @@ public:
      * 
      * @return An empty frame if there is no frame available. Return the read frame otherwise.
     */
-    CanardCANFrame read_frame() 
-    {
-        return CanardCANFrame{};
-    };
+    CanardCANFrame read_frame();
 };

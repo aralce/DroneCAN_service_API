@@ -73,7 +73,7 @@ protected:
 
 private:
     friend class DroneCAN_service_spy;
-    Canard canard{LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE};
+    Canard canard;
     CAN_bus_adaptor& can_driver;
     DroneCAN_message_sender* message_sender;
 

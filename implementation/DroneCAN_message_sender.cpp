@@ -47,6 +47,6 @@ void DroneCAN_message_sender::send_pending_CAN_frames() {
 
 void DroneCAN_message_sender::try_send_CAN_bus_frame(CanardCANFrame& frame) {
     _is_healthy = _can_driver.send_frame(frame);
-    if (!_is_healthy)
+    if (_is_healthy)
         _handle_error(DroneCAN_error::FAIL_ON_PUBLISH);
 }

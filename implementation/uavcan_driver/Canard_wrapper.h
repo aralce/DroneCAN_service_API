@@ -1,6 +1,7 @@
 #pragma once
 // #include <canard.h>
 #include "canard.h"
+#include "../../DroneCAN_service_configuration.h"
 
 typedef struct {
     uint64_t signature;
@@ -15,17 +16,6 @@ typedef struct {
 
 class Canard {
 public:
-    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {
-        buffer_size = bytes_allocation_buffer;
-        canard_buffer = new uint8_t[buffer_size];
-        canard_transmission_buffer = new uint8_t[max_bytes_on_message];
-    }
-
-    ~Canard() { 
-        delete[] canard_buffer;
-        delete[] canard_transmission_buffer;
-    }
-
     void init() {
         init(handle_reception_DUMMY, handle_acceptance_DUMMY);
     }
@@ -99,10 +89,10 @@ public:
 
 private:
     CanardInstance canard_instance;
-    uint8_t* canard_buffer;
-    size_t buffer_size; 
+    static constexpr size_t buffer_size = LIBCANARD_ALLOCATION_BUFFER_IN_BYTES; 
+    uint8_t canard_buffer[buffer_size];
     uint8_t canard_transferID;
-    uint8_t* canard_transmission_buffer;
+    uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
       
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};
     static bool handle_acceptance_DUMMY(const CanardInstance*, uint64_t*, uint16_t, CanardTransferType, uint8_t) {return false;};
