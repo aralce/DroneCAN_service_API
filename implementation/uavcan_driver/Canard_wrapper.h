@@ -14,6 +14,10 @@ typedef struct {
     uint16_t length;
 }canard_message_data_t;
 
+static uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
+static uint8_t canard_transferID;
+static uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
+
 class Canard {
 public:
     void init() {
@@ -90,9 +94,6 @@ public:
 private:
     CanardInstance canard_instance;
     static constexpr size_t buffer_size = LIBCANARD_ALLOCATION_BUFFER_IN_BYTES; 
-    uint8_t canard_buffer[buffer_size];
-    uint8_t canard_transferID;
-    uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
       
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};
     static bool handle_acceptance_DUMMY(const CanardInstance*, uint64_t*, uint16_t, CanardTransferType, uint8_t) {return false;};

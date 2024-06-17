@@ -1,10 +1,12 @@
 #include "../DroneCAN_service_API.h"
 // #include <uavcan.protocol.param.GetSet_req.h>
+#include "DroneCAN_service_API/implementation/uavcan_driver/canard.h"
 #include "uavcan_driver/uavcan_messages/uavcan.protocol.param.GetSet_req.h"
 // #include <uavcan.protocol.GetNodeInfo.h>
 #include "uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo.h"
 // #include <auxiliary_functions.h>
 #include "auxiliary_functions.h"
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
@@ -19,7 +21,7 @@ void DUMMY_error_handler(DroneCAN_error error)
 typedef struct
 {
     CanardInstance *instance;
-    CanardRxTransfer *rx_transfer;
+    CanardRxTransfer rx_transfer;
     uint8_t source_node_id;
 }canard_reception_t;
 
@@ -29,7 +31,9 @@ bool is_there_canard_message_to_handle = false;
 void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer)
 {
     canard_reception.instance = ins;
-    canard_reception.rx_transfer = transfer;
+    //CanardRxTransfer is copied because It will be used outside this function
+    //The canard library can change the value of "transfer" freely without notify
+    memcpy(&canard_reception.rx_transfer, transfer, sizeof(CanardRxTransfer));
     canard_reception.source_node_id = transfer->source_node_id;
     is_there_canard_message_to_handle = true;
 }
@@ -148,11 +152,14 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 #define are_there_data_to_receive()  memcmp(&canard_frame, &no_data_frame, \
                                             sizeof(no_data_frame)) != 0
 #define USECS_TO_MS(x) x/1000
+//Variable is not stored on stack due it is passed through reference.
+static CanardCANFrame no_data_frame{};
+static CanardCANFrame canard_frame{};
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time)
 {
-    CanardCANFrame canard_frame{can_driver.read_frame()};
-    CanardCANFrame no_data_frame{};
+    // CanardCANFrame canard_frame{can_driver.read_frame()};
+    canard_frame = std::move(can_driver.read_frame());
     
     if (are_there_data_to_receive())
     {
@@ -166,11 +173,12 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
 {
     if (is_there_canard_message_to_handle == false)
         return;
+    
+    //Variables are not stored on stack due they are passed by reference
+    static uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
+    static uavcan_protocol_param_GetSetRequest paramGetSet_request{};
 
-    uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
-    uavcan_protocol_param_GetSetRequest paramGetSet_request{};
-
-    switch(canard_reception.rx_transfer->data_type_id) {
+    switch(canard_reception.rx_transfer.data_type_id) {
         case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
             get_node_info_response.status = nodeStatus_struct;
             strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
@@ -180,7 +188,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
             break;
 
         case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
-            uavcan_protocol_param_GetSetRequest_decode(canard_reception.rx_transfer,
+            uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                        &paramGetSet_request);
 
             uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
