@@ -1,6 +1,6 @@
 #include <common_to_all_tests.h>
 #include <auxiliary_functions.h>
-#include <uavcan.protocol.param.NumericValue.h>
+#include "../mocks/folder_DSDL_messages/uavcan.protocol.param.NumericValue.h"
 
 TEST_GROUP(Auxiliary_functions_package_param_numeric_value)
 {

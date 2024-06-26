@@ -16,7 +16,6 @@ typedef struct {
 
 class Canard {
 public:
-    explicit Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message);
 
     void init();
 

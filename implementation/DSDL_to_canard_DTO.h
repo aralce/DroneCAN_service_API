@@ -1,22 +1,12 @@
 #pragma once
-// #include <canard.h>
 #include "uavcan_driver/canard.h"
 #if defined(IS_RUNNING_TESTS)
     #include <mocks/Canard_wrapper/Canard_wrapper.h>
 #else
-    // #include <Canard_wrapper.h>
     #include "uavcan_driver/Canard_wrapper.h"
 #endif
-// #include <uavcan.equipment.power.BatteryInfo.h>
-#include "uavcan_driver/uavcan_messages/uavcan.equipment.power.BatteryInfo.h"
-// #include <uavcan.protocol.NodeStatus.h>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.NodeStatus.h"
-// #include <uavcan.protocol.param.GetSet_res.h>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.param.GetSet_res.h"
-// #include <uavcan.protocol.GetNodeInfo.h>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo.h"
 
-// #include "DroneCAN_service_configuration.h"
+#include "uavcan_driver/uavcan_messages_used.h"
 #include "../DroneCAN_service_configuration.h"
 
 typedef enum {NODE_STATUS, BATTERY_INFO, NUMBER_OF_MESSAGES}type_of_message;

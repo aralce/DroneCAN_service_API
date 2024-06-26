@@ -1,8 +1,6 @@
 #include "Canard_wrapper.h"
 #include <CAN_bus_adaptor.h>
 
-Canard::Canard(uint32_t bytes_allocation_buffer, uint32_t max_bytes_on_message) {}
-
 void Canard::init() {
     mock().actualCall("canard->init");
 }

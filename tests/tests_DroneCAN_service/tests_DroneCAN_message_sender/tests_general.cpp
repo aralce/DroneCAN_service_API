@@ -5,7 +5,7 @@
 canard_message_type_info_t type_info{};
 canard_message_data_t message_data{};
 
-Canard canard(LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE);
+Canard canard;
 CAN_bus_adaptor can_driver;
 DroneCAN_message_sender* message_sender = nullptr;
 

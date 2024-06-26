@@ -1,15 +1,16 @@
 #ifndef DRONECAN_SERVICE_API_H_
 #define DRONECAN_SERVICE_API_H_
 
-// #include <DroneCAN_message_sender.h>
-#include "implementation/DroneCAN_message_sender.h"
 #include <list>
 
 #ifdef IS_RUNNING_TESTS
-    #include <CAN_BUS_adaptor/CAN_bus_adaptor.h>
+    #include "tests/mocks/DroneCAN_message_sender/DroneCAN_message_sender.h"
+    #include "tests/mocks/CAN_BUS_adaptor/CAN_bus_adaptor.h"
 #else
+    #include "implementation/DroneCAN_message_sender.h"
     #include "CAN_bus_adaptor.h"
 #endif
+
 using microseconds = uint64_t;
 using milliseconds = uint32_t;
 using uavcan_parameter = uavcan_protocol_param_GetSetResponse;

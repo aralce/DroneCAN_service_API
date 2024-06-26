@@ -23,6 +23,7 @@
  *
  * Documentation: http://uavcan.org/Implementations/Libcanard
  */
+#ifndef IS_RUNNING_TESTS
 
 #include "canard_internals.h"
 #include <string.h>
@@ -1717,3 +1718,5 @@ CANARD_INTERNAL void freeBlock(CanardPoolAllocator* allocator, void* p)
     CANARD_ASSERT(allocator->statistics.current_usage_blocks > 0);
     allocator->statistics.current_usage_blocks--;
 }
+
+#endif //IS_RUNNING_TESTS

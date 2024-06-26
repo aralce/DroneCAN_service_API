@@ -4,12 +4,12 @@
 #include <cstdio>
 #include <cstdint>
 
-#include "../CAN_bus_adaptor.h"
-
 #ifdef IS_RUNNING_TESTS
+    #include <mocks/CAN_BUS_adaptor/CAN_bus_adaptor.h>
     #include <mocks/Canard_wrapper/Canard_wrapper.h>
     #include <DSDL_to_canard_DTO.h>
 #else
+    #include "../CAN_bus_adaptor.h"
     #include "uavcan_driver/Canard_wrapper.h"
     #include "DSDL_to_canard_DTO.h"
 #endif

@@ -33,6 +33,10 @@
 #include <stdbool.h>
 #include <assert.h>
 
+#ifdef IS_RUNNING_TESTS //On unit testing includes a mock instead of the real file
+    #include "tests/mocks/Canard_wrapper/Canard/canard.h"
+#else
+
 /// Build configuration header. Use it to provide your overrides.
 #if defined(CANARD_ENABLE_CUSTOM_BUILD_CONFIG) && CANARD_ENABLE_CUSTOM_BUILD_CONFIG
 # include "canard_build_config.h"
@@ -592,5 +596,8 @@ CANARD_STATIC_ASSERT(((uint32_t)CANARD_MULTIFRAME_RX_PAYLOAD_HEAD_SIZE) < 32,
 
 #ifdef __cplusplus
 }
-#endif
-#endif
+#endif // __cplusplus
+
+#endif // IS_RUNNING_TESTS
+
+#endif //CANARD_H

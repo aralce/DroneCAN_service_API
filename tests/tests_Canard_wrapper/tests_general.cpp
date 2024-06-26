@@ -14,7 +14,7 @@ TEST_GROUP(Canard_wrapper)
 
 Canard get_canard_instance()
 {
-    Canard canard(LIBCANARD_ALLOCATION_BUFFER_IN_BYTES, UAVCAN_MAX_BYTES_ON_MESSAGE);
+    Canard canard;
     return canard;
 }
 

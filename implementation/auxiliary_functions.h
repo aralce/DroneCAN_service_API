@@ -1,9 +1,7 @@
 #ifndef AUXILIARY_FUNCTIONS_H_
 #define AUXILIARY_FUNCTIONS_H_
 #include <cstring>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.param.Value.h"
-// #include <uavcan.protocol.param.NumericValue.h>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.param.NumericValue.h"
+#include "uavcan_driver/uavcan_messages_used.h"
 
 #define UAVCAN_PARAM_VALUE_MAX_NAME_LENGTH 128
 

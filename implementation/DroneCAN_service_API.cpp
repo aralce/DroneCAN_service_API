@@ -1,12 +1,6 @@
 #include "../DroneCAN_service_API.h"
-// #include <uavcan.protocol.param.GetSet_req.h>
-#include "DroneCAN_service_API/implementation/uavcan_driver/canard.h"
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.param.GetSet_req.h"
-// #include <uavcan.protocol.GetNodeInfo.h>
-#include "uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo.h"
-// #include <auxiliary_functions.h>
+#include "uavcan_driver/uavcan_messages_used.h"
 #include "auxiliary_functions.h"
-#include <algorithm>
 #include <cstring>
 #include <limits>
 

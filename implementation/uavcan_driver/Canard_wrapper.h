@@ -16,7 +16,6 @@ typedef struct {
 
 static uint8_t canard_buffer[LIBCANARD_ALLOCATION_BUFFER_IN_BYTES];
 static uint8_t canard_transferID;
-static uint8_t canard_transmission_buffer[UAVCAN_MAX_BYTES_ON_MESSAGE];
 
 class Canard {
 public:
