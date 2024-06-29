@@ -14,8 +14,8 @@ public:
     canard_message_type_info_t get_type_info();
     canard_message_data_t get_data();
 
-    DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& battery_info);
-    DSDL_to_canard_DTO(uavcan_protocol_NodeStatus& node_status);
-    DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse& param_response);
-    DSDL_to_canard_DTO(uavcan_protocol_GetNodeInfoResponse& get_node_info_response);
+    explicit DSDL_to_canard_DTO(uavcan_equipment_power_BatteryInfo& battery_info);
+    explicit DSDL_to_canard_DTO(uavcan_protocol_NodeStatus& node_status);
+    explicit DSDL_to_canard_DTO(uavcan_protocol_param_GetSetResponse& param_response);
+    explicit DSDL_to_canard_DTO(uavcan_protocol_GetNodeInfoResponse& get_node_info_response);
 };

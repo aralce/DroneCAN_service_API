@@ -80,6 +80,8 @@ private:
 
     bool _is_healthy = true;
     uint8_t _node_ID;
+    uint32_t node_IDs_on_bus[4]{};
+
     milliseconds ms_on_last_rx = 0;
     microseconds last_microsecs_since_node_status_publish = 0;
 
@@ -99,6 +101,7 @@ private:
 
     void read_can_bus_data_when_is_available(microseconds actual_time);
     void handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender);
+    void process_nodeStatus_reception(uint8_t source_node_id);
 
     template <typename PARAM_VALUE_TYPE>
     bool set_generic_parameter_value_by_name(const char* name, PARAM_VALUE_TYPE value_to_set);

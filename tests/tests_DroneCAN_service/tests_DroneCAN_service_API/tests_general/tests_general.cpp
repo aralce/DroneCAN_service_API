@@ -133,13 +133,15 @@ TEST(DroneCAN_service_API_general, when_uavcan_protocol_getNodeInfo_is_received_
     CHECK_EQUAL(UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_SIGNATURE, accept_struct.out_data_type_signature);
 }
 
-TEST(DroneCAN_service_API_general, when_uavcan_nodeStatus_is_received_does_not_accept_it)
+TEST(DroneCAN_service_API_general, when_uavcan_nodeStatus_is_received_accept_it)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
 
     should_accept_canard_struct accept_struct{};
     accept_struct.data_type_id = UAVCAN_PROTOCOL_NODESTATUS_ID;
-    CHECK_FALSE(should_accept_canard_reception(accept_struct.ins, &accept_struct.out_data_type_signature, accept_struct.data_type_id, accept_struct.transfer_type, 0));
+    CHECK_TRUE(should_accept_canard_reception(accept_struct.ins, &accept_struct.out_data_type_signature, accept_struct.data_type_id, accept_struct.transfer_type, 0));
+
+    CHECK_EQUAL(UAVCAN_PROTOCOL_NODESTATUS_SIGNATURE, accept_struct.out_data_type_signature);
 }
 
 extern void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer);
@@ -159,7 +161,6 @@ TEST(DroneCAN_service_API_general, received_message_is_handled_on_canard_recepti
 }
 
 void set_handle_canard_reception_for_paramGetSet_message();
-
 
 TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
 {
@@ -325,16 +326,94 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid
 
     microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
-
     CHECK_FALSE(is_there_canard_message_to_handle);
 }
 
+static void set_generic_canard_reception(uint16_t UAVCAN_ID, uint8_t sender_node_id);
+
 void set_handle_canard_reception_for_paramGetSet_message()
+{
+    set_generic_canard_reception(UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID, 20);
+}
+
+static void set_handle_canard_reception_for_NodeStatus_message(uint8_t sender_node_id);
+
+TEST(DroneCAN_service_API_general,
+WHEN_NodeStatus_msg_is_received_from_a_node_with_the_same_ID_THEN_new_device_ID_is_one_plus_the_ID)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    set_handle_canard_reception_for_NodeStatus_message(DEFAULT_NODE_ID);
+
+    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+    CHECK_EQUAL(DEFAULT_NODE_ID + 1, droneCAN_service.get_node_ID());
+}
+
+TEST(DroneCAN_service_API_general,
+WHEN_NodeStatus_msgs_are_received_from_DEFAULT_ID_to_124_THEN_new_device_ID_is_125)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    for (int sender_id = DEFAULT_NODE_ID; sender_id <= 124; sender_id++)
+    {
+        set_handle_canard_reception_for_NodeStatus_message(sender_id);
+        microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+    }
+
+    CHECK_EQUAL(125, droneCAN_service.get_node_ID());
+}
+
+TEST(DroneCAN_service_API_general,
+WHEN_NodeStatus_msgs_are_received_exept_for_5_THEN_new_device_ID_is_5)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    for (int sender_id = 1; sender_id <= 125; sender_id++)
+    {
+        if (sender_id == 5)
+            continue;
+        set_handle_canard_reception_for_NodeStatus_message(sender_id);
+        microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+    }
+
+    CHECK_EQUAL(5, droneCAN_service.get_node_ID());
+}
+
+//Valid values for ID are 1-125. 1 and 125 included.
+//This test how the system behaves with invalid values 
+TEST(DroneCAN_service_API_general,
+WHEN_NodeStatus_msgs_are_received_from_DEFAULT_ID_to_150_THEN_new_device_ID_is_1)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    for (int sender_id = DEFAULT_NODE_ID; sender_id <= 150; sender_id++)
+    {
+        set_handle_canard_reception_for_NodeStatus_message(sender_id);
+        microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+    }
+
+    CHECK_EQUAL(1, droneCAN_service.get_node_ID());
+}
+
+static void set_handle_canard_reception_for_NodeStatus_message(uint8_t sender_node_id)
+{
+    set_generic_canard_reception(UAVCAN_PROTOCOL_NODESTATUS_ID, sender_node_id);
+}
+
+static void set_generic_canard_reception(uint16_t UAVCAN_ID, uint8_t sender_node_id)
 {
     static CanardInstance canard_instance{};
     static CanardRxTransfer rx_transfer{};
-    rx_transfer.data_type_id = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID;
-    rx_transfer.source_node_id = 20;
+    rx_transfer.data_type_id = UAVCAN_ID;
+    rx_transfer.source_node_id = sender_node_id;
     handle_canard_reception(&canard_instance, &rx_transfer);
     CHECK_TRUE(is_there_canard_message_to_handle);
 }

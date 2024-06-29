@@ -78,6 +78,12 @@ public:
         
         uint8_t* data_1_pointer = (uint8_t*)data_1->ptr;
         uint8_t* data_2_pointer = (uint8_t*)data_2->ptr;
+
+        if (data_1->ptr == nullptr)
+            printf("data_1_pointer is nullptr\r\n");
+        if (data_2->ptr == nullptr)
+            printf("data_2_pointer is nullptr\r\n");
+        
         if (!are_data_pointer_equal(data_1_pointer, data_2_pointer, data_1->length))
             return false;
         

@@ -3,7 +3,8 @@
 #include <DSDL_to_canard_DTO.h>
 
 canard_message_type_info_t type_info{};
-canard_message_data_t message_data{};
+uint8_t data[2];
+canard_message_data_t message_data{.ptr = data, .length = sizeof(data)};
 
 Canard canard;
 CAN_bus_adaptor can_driver;
@@ -149,7 +150,7 @@ TEST(DroneCAN_message_sender, send_response_message_of_uavcan_protocol_getNodeIn
 
     CHECK_response_is_sent();
 
-    uavcan_protocol_GetNodeInfoResponse get_node_info_response;
+    static uavcan_protocol_GetNodeInfoResponse get_node_info_response;
     message_sender->send_response_message(get_node_info_response, DESTINATION_NODE_ID);
 }
 

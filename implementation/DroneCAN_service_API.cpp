@@ -3,6 +3,7 @@
 #include "auxiliary_functions.h"
 #include <cstring>
 #include <limits>
+#include <cassert>
 
 CanardPoolAllocatorStatistics statistics
 {
@@ -43,6 +44,9 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
             return true;
         case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
             *out_data_type_signature = UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_SIGNATURE;
+            return true;
+        case UAVCAN_PROTOCOL_NODESTATUS_ID:
+            *out_data_type_signature = UAVCAN_PROTOCOL_NODESTATUS_SIGNATURE;
             return true;
         default:
             return false;
@@ -171,8 +175,10 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     //Variables are not stored on stack due they are passed by reference
     static uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
     static uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+    static uavcan_parameter parameter_to_send;
 
-    switch(canard_reception.rx_transfer.data_type_id) {
+    switch(canard_reception.rx_transfer.data_type_id)
+    {
         case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
             get_node_info_response.status = nodeStatus_struct;
             strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
@@ -185,15 +191,92 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
             uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                        &paramGetSet_request);
 
-            uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
+            parameter_to_send = this->get_parameter(paramGetSet_request.index);
 
             if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
                 message_sender->send_response_message(parameter_to_send,
                                                       canard_reception.source_node_id);
             break;
+        
+        case UAVCAN_PROTOCOL_NODESTATUS_ID:
+            process_nodeStatus_reception(canard_reception.source_node_id);
+            break;
     }
         is_there_canard_message_to_handle = false;
 
+}
+
+#define NODE_ID_WAS_CHANGED true
+#define NODE_ID_NOT_CHANGED false
+static void set_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus);
+static bool check_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus);
+static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, uint8_t to, uint32_t* node_IDs_on_bus);
+
+void DroneCAN_service::process_nodeStatus_reception(uint8_t source_node_id)
+{
+    set_flag_on_register_node_IDs(canard_reception.rx_transfer.source_node_id, node_IDs_on_bus);
+    
+    bool was_node_changed = set_node_ID_based_on_registered_IDs(_node_ID, _node_ID, 125, node_IDs_on_bus);
+    
+    if (was_node_changed == false)
+        set_node_ID_based_on_registered_IDs(_node_ID, 1, _node_ID, node_IDs_on_bus);
+}
+
+static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, uint8_t to, uint32_t* node_IDs_on_bus)
+{
+    int i = from;
+    for (; i <= to; i++)
+    {
+        if (check_flag_on_register_node_IDs(i, node_IDs_on_bus) == false)
+        {
+            node_ID = i;
+            return NODE_ID_WAS_CHANGED;
+        }
+    }
+    return NODE_ID_NOT_CHANGED;
+}
+
+#define MAX_NODE_ID_TO_RECEIVE 125
+#define FLAG_BITS_PER_REGISTER 32
+
+static void get_register_index_and_bit(uint8_t node_id, uint8_t& reg_index, uint8_t& reg_bit);
+
+static void set_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus)
+{
+    if (node_id > MAX_NODE_ID_TO_RECEIVE)
+        return;
+    
+    uint8_t register_index, register_bit;
+    get_register_index_and_bit(node_id, register_index, register_bit);
+
+    node_IDs_on_bus[register_index] |= (1 << register_bit);
+}
+
+static bool check_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus)
+{
+    if (node_id > MAX_NODE_ID_TO_RECEIVE)
+        return true; //Returns as an used ID
+    
+    uint8_t register_index, register_bit;
+    get_register_index_and_bit(node_id, register_index, register_bit);
+    
+    bool ret = (node_IDs_on_bus[register_index] & (1 << register_bit));
+    return ret;
+}
+
+#define NODE_IDs_ON_BUS_MAX_INDEX 3
+
+static void get_register_index_and_bit(uint8_t node_id, uint8_t& reg_index, uint8_t& reg_bit)
+{
+    reg_index = (node_id - 1) / FLAG_BITS_PER_REGISTER;
+
+    #ifdef IS_RUNNING_TESTS
+        //this test buffer overflow when unit test are run
+        assert(reg_index <= NODE_IDs_ON_BUS_MAX_INDEX);
+    #endif
+    //id 0 case
+    //id out of range case
+    reg_bit = (node_id - 1) % FLAG_BITS_PER_REGISTER;
 }
 
 void DroneCAN_service::add_parameter(uavcan_parameter& parameter)
