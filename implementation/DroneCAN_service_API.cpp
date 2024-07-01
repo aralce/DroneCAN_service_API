@@ -82,6 +82,7 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
                         microseconds time_between_executions);
 
 #define MICROSECONDS_IN_SECOND (uint32_t)1e6
+#define NODE_ID_WHEN_NO_BUS_ID_FREE 126
 
 uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
 {
@@ -95,6 +96,13 @@ uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
     if (is_time_to_publish_batteryInfo_msg(actual_time))
         message_sender->broadcast_message(*_batteryInfo_msg);
     uint32_t ms_until_next_batteryInfo_publish = get_ms_until_next_batteryInfo_publish(actual_time);
+
+    if (is_time_to_clear_bus_nodes_ID_register(actual_time)) //related to dinamic node ID
+    {
+        memset(node_IDs_on_bus, 0, sizeof(node_IDs_on_bus));
+        if (_node_ID == NODE_ID_WHEN_NO_BUS_ID_FREE)
+            _node_ID = 1;
+    }
 
     read_can_bus_data_when_is_available(actual_time);
     handle_incoming_message(canard, message_sender);
@@ -134,6 +142,12 @@ uint32_t DroneCAN_service::get_ms_until_next_batteryInfo_publish(microseconds ac
     uint32_t actual_ms = actual_time/1000;
     
     return ms_publish - (actual_ms - last_publish_in_ms);
+}
+
+bool DroneCAN_service::is_time_to_clear_bus_nodes_ID_register(microseconds actual_time)
+{
+    return is_time_to_execute(last_microsecs_since_clear_node_ID_reg,
+                              actual_time, MICROSECONDS_IN_SECOND);
 }
 
 bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time,
@@ -219,7 +233,12 @@ void DroneCAN_service::process_nodeStatus_reception(uint8_t source_node_id)
     bool was_node_changed = set_node_ID_based_on_registered_IDs(_node_ID, _node_ID, 125, node_IDs_on_bus);
     
     if (was_node_changed == false)
-        set_node_ID_based_on_registered_IDs(_node_ID, 1, _node_ID, node_IDs_on_bus);
+    {
+        was_node_changed = set_node_ID_based_on_registered_IDs(_node_ID, 1, 
+                                                               _node_ID, node_IDs_on_bus);
+    }
+    if (was_node_changed == false)
+        _node_ID = NODE_ID_WHEN_NO_BUS_ID_FREE;
 }
 
 static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, uint8_t to, uint32_t* node_IDs_on_bus)
@@ -271,7 +290,7 @@ static void get_register_index_and_bit(uint8_t node_id, uint8_t& reg_index, uint
     reg_index = (node_id - 1) / FLAG_BITS_PER_REGISTER;
 
     #ifdef IS_RUNNING_TESTS
-        //this test buffer overflow when unit test are run
+        //this test buffer overflow and underflow(unsigned) when unit test are run
         assert(reg_index <= NODE_IDs_ON_BUS_MAX_INDEX);
     #endif
     //id 0 case

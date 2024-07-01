@@ -351,19 +351,16 @@ WHEN_NodeStatus_msg_is_received_from_a_node_with_the_same_ID_THEN_new_device_ID_
     CHECK_EQUAL(DEFAULT_NODE_ID + 1, droneCAN_service.get_node_ID());
 }
 
+static void set_multiple_nodeStatus_msg_received(DroneCAN_service& service,
+                                                uint8_t initial_ID, uint8_t final_ID);
+
 TEST(DroneCAN_service_API_general,
 WHEN_NodeStatus_msgs_are_received_from_DEFAULT_ID_to_124_THEN_new_device_ID_is_125)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
-    for (int sender_id = DEFAULT_NODE_ID; sender_id <= 124; sender_id++)
-    {
-        set_handle_canard_reception_for_NodeStatus_message(sender_id);
-        microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
-        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
-    }
-
+    set_multiple_nodeStatus_msg_received(droneCAN_service, DEFAULT_NODE_ID, 124);
     CHECK_EQUAL(125, droneCAN_service.get_node_ID());
 }
 
@@ -373,14 +370,8 @@ WHEN_NodeStatus_msgs_are_received_exept_for_5_THEN_new_device_ID_is_5)
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
-    for (int sender_id = 1; sender_id <= 125; sender_id++)
-    {
-        if (sender_id == 5)
-            continue;
-        set_handle_canard_reception_for_NodeStatus_message(sender_id);
-        microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
-        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
-    }
+    set_multiple_nodeStatus_msg_received(droneCAN_service, 1, 4);
+    set_multiple_nodeStatus_msg_received(droneCAN_service, 6, 125);
 
     CHECK_EQUAL(5, droneCAN_service.get_node_ID());
 }
@@ -393,14 +384,42 @@ WHEN_NodeStatus_msgs_are_received_from_DEFAULT_ID_to_150_THEN_new_device_ID_is_1
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
-    for (int sender_id = DEFAULT_NODE_ID; sender_id <= 150; sender_id++)
+    set_multiple_nodeStatus_msg_received(droneCAN_service, DEFAULT_NODE_ID, 150);
+    CHECK_EQUAL(1, droneCAN_service.get_node_ID());
+}
+
+//Valid ID 1-125 with 1 and 125 included.
+//This also test the system behaves properly with 0 that is out of range
+TEST(DroneCAN_service_API_general,
+WHEN_NodeStatus_msgs_are_received_from_0_to_125_included_THEN_new_device_ID_is_the_special_ID_126)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+
+    set_multiple_nodeStatus_msg_received(droneCAN_service, 0, 125);
+    CHECK_EQUAL(126, droneCAN_service.get_node_ID());
+}
+
+TEST(DroneCAN_service_API_general,
+GIVEN_all_IDs_are_taken_by_nodes_WHEN_passed_1_sec_and_all_IDs_are_free_THEN_new_device_ID_is_1)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    mock().ignoreOtherCalls();
+    set_multiple_nodeStatus_msg_received(droneCAN_service, 0, 125);
+
+    droneCAN_service.run_pending_tasks(1e6);
+    CHECK_EQUAL(1, droneCAN_service.get_node_ID());
+}
+
+static void set_multiple_nodeStatus_msg_received(DroneCAN_service& service,
+                                                uint8_t initial_ID, uint8_t final_ID)
+{
+    for (int sender_id = initial_ID; sender_id <= final_ID; sender_id++)
     {
         set_handle_canard_reception_for_NodeStatus_message(sender_id);
         microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
-        droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+        service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
     }
-
-    CHECK_EQUAL(1, droneCAN_service.get_node_ID());
 }
 
 static void set_handle_canard_reception_for_NodeStatus_message(uint8_t sender_node_id)

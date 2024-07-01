@@ -89,6 +89,8 @@ private:
     microseconds microsecs_between_battery_info_publish = 0;
     microseconds last_microsecs_since_battery_info_publish = 0;
 
+    microseconds last_microsecs_since_clear_node_ID_reg = 0;
+
     uint8_t number_of_parameters = 0;
     std::list<uavcan_parameter> parameter_list{};
 
@@ -98,6 +100,8 @@ private:
     uint32_t get_ms_until_next_nodeStatus_publish(microseconds actual_time);
     bool is_time_to_publish_batteryInfo_msg(microseconds actual_time);
     uint32_t get_ms_until_next_batteryInfo_publish(microseconds actual_time);
+
+    bool is_time_to_clear_bus_nodes_ID_register(microseconds actual_time);
 
     void read_can_bus_data_when_is_available(microseconds actual_time);
     void handle_incoming_message(Canard& canard, DroneCAN_message_sender* message_sender);
