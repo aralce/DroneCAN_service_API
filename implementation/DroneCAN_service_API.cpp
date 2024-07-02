@@ -107,6 +107,8 @@ uint32_t DroneCAN_service::run_pending_tasks(microseconds actual_time)
     read_can_bus_data_when_is_available(actual_time);
     handle_incoming_message(canard, message_sender);
 
+    canard.set_node_ID(_node_ID);//DEBUG
+
     return std::min(ms_until_next_nodeStatus_publish, ms_until_next_batteryInfo_publish);
 }
 
@@ -205,7 +207,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
             uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                        &paramGetSet_request);
 
-            parameter_to_send = this->get_parameter(paramGetSet_request.index);
+            parameter_to_send = std::move(this->get_parameter(paramGetSet_request.index));
 
             if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
                 message_sender->send_response_message(parameter_to_send,
@@ -213,6 +215,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
             break;
         
         case UAVCAN_PROTOCOL_NODESTATUS_ID:
+            printf("source_node_id: %u | _node_ID: %u\n", canard_reception.source_node_id, _node_ID);
             process_nodeStatus_reception(canard_reception.source_node_id);
             break;
     }

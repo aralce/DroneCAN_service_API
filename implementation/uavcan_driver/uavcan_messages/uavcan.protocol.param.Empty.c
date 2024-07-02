@@ -37,10 +37,10 @@ bool uavcan_protocol_param_Empty_decode(const CanardRxTransfer* transfer, struct
     return (((bit_ofs+7)/8) != transfer->payload_len);
 }
 
-#ifdef CANARD_DSDLC_TEST_BUILD
-struct uavcan_protocol_param_Empty sample_uavcan_protocol_param_Empty_msg(void) {
-    struct uavcan_protocol_param_Empty msg;
+// #ifdef CANARD_DSDLC_TEST_BUILD
+// struct uavcan_protocol_param_Empty sample_uavcan_protocol_param_Empty_msg(void) {
+//     struct uavcan_protocol_param_Empty msg;
 
-    return msg;
-}
-#endif
+//     return msg;
+// }
+// #endif

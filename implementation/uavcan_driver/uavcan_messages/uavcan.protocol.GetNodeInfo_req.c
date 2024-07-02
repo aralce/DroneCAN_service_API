@@ -39,10 +39,10 @@ bool uavcan_protocol_GetNodeInfoRequest_decode(const CanardRxTransfer* transfer,
     return (((bit_ofs+7)/8) != transfer->payload_len);
 }
 
-#ifdef CANARD_DSDLC_TEST_BUILD
-struct uavcan_protocol_GetNodeInfoRequest sample_uavcan_protocol_GetNodeInfoRequest_msg(void) {
-    struct uavcan_protocol_GetNodeInfoRequest msg;
+// #ifdef CANARD_DSDLC_TEST_BUILD
+// struct uavcan_protocol_GetNodeInfoRequest sample_uavcan_protocol_GetNodeInfoRequest_msg(void) {
+//     struct uavcan_protocol_GetNodeInfoRequest msg;
 
-    return msg;
-}
-#endif
+//     return msg;
+// }
+// #endif
