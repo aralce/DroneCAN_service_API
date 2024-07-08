@@ -174,10 +174,13 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
 {
     // CanardCANFrame canard_frame{can_driver.read_frame()};
     canard_frame = std::move(can_driver.read_frame());
-    
     if (are_there_data_to_receive())
     {
         ms_on_last_rx = USECS_TO_MS(actual_time);
+        
+        uint8_t source_id = canard_frame.id & 0x7F; // only first 7 bits are used for source ID
+        process_nodeStatus_reception(source_id);
+
         canard.handle_rx_frame(canard_frame, actual_time);
     }
 }
@@ -191,35 +194,26 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     //Variables are not stored on stack due they are passed by reference
     static uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
     static uavcan_protocol_param_GetSetRequest paramGetSet_request{};
-    static uavcan_parameter parameter_to_send;
 
-    switch(canard_reception.rx_transfer.data_type_id)
+    if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID)
     {
-        case UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID:
-            get_node_info_response.status = nodeStatus_struct;
-            strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-            get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-            message_sender->send_response_message(get_node_info_response,
-                                                  canard_reception.source_node_id);
-            break;
-
-        case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
-            uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
-                                                       &paramGetSet_request);
-
-            parameter_to_send = std::move(this->get_parameter(paramGetSet_request.index));
-
-            if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
-                message_sender->send_response_message(parameter_to_send,
-                                                      canard_reception.source_node_id);
-            break;
-        
-        case UAVCAN_PROTOCOL_NODESTATUS_ID:
-            printf("source_node_id: %u | _node_ID: %u\n", canard_reception.source_node_id, _node_ID);
-            process_nodeStatus_reception(canard_reception.source_node_id);
-            break;
+        get_node_info_response.status = nodeStatus_struct;
+        strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+        get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+        message_sender->send_response_message(get_node_info_response,
+                                              canard_reception.source_node_id);
     }
-        is_there_canard_message_to_handle = false;
+    else if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID)
+    {
+        uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
+                                                   &paramGetSet_request);
+        
+        uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
+        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
+            message_sender->send_response_message(parameter_to_send,
+                                                  canard_reception.source_node_id);
+    }
+    is_there_canard_message_to_handle = false;
 
 }
 
@@ -231,10 +225,10 @@ static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, 
 
 void DroneCAN_service::process_nodeStatus_reception(uint8_t source_node_id)
 {
-    set_flag_on_register_node_IDs(canard_reception.rx_transfer.source_node_id, node_IDs_on_bus);
+    set_flag_on_register_node_IDs(source_node_id, node_IDs_on_bus);
     
     bool was_node_changed = set_node_ID_based_on_registered_IDs(_node_ID, _node_ID, 125, node_IDs_on_bus);
-    
+
     if (was_node_changed == false)
     {
         was_node_changed = set_node_ID_based_on_registered_IDs(_node_ID, 1, 
