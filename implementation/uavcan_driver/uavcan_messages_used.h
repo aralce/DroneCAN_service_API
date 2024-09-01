@@ -9,13 +9,13 @@
     #include "tests/mocks/folder_DSDL_messages/uavcan.protocol.param.NumericValue.h"
     #include "tests/mocks/folder_DSDL_messages/uavcan.protocol.param.Value.h"
 #else
-    #include "uavcan_driver/uavcan_messages/uavcan.equipment.power.BatteryInfo.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.NodeStatus.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.param.GetSet_req.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.param.GetSet_res.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.param.NumericValue.h"
-    #include "uavcan_driver/uavcan_messages/uavcan.protocol.param.Value.h"
+    #include "uavcan_messages/uavcan.equipment.power.BatteryInfo.h"
+    #include "uavcan_messages/uavcan.protocol.GetNodeInfo.h"
+    #include "uavcan_messages/uavcan.protocol.NodeStatus.h"
+    #include "uavcan_messages/uavcan.protocol.param.GetSet_req.h"
+    #include "uavcan_messages/uavcan.protocol.param.GetSet_res.h"
+    #include "uavcan_messages/uavcan.protocol.param.NumericValue.h"
+    #include "uavcan_messages/uavcan.protocol.param.Value.h"
 #endif // IS_RUNNING_TESTS
 
 
