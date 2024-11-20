@@ -12,8 +12,7 @@ extern "C"
 #define UAVCAN_PROTOCOL_PARAM_EMPTY_MAX_SIZE 0
 #define UAVCAN_PROTOCOL_PARAM_EMPTY_SIGNATURE (0x6C4D0E8EF37361DFULL)
 
-struct uavcan_protocol_param_Empty {
-};
+struct uavcan_protocol_param_Empty {char dummy;};
 
 uint32_t uavcan_protocol_param_Empty_encode(struct uavcan_protocol_param_Empty* msg, uint8_t* buffer
 #if CANARD_ENABLE_TAO_OPTION

@@ -13,8 +13,7 @@ extern "C"
 #define UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_SIGNATURE (0xEE468A8121C46A9EULL)
 #define UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID 1
 
-struct uavcan_protocol_GetNodeInfoRequest {
-};
+struct uavcan_protocol_GetNodeInfoRequest{char dummy;};
 
 uint32_t uavcan_protocol_GetNodeInfoRequest_encode(struct uavcan_protocol_GetNodeInfoRequest* msg, uint8_t* buffer
 #if CANARD_ENABLE_TAO_OPTION
