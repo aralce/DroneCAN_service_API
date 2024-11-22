@@ -1,20 +1,19 @@
 #pragma once
-// #include <canard.h>
-#include "implementation/uavcan_driver/canard.h"
 
-// #include "../CAN_bus_adaptor/CAN_bus_adaptor.h"
+/* This class is a library interface.
+ *
+ * The class requires to implement the read and write operations
+ * over CAN.
+ *
+ * It is expected the user of the library to implement a CAN_driver class
+ * that inherits from this class.
+ */
 
-/**This file has a prototype for the interface of the CAN bus driver the DroneCAN service API
- * uses.
- * 
- * There are 2 options:
- * 1. Create a child class that implements the functions
- * 2. Implement the functions in this class adding a .cpp file.
- **/
 
-class CAN_bus_adaptor {
+#include "../implementation/uavcan_driver/canard.h"
+
+class CAN_driver_interface {
 public:
-    CAN_bus_adaptor();
 
     /**
      * @brief Send frame with CAN bus
@@ -23,7 +22,7 @@ public:
      * @param can_frame frame to send through CAN bus
      * @return True if the frame was sent successfully. False otherwise.
     */
-    bool send_frame(CanardCANFrame& can_frame);
+    virtual bool send_frame(CanardCANFrame& can_frame) = 0;
 
     /**
      * @brief Read frame with CAN bus
@@ -33,5 +32,5 @@ public:
      * 
      * @return An empty frame if there is no frame available. Return the read frame otherwise.
     */
-    CanardCANFrame read_frame();
+    virtual CanardCANFrame read_frame() = 0;
 };

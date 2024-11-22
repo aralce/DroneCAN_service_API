@@ -53,7 +53,7 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
     }
 }
 
-DroneCAN_service::DroneCAN_service(CAN_bus_adaptor& can_bus, uint8_t node_ID,
+DroneCAN_service::DroneCAN_service(CAN_driver_interface& can_bus, uint8_t node_ID,
                                    droneCAN_handle_error_t handle_error)
 : can_driver(can_bus), _node_ID(node_ID)
 {

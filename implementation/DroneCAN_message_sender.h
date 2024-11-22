@@ -9,7 +9,7 @@
     #include <mocks/Canard_wrapper/Canard_wrapper.h>
     #include <DSDL_to_canard_DTO.h>
 #else
-    #include "../CAN_bus_adaptor.h"
+    #include "../Interface_to_implement/CAN_driver_interface.h"
     #include "uavcan_driver/Canard_wrapper.h"
     #include "DSDL_to_canard_DTO.h"
 #endif
@@ -26,7 +26,7 @@ typedef void (*droneCAN_handle_error_t)(DroneCAN_error error);
 
 class DroneCAN_message_sender {
 public:
-    explicit DroneCAN_message_sender(Canard& canard, CAN_bus_adaptor& can_driver, droneCAN_handle_error_t handle_error = nullptr);
+    explicit DroneCAN_message_sender(Canard& canard, CAN_driver_interface& can_driver, droneCAN_handle_error_t handle_error = nullptr);
 
     bool is_healthy() const {return _is_healthy;}
     
@@ -44,7 +44,7 @@ public:
 
 private:
     Canard& _canard;
-    CAN_bus_adaptor& _can_driver;
+    CAN_driver_interface& _can_driver;
 
     droneCAN_handle_error_t _handle_error;
     bool _is_healthy = true;

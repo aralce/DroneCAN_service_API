@@ -1,6 +1,7 @@
 #ifndef DRONECAN_SERVICE_API_H_
 #define DRONECAN_SERVICE_API_H_
 
+#include "Hardware_abstraction_layer/CAN/CAN_driver.h"
 #include <list>
 
 #ifdef IS_RUNNING_TESTS
@@ -8,7 +9,7 @@
     #include "tests/mocks/CAN_BUS_adaptor/CAN_bus_adaptor.h"
 #else
     #include "implementation/DroneCAN_message_sender.h"
-    #include "CAN_bus_adaptor.h"
+    #include "Interface_to_implement/CAN_driver_interface.h"
 #endif
 
 using microseconds = uint64_t;
@@ -19,7 +20,7 @@ enum class uavcan_message_type{BATTERY_INFO};
 
 class DroneCAN_service {
 public:
-    explicit DroneCAN_service(CAN_bus_adaptor& can_bus,
+    explicit DroneCAN_service(CAN_driver_interface& can_bus,
                               uint8_t node_ID = DEFAULT_NODE_ID,
                               droneCAN_handle_error_t handle_error = nullptr);
 
@@ -75,7 +76,7 @@ protected:
 private:
     friend class DroneCAN_service_spy;
     Canard canard;
-    CAN_bus_adaptor& can_driver;
+    CAN_driver_interface& can_driver;
     DroneCAN_message_sender* message_sender;
 
     bool _is_healthy = true;

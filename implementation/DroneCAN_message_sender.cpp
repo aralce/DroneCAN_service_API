@@ -2,7 +2,7 @@
 
 static void dummy_function(DroneCAN_error error) {}
 
-DroneCAN_message_sender::DroneCAN_message_sender(Canard& canard, CAN_bus_adaptor& can_driver, droneCAN_handle_error_t handle_error)
+DroneCAN_message_sender::DroneCAN_message_sender(Canard& canard, CAN_driver_interface& can_driver, droneCAN_handle_error_t handle_error)
   : _canard(canard), _can_driver(can_driver)
 {
     _handle_error = handle_error == nullptr ? dummy_function : handle_error;
