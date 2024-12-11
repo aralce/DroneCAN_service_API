@@ -1,5 +1,6 @@
 #include <common_to_all_tests.h>
 #include <Canard_wrapper.h>
+#include <support/Canard_spy.h>
 #include <DroneCAN_service_configuration.h>
 #include <typeinfo>
 
@@ -33,10 +34,13 @@ TEST(Canard_wrapper, set_node_ID)
 {
     Canard canard = get_canard_instance();
     const uint8_t CANARD_NODE_ID = 40;
-    mock().expectOneCall("canardSetLocalNodeID")
-          .withUnsignedIntParameter("self_node_id", CANARD_NODE_ID);
     
     canard.set_node_ID(CANARD_NODE_ID);
+
+    Canard_spy spy(canard);
+    uint8_t node_id = spy.get_node_id();
+
+    CHECK_EQUAL(CANARD_NODE_ID, node_id);
 }
 
     canard_message_type_info_t message_type_info = {.signature = 4,

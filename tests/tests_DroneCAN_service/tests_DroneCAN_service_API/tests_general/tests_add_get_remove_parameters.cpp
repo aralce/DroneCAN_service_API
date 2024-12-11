@@ -5,7 +5,7 @@
 #include <cstring>
 
 DroneCAN_service* droneCAN_service = nullptr;
-CAN_bus_adaptor can_driver;
+CAN_driver_interface can_driver;
 #define UAVCAN_PROTOCOL_PARAM_VALUE_MAX_SIZE 130
 
 TEST_GROUP(DroneCAN_service_paramGetSet_parameters)

@@ -1,7 +1,6 @@
 #ifndef DRONECAN_SERVICE_API_H_
 #define DRONECAN_SERVICE_API_H_
 
-#include "Hardware_abstraction_layer/CAN/CAN_driver.h"
 #include <list>
 
 #ifdef IS_RUNNING_TESTS
@@ -18,6 +17,13 @@ using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
 
 enum class uavcan_message_type{BATTERY_INFO};
 
+typedef struct
+{
+    struct uavcan_protocol_SoftwareVersion software_version;
+    struct uavcan_protocol_HardwareVersion hardware_version;
+    struct { uint8_t len; uint8_t data[80]; }name;
+}node_info_data_t;
+
 class DroneCAN_service {
 public:
     explicit DroneCAN_service(CAN_driver_interface& can_bus,
@@ -28,8 +34,7 @@ public:
 
     uint32_t run_pending_tasks(microseconds actual_time);
 
-    bool is_CAN_bus_inactive(milliseconds to_consider_can_bus_inactive,
-                             milliseconds actual_time);
+    bool is_CAN_bus_inactive(milliseconds to_consider_can_bus_inactive, milliseconds actual_time);
 
     template <typename UAVCAN_MESSAGE>
     void publish_message(UAVCAN_MESSAGE& uavcan_message)
@@ -69,9 +74,7 @@ public:
     bool is_healthy() {return _is_healthy;}
     uint8_t get_node_ID() {return _node_ID;}
 
-protected:
-    droneCAN_handle_error_t _handle_error = nullptr;
-    uavcan_protocol_NodeStatus nodeStatus_struct{};
+    void set_node_info(const node_info_data_t& node_info_data);
 
 private:
     friend class DroneCAN_service_spy;
@@ -79,12 +82,16 @@ private:
     CAN_driver_interface& can_driver;
     DroneCAN_message_sender* message_sender;
 
+    droneCAN_handle_error_t _handle_error = nullptr;
+
     bool _is_healthy = true;
     uint8_t _node_ID;
     uint32_t node_IDs_on_bus[4]{};
 
     milliseconds ms_on_last_rx = 0;
     microseconds last_microsecs_since_node_status_publish = 0;
+    uavcan_protocol_NodeStatus nodeStatus_struct{};
+    uavcan_protocol_GetNodeInfoResponse nodeInfo{};
 
     uavcan_equipment_power_BatteryInfo*  _batteryInfo_msg = nullptr;
     microseconds microsecs_between_battery_info_publish = 0;

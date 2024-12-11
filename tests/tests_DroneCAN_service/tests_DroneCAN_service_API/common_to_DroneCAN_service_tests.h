@@ -1,7 +1,8 @@
 #pragma once 
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
-#include <Spied_DroneCAN_service.h>
+#include <DroneCAN_service_API.h>
+#include <DroneCAN_service_spy.h>
 #include <DroneCAN_service_configuration.h>
 
 #define FAILURE_IN_INITIALIZATION false

@@ -58,6 +58,9 @@ DroneCAN_service::DroneCAN_service(CAN_driver_interface& can_bus, uint8_t node_I
 : can_driver(can_bus), _node_ID(node_ID)
 {
     initialize_system(node_ID, handle_error);
+
+    nodeInfo.name.len = strlen(DRONECAN_NODE_NAME);
+    memcpy(nodeInfo.name.data, DRONECAN_NODE_NAME, nodeInfo.name.len);
 }
 
 void DroneCAN_service::initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error)
@@ -197,9 +200,9 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
 
     if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID)
     {
-        get_node_info_response.status = nodeStatus_struct;
-        strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-        get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+        this->nodeInfo.status = this->nodeStatus_struct;
+        // strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+        // get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
         message_sender->send_response_message(get_node_info_response,
                                               canard_reception.source_node_id);
     }
@@ -429,4 +432,15 @@ bool DroneCAN_service::set_generic_parameter_value(uint8_t parameter_index_from_
     std::advance(iterator, parameter_index_from_0);
     iterator->value = package_uavcan_param_value(value_to_set);
     return true;
+}
+
+void DroneCAN_service::set_node_info(const node_info_data_t& node_info_data)
+{
+    memcpy(&nodeInfo.software_version, &node_info_data.software_version,
+           sizeof(nodeInfo.software_version));
+    
+    memcpy(&nodeInfo.hardware_version, &node_info_data.hardware_version,
+           sizeof(nodeInfo.hardware_version));
+
+    memcpy(&nodeInfo.name, &node_info_data.name, sizeof(nodeInfo.name));
 }

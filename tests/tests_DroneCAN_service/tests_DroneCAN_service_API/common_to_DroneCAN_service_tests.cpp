@@ -11,7 +11,7 @@ void execute_test_teardown() {
     mock().removeAllComparatorsAndCopiers();
 }
 
-static CAN_bus_adaptor can_driver;
+static CAN_driver_interface can_driver;
 
 DroneCAN_service get_droneCAN_instance_omiting_mock_calls(droneCAN_handle_error_t handle_error)
 {

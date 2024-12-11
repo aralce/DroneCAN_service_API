@@ -2,7 +2,7 @@
 #include <support/DroneCAN_service_spy.h>
 
 CAN_bus_custom* custom_can = nullptr;
-static CAN_bus_adaptor can_driver;
+static CAN_driver_interface can_driver;
 
 DroneCAN_service get_DroneCAN_ignoring_other_calls()
 {
@@ -56,7 +56,7 @@ on_initialization_libcanard_is_initialized_with_reception_functions)
           .withPointerParameter("handle_reception", (void*)handle_canard_reception)
           .withPointerParameter("handle_acceptance", (void*)should_accept_canard_reception);
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service spied_dronceCAN_service(can_driver);
+    DroneCAN_service dronceCAN_service(can_driver);
 }
 
 TEST(DroneCAN_service_initialization, if_node_ID_is_not_provided_inits_with_default_ID) {
@@ -82,9 +82,10 @@ extern void DUMMY_error_handler(DroneCAN_error error);
 TEST(DroneCAN_service_initialization, droneCAN_without_handle_error_function)
 {
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service droneCAN_service(can_driver);
+    DroneCAN_service droneCAN_service(can_driver);
+    DroneCAN_service_spy spy(&droneCAN_service);
     
-    droneCAN_handle_error_t handle_error = droneCAN_service.get_pointer_to_handle_error_function();
+    droneCAN_handle_error_t handle_error = spy.get_pointer_to_handle_error_function();
     
     POINTERS_EQUAL(DUMMY_error_handler , handle_error);
 }
@@ -94,9 +95,10 @@ void handle_error_function(DroneCAN_error error) {}
 TEST(DroneCAN_service_initialization, droneCAN_with_handle_error_function)
 {
     mock().ignoreOtherCalls();
-    Spied_droneCAN_service droneCAN_service(can_driver, DEFAULT_NODE_ID,
-                                            handle_error_function);
-    droneCAN_handle_error_t handle_error = droneCAN_service.get_pointer_to_handle_error_function();
+    DroneCAN_service droneCAN_service(can_driver, DEFAULT_NODE_ID, handle_error_function);
+    DroneCAN_service_spy spy(&droneCAN_service);
+
+    droneCAN_handle_error_t handle_error = spy.get_pointer_to_handle_error_function();
     
     POINTERS_EQUAL(handle_error_function, handle_error);
 }

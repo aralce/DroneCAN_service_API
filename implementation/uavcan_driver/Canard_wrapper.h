@@ -1,5 +1,4 @@
 #pragma once
-// #include <canard.h>
 #include "canard.h"
 #include "../../DroneCAN_service_configuration.h"
 
@@ -34,7 +33,6 @@ public:
 
     void set_node_ID(uint8_t self_node_id) {
         canard_instance.node_id = self_node_id;
-        // canardSetLocalNodeID(&canard_instance, self_node_id);
     }
     
     int16_t broadcast(canard_message_type_info_t& type_info, canard_message_data_t& data) {
@@ -92,6 +90,7 @@ public:
     }
 
 private:
+    friend class Canard_spy;
     CanardInstance canard_instance;
     static constexpr size_t buffer_size = LIBCANARD_ALLOCATION_BUFFER_IN_BYTES; 
       

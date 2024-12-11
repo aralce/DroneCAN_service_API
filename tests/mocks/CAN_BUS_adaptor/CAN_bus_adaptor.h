@@ -4,17 +4,17 @@
 #include "CppUTest/TestHarness.h"
 #include "CppUTestExt/MockSupport.h"
 
-class CAN_bus_adaptor {
+class CAN_driver_interface {
 public:
     bool send_frame(CanardCANFrame& can_frame) {
-        mock().actualCall("CAN_bus_adaptor->send_frame")
+        mock().actualCall("CAN_driver_interface->send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame);
         return mock().returnBoolValueOrDefault(SUCCESS);
     }
 
     CanardCANFrame read_frame() {
         static CanardCANFrame frame{};
-        mock().actualCall("CAN_bus_adaptor->read_frame");
+        mock().actualCall("CAN_driver_interface->read_frame");
         return *(CanardCANFrame*)mock().returnPointerValueOrDefault(&frame);
     }
 

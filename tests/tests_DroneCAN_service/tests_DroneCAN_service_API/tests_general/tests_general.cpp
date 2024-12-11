@@ -7,7 +7,7 @@
 #include <uavcan.protocol.GetNodeInfo_req.h>
 #include <mocks/HAL_system/HAL_system_singleton.h>
 
-static CAN_bus_adaptor can_driver;
+static CAN_driver_interface can_driver;
 
 extern bool is_there_canard_message_to_handle;
 typedef struct{
@@ -54,7 +54,7 @@ WHEN_there_is_can_bus_data_to_read_THEN_sends_it_to_canard)
     memcpy(can_frame.data, can_bus_packet, CAN_BUS_PACKET_SIZE);
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
 
-    mock().expectOneCall("CAN_bus_adaptor->read_frame")
+    mock().expectOneCall("CAN_driver_interface->read_frame")
           .andReturnValue((void*)&can_frame);
 
     microseconds ACTUAL_TIME = 100;
@@ -72,7 +72,7 @@ WHEN_there_is_NO_can_bus_data_to_read_THEN_do_NOT_send_it_to_canard)
     mock().ignoreOtherCalls();
 
     CanardCANFrame can_frame{};
-    mock().expectOneCall("CAN_bus_adaptor->read_frame")
+    mock().expectOneCall("CAN_driver_interface->read_frame")
           .andReturnValue((void*)&can_frame);
 
     mock().expectNoCall("canard->handle_rx_frame");
@@ -167,7 +167,8 @@ void set_handle_canard_reception_for_paramGetSet_message();
 TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
 {
     mock().disable();
-    Spied_droneCAN_service spied_droneCAN_service(can_driver);
+    DroneCAN_service droneCAN_service(can_driver);
+    DroneCAN_service_spy spy(&droneCAN_service);
     mock().enable();
     mock().ignoreOtherCalls();
 
@@ -178,18 +179,48 @@ TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
     handle_canard_reception(&canard_instance, &rx_transfer);
     CHECK_TRUE(is_there_canard_message_to_handle);
 
-    uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
-    get_node_info_response.status = *spied_droneCAN_service.spy_node_status_struct();
-    strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-    get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+    uavcan_protocol_GetNodeInfoResponse node_info_response_to_send{};
+    node_info_response_to_send.status = *spy.spy_node_status_struct();
+    strcpy((char*)node_info_response_to_send.name.data, DRONECAN_NODE_NAME);
+    node_info_response_to_send.name.len = strlen(DRONECAN_NODE_NAME);
 
-    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_get_node_info_response")
-          .withParameterOfType("uavcan_protocol_GetNodeInfoResponse", "get_node_info_response", (const void *)&get_node_info_response)
-          .withUnsignedIntParameter("destination_node_id", canard_reception.source_node_id);
+    uavcan_protocol_GetNodeInfoResponse internal_node_info = spy.get_nodeInfo();
     
-    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
-    spied_droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+    MEMCMP_EQUAL(&node_info_response_to_send, &internal_node_info,
+                 sizeof(uavcan_protocol_GetNodeInfoResponse));
 
+    microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+}
+
+TEST(DroneCAN_service_API_general, set_node_info)
+{
+    mock().disable();
+    DroneCAN_service droneCAN_service(can_driver);
+    DroneCAN_service_spy spy(&droneCAN_service);
+
+    char node_name[] = "DroneCAN_DEBUG";
+    uavcan_protocol_SoftwareVersion software_version = {.major = 1, .minor = 2};
+    uavcan_protocol_HardwareVersion hardware_version = {.major = 3, .minor = 4};
+    node_info_data_t node_info_to_set;
+    memcpy(&node_info_to_set.software_version, &software_version, sizeof(software_version));
+    memcpy(&node_info_to_set.hardware_version, &hardware_version, sizeof(hardware_version));
+    node_info_to_set.name.len = strlen(node_name);
+    memcpy(&node_info_to_set.name.data, node_name, sizeof(node_name));
+
+    droneCAN_service.set_node_info(node_info_to_set);
+
+    uavcan_protocol_GetNodeInfoResponse internal_node_info = spy.get_nodeInfo();
+
+    CHECK_EQUAL(node_info_to_set.software_version.major, internal_node_info.software_version.major);
+    CHECK_EQUAL(node_info_to_set.software_version.minor, internal_node_info.software_version.minor);
+
+    CHECK_EQUAL(node_info_to_set.hardware_version.major, internal_node_info.hardware_version.major);
+    CHECK_EQUAL(node_info_to_set.hardware_version.major, internal_node_info.hardware_version.major);
+    
+    STRCMP_EQUAL((char*)node_info_to_set.name.data, (char*)internal_node_info.name.data);
+    CHECK_EQUAL(node_info_to_set.name.len, internal_node_info.name.len);
 }
 
 template <typename PARAM_VALUE_TYPE>
@@ -407,7 +438,7 @@ GIVEN_all_IDs_are_taken_by_nodes_WHEN_passed_1_sec_and_all_IDs_are_free_THEN_new
     mock().ignoreOtherCalls();
     set_multiple_nodeStatus_msg_received(droneCAN_service, 0, 125);
 
-    mock().expectOneCall("CAN_bus_adaptor->read_frame")
+    mock().expectOneCall("CAN_driver_interface->read_frame")
           .ignoreOtherParameters();
     droneCAN_service.run_pending_tasks(1e6);
     CHECK_EQUAL(1, droneCAN_service.get_node_ID());
@@ -421,7 +452,7 @@ static void set_multiple_nodeStatus_msg_received(DroneCAN_service& service,
     {
 
         frame.id = sender_id;
-        mock().expectOneCall("CAN_bus_adaptor->read_frame")
+        mock().expectOneCall("CAN_driver_interface->read_frame")
               .andReturnValue((void*)&frame);
 
         microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
@@ -487,7 +518,7 @@ GIVEN_received_data_WHEN_time_for_inactive_is_reached_THEN_is_can_bus_inactive_r
     mock().ignoreOtherCalls();
 
     CanardCANFrame recieved_frame_different_from_empty{.id = 99, .data = {1,2,3}, .data_len = 3};
-    mock().expectOneCall("CAN_bus_adaptor->read_frame")
+    mock().expectOneCall("CAN_driver_interface->read_frame")
           .andReturnValue((void*)&recieved_frame_different_from_empty);
     
     uint32_t ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE - 1;

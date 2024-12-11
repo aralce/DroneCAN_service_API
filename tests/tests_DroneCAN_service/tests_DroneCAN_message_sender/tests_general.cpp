@@ -7,7 +7,7 @@ uint8_t data[2];
 canard_message_data_t message_data{.ptr = data, .length = sizeof(data)};
 
 Canard canard;
-CAN_bus_adaptor can_driver;
+CAN_driver_interface can_driver;
 DroneCAN_message_sender* message_sender = nullptr;
 
 TEST_GROUP(DroneCAN_message_sender)
@@ -87,7 +87,7 @@ TEST(DroneCAN_message_sender, send_to_CAN_BUS)
     mock().expectOneCall("canard->broadcast")
           .ignoreOtherParameters()
           .andReturnValue(FRAMES_TO_SEND);
-    mock().expectOneCall("CAN_bus_adaptor->send_frame")
+    mock().expectOneCall("CAN_driver_interface->send_frame")
           .ignoreOtherParameters()
           .andReturnValue(false);
     mock().expectOneCall("handle_error_function")
@@ -196,7 +196,7 @@ void CHECK_frames_are_sent_with_CAN_bus(int16_t frames_to_transfer)
               .andReturnValue((void*)&can_frame);
         mock().expectOneCall("canard->popTxQueue");
         
-        mock().expectOneCall("CAN_bus_adaptor->send_frame")
+        mock().expectOneCall("CAN_driver_interface->send_frame")
               .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame)
               .andReturnValue(true);
     }
