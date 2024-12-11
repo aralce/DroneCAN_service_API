@@ -203,7 +203,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
         this->nodeInfo.status = this->nodeStatus_struct;
         // strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
         // get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-        message_sender->send_response_message(get_node_info_response,
+        message_sender->send_response_message(this->nodeInfo,
                                               canard_reception.source_node_id);
     }
     else if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID)
