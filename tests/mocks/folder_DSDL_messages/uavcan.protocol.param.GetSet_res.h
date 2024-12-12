@@ -30,13 +30,13 @@ public:
         uavcan_protocol_param_GetSetResponse* msg_2 = (uavcan_protocol_param_GetSetResponse*)object2;
 
         if (msg_1->name.len != msg_2->name.len) {
-            printf("name_len mismatch\n");
+            printf("name_len mismatch:  len1: %u | len2: %u\n", msg_1->name.len, msg_2->name.len);
             return false;
         }
         
         #define STRINGS_ARE_EQUAL 0
         if (strcmp((const char*)msg_1->name.data, (const char*)msg_2->name.data) != STRINGS_ARE_EQUAL) {
-            printf("name mismatch\n");
+            printf("name mismatch:\n");
             return false;
         }
 

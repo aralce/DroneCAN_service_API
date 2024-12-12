@@ -13,7 +13,18 @@
 
 using microseconds = uint64_t;
 using milliseconds = uint32_t;
-using uavcan_parameter = uavcan_protocol_param_GetSetResponse;
+
+typedef struct
+{
+    struct uavcan_protocol_param_Value value;
+    struct uavcan_protocol_param_Value default_value;
+    struct uavcan_protocol_param_NumericValue max_value;
+    struct uavcan_protocol_param_NumericValue min_value;
+    struct { uint8_t len; uint8_t data[92]; }name;
+    bool is_read_only;
+}uavcan_parameter_t;
+
+// using uavcan_parameter_t = uavcan_protocol_param_GetSetResponse;
 
 enum class uavcan_message_type{BATTERY_INFO};
 
@@ -52,11 +63,11 @@ public:
     //parameters
     uint8_t get_number_of_parameters() {return number_of_parameters;}
     
-    void add_parameter(uavcan_parameter& parameter);
+    void add_parameter(uavcan_parameter_t& parameter);
     void remove_parameter(uint8_t parameter_index_from_0);
     
-    uavcan_parameter get_parameter_by_name(const char* name);
-    uavcan_parameter get_parameter(uint8_t parameter_index_from_0);
+    uavcan_parameter_t get_parameter_by_name(const char* name);
+    uavcan_parameter_t get_parameter(uint8_t parameter_index_from_0);
     
     bool set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set, uavcan_protocol_param_Value_type_t data_type);
     bool set_parameter_value_by_name(const char* name, bool value_to_set);
@@ -100,7 +111,7 @@ private:
     microseconds last_microsecs_since_clear_node_ID_reg = 0;
 
     uint8_t number_of_parameters = 0;
-    std::list<uavcan_parameter> parameter_list{};
+    std::list<uavcan_parameter_t> parameter_list{};
 
     void initialize_system(uint8_t node_ID, droneCAN_handle_error_t handle_error);
 

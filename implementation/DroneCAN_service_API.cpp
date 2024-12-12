@@ -188,6 +188,11 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
     }
 }
 
+static uavcan_protocol_param_GetSetResponse get_param_getSet(uavcan_parameter_t& param);
+using param_request = uavcan_protocol_param_GetSetRequest;
+static bool is_param_write_operation(param_request& request);
+static bool is_write_on_param_valid(param_request& request, uavcan_parameter_t& param);
+
 void DroneCAN_service::handle_incoming_message(Canard& canard,
                                                DroneCAN_message_sender* message_sender)
 {
@@ -195,7 +200,6 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
         return;
     
     //Variables are not stored on stack due they are passed by reference
-    static uavcan_protocol_GetNodeInfoResponse get_node_info_response{};
     static uavcan_protocol_param_GetSetRequest paramGetSet_request{};
 
     if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID)
@@ -210,21 +214,82 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     {
         uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                    &paramGetSet_request);
-        
-        uavcan_parameter parameter_to_send = this->get_parameter(paramGetSet_request.index);
+
+        uavcan_parameter_t parameter_to_send{};
+        if (is_param_write_operation(paramGetSet_request))
+        {
+            uavcan_parameter_t param = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
+            parameter_to_send = std::move(param);
+            if (is_write_on_param_valid(paramGetSet_request, parameter_to_send))
+                parameter_to_send.value = paramGetSet_request.value;
+        }
+        else
+        {
+            uavcan_parameter_t param = this->get_parameter(paramGetSet_request.index);
+            parameter_to_send = std::move(param);
+        }
+
+        uavcan_protocol_param_GetSetResponse response = get_param_getSet(parameter_to_send);
         if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
-            message_sender->send_response_message(parameter_to_send,
+        {
+            message_sender->send_response_message(response,
                                                   canard_reception.source_node_id);
+        }
     }
     is_there_canard_message_to_handle = false;
+}
 
+static uavcan_protocol_param_GetSetResponse get_param_getSet(uavcan_parameter_t& param)
+{
+    uavcan_protocol_param_GetSetResponse param_response{};
+    param_response.default_value = param.default_value;
+    param_response.max_value = param.max_value;
+    param_response.min_value = param.min_value;
+    param_response.value = param.value;
+
+    memcpy(&param_response.name, &param.name, sizeof(param.name));
+
+    return param_response;
+}
+
+static bool is_param_write_operation(param_request& request)
+{
+    return (request.name.data[0] != 0);
+}
+
+static bool is_write_on_param_valid(param_request& request, uavcan_parameter_t& param)
+{
+    if (param.is_read_only)
+        return false;
+
+    if (request.value.union_tag != param.value.union_tag)
+        return false;
+
+    if (param.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE)
+    {
+        if (request.value.real_value < param.min_value.real_value)
+            return false;
+        if (param.max_value.real_value < request.value.real_value)
+            return false;
+    }
+
+    if (param.value.union_tag == UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE)
+    {
+        if (request.value.integer_value < param.min_value.integer_value)
+            return false;
+        if (param.max_value.integer_value < request.value.integer_value)
+            return false;
+    }
+
+    return true;
 }
 
 #define NODE_ID_WAS_CHANGED true
 #define NODE_ID_NOT_CHANGED false
 static void set_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus);
 static bool check_flag_on_register_node_IDs(uint8_t node_id, uint32_t* node_IDs_on_bus);
-static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, uint8_t to, uint32_t* node_IDs_on_bus);
+static bool set_node_ID_based_on_registered_IDs(uint8_t& node_ID, uint8_t from, uint8_t to,
+                                                uint32_t* node_IDs_on_bus);
 
 void DroneCAN_service::process_nodeStatus_reception(uint8_t source_node_id)
 {
@@ -298,7 +363,7 @@ static void get_register_index_and_bit(uint8_t node_id, uint8_t& reg_index, uint
     reg_bit = (node_id - 1) % FLAG_BITS_PER_REGISTER;
 }
 
-void DroneCAN_service::add_parameter(uavcan_parameter& parameter)
+void DroneCAN_service::add_parameter(uavcan_parameter_t& parameter)
 {
     if (number_of_parameters < MAX_NUMBER_OF_PARAMETERS) {
         ++number_of_parameters;
@@ -331,7 +396,7 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* point
     }
 }
 
-uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name)
+uavcan_parameter_t DroneCAN_service::get_parameter_by_name(const char* name)
 {
     auto iterator = parameter_list.begin();
     while(iterator != parameter_list.end()) {
@@ -339,16 +404,16 @@ uavcan_parameter DroneCAN_service::get_parameter_by_name(const char* name)
             return *iterator;
         ++iterator;
     }
-    uavcan_parameter invalid_parameter;
+    uavcan_parameter_t invalid_parameter;
     strcpy((char*)invalid_parameter.name.data, NAME_FOR_INVALID_PARAMETER);
     return invalid_parameter;
 }
 
-uavcan_parameter DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
+uavcan_parameter_t DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
 {
     if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size())
     {
-        uavcan_parameter invalid_param;
+        uavcan_parameter_t invalid_param;
         strcpy((char*)invalid_param.name.data, NAME_FOR_INVALID_PARAMETER);
         return invalid_param;
     }

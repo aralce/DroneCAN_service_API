@@ -189,6 +189,8 @@ TEST(DroneCAN_service_API_general, handle_getNodeInfo_request)
     MEMCMP_EQUAL(&node_info_response_to_send, &internal_node_info,
                  sizeof(uavcan_protocol_GetNodeInfoResponse));
 
+    
+
     microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 
@@ -224,12 +226,16 @@ TEST(DroneCAN_service_API_general, set_node_info)
 }
 
 template <typename PARAM_VALUE_TYPE>
-void set_parameter_on_droneCAN_service(DroneCAN_service& droneCAN_service, const char* parameter_name, PARAM_VALUE_TYPE parameter_value, uavcan_protocol_param_Value_type_t data_type);
+void set_parameter_on_droneCAN_service(DroneCAN_service& droneCAN_service,
+                                       const char* parameter_name,
+                                       PARAM_VALUE_TYPE parameter_value, uavcan_protocol_param_Value_type_t data_type,
+                                       bool is_read_only = false);
 
 template <typename PARAM_VALUE_TYPE>
 void CHECK_paramGetSet_request_is_decoded(uint16_t requested_parameter_index, const char* parameter_name, PARAM_VALUE_TYPE parameter_value, uavcan_protocol_param_Value_type_t data_type);
 
-TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_parameter) {
+TEST(DroneCAN_service_API_general,
+handle_paramGetSet_request_asking_for_valid_parameter) {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
@@ -240,7 +246,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_p
     const uavcan_protocol_param_Value_type_t UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER = UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY;
     CHECK_paramGetSet_request_is_decoded(REQUESTED_PARAMETER_INDEX, "", 0, UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER); 
     
-    uavcan_parameter parameter_returned = droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX);
+    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX);
     const uint8_t* pointer_to_source_node_id = &canard_reception.source_node_id;
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response") 
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
@@ -253,67 +259,232 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_valid_p
     CHECK_FALSE(is_there_canard_message_to_handle);
 }
 
-//set_parameter is not implemented //we want read only parameters
-IGNORE_TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_parameter_2_only_with_parameter_name)
+//Parameter is read-write by default
+TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_parameter_2_only_with_parameter_name)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     const int OLD_PARAMETER_VALUE = 5;
     const char SYSTEM_PARAMETER_NAME[] = "system parameter";
-    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_NAME, OLD_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_NAME, OLD_PARAMETER_VALUE,
+                                      UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     const char SYSTEM_PARAMETER_TO_CHANGE_NAME[] = "system parameter to change value";
-    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_TO_CHANGE_NAME, OLD_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_TO_CHANGE_NAME,
+                                      OLD_PARAMETER_VALUE,
+                                      UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     set_handle_canard_reception_for_paramGetSet_message();
 
     const int NEW_PARAMETER_VALUE = 10;
     const uint16_t PARAMETER_INDEX_DECODED = 0;
-    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_TO_CHANGE_NAME, NEW_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_TO_CHANGE_NAME,
+                                         NEW_PARAMETER_VALUE,
+                                         UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     
-    uavcan_parameter parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME);
+    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
+
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
-          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+
+    mock().ignoreOtherCalls();
 
     const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 }
 
-//set_parameter is not implemented //we want read only parameters
-IGNORE_TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_float_parameter)
+TEST(DroneCAN_service_API_general,
+handle_paramGetSet_request_asking_for_set_float_parameter)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     const float OLD_PARAMETER_VALUE = 1.23;
     const char SYSTEM_PARAMETER_NAME[] = "float system parameter";
-    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_NAME, OLD_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_NAME,
+                                      OLD_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
     set_handle_canard_reception_for_paramGetSet_message();
 
     const float NEW_PARAMETER_VALUE = 4.56;
     const uint16_t PARAMETER_INDEX_DECODED = 0;
-    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME, NEW_PARAMETER_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_PARAMETER_VALUE,
+                                         UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
 
-    uavcan_parameter parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
+    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
-          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    mock().ignoreOtherCalls();
     
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+}
+
+TEST(DroneCAN_service_API_general,
+when_a_read_only_param_is_tried_to_be_changed_THEN_do_not_change_value)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    const float OLD_PARAMETER_VALUE = 1.23;
+    const char SYSTEM_PARAMETER_NAME[] = "Read-only parameter";
+    const bool READ_ONLY_PARAMETER = true;
+    set_parameter_on_droneCAN_service(droneCAN_service, SYSTEM_PARAMETER_NAME, OLD_PARAMETER_VALUE,
+                                      UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE, READ_ONLY_PARAMETER);
+    set_handle_canard_reception_for_paramGetSet_message();
+
+    const float NEW_PARAMETER_VALUE = 4.56;
+    const uint16_t PARAMETER_INDEX_DECODED = 0;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_PARAMETER_VALUE,                                       UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+
+    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    mock().ignoreOtherCalls();
+    
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+}
+
+TEST(DroneCAN_service_API_general,
+when_parameter_is_float_and_is_below_min_or_above_max_THEN_do_not_change_value)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    uavcan_parameter_t param{};
+    const char SYSTEM_PARAMETER_NAME[] = "Read-only parameter";
+    const float OLD_PARAMETER_VALUE = 2.2;
+    const float MIN_VALUE = 0.99;
+    const float MAX_VALUE = 2.99;
+    param.min_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE;
+    param.min_value.real_value = MIN_VALUE;
+    param.max_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE;
+    param.max_value.real_value = MAX_VALUE;
+    param.value.union_tag = UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE;
+    param.value.real_value = OLD_PARAMETER_VALUE;
+    param.name.len = strlen(SYSTEM_PARAMETER_NAME);
+    memcpy(&param.name.data, SYSTEM_PARAMETER_NAME, strlen(SYSTEM_PARAMETER_NAME));
+    droneCAN_service.add_parameter(param);
+    set_handle_canard_reception_for_paramGetSet_message();
+
+    const float NEW_VALUE_BELOW_MIN = MIN_VALUE - 0.01;
+    const uint16_t PARAMETER_INDEX_DECODED = 0;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_VALUE_BELOW_MIN,                                       UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&param)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    mock().ignoreOtherCalls(); 
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+    set_handle_canard_reception_for_paramGetSet_message();
+    const float NEW_VALUE_ABOVE_MAX = MAX_VALUE + 0.01;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_VALUE_ABOVE_MAX,                                       UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&param)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+}
+
+TEST(DroneCAN_service_API_general,
+when_parameter_is_integer_and_is_below_min_or_above_max_THEN_do_not_change_value)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    uavcan_parameter_t param{};
+    const char SYSTEM_PARAMETER_NAME[] = "Read-only parameter";
+    const int OLD_PARAMETER_VALUE = 15;
+    const int MIN_VALUE = -5;
+    const int MAX_VALUE = 20;
+    param.min_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
+    param.min_value.integer_value = MIN_VALUE;
+    param.max_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
+    param.max_value.integer_value = MAX_VALUE;
+    param.value.union_tag = UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE;
+    param.value.integer_value = OLD_PARAMETER_VALUE;
+    param.name.len = strlen(SYSTEM_PARAMETER_NAME);
+    memcpy(&param.name.data, SYSTEM_PARAMETER_NAME, strlen(SYSTEM_PARAMETER_NAME));
+    droneCAN_service.add_parameter(param);
+    set_handle_canard_reception_for_paramGetSet_message();
+
+    const int NEW_VALUE_BELOW_MIN = MIN_VALUE - 1;
+    const uint16_t PARAMETER_INDEX_DECODED = 0;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_VALUE_BELOW_MIN,                                       UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&param)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    mock().ignoreOtherCalls(); 
+    const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+    set_handle_canard_reception_for_paramGetSet_message();
+    const int NEW_VALUE_ABOVE_MAX = MAX_VALUE + 1;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_VALUE_ABOVE_MAX,                                       UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&param)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+}
+
+TEST(DroneCAN_service_API_general,
+when_parameter_type_received_mismatch_param_type_THEN_do_not_change_value)
+{
+    DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
+    uavcan_parameter_t param{};
+    const char SYSTEM_PARAMETER_NAME[] = "Read-only parameter";
+    const int OLD_PARAMETER_VALUE = 15;
+    const int MIN_VALUE = -5;
+    const int MAX_VALUE = 20;
+    param.min_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
+    param.min_value.integer_value = MIN_VALUE;
+    param.max_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
+    param.max_value.integer_value = MAX_VALUE;
+    param.value.union_tag = UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE;
+    param.value.integer_value = OLD_PARAMETER_VALUE;
+    param.name.len = strlen(SYSTEM_PARAMETER_NAME);
+    memcpy(&param.name.data, SYSTEM_PARAMETER_NAME, strlen(SYSTEM_PARAMETER_NAME));
+    droneCAN_service.add_parameter(param);
+    set_handle_canard_reception_for_paramGetSet_message();
+
+    const int NEW_VALUE = MIN_VALUE + 1;
+    const uint16_t PARAMETER_INDEX_DECODED = 0;
+    CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
+                                         NEW_VALUE, UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
+
+    mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
+          .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&param)
+          .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
+    mock().ignoreOtherCalls(); 
     const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
 }
 
 template <typename PARAM_VALUE_TYPE>
-void set_parameter_on_droneCAN_service(DroneCAN_service& droneCAN_service, const char* parameter_name, PARAM_VALUE_TYPE parameter_value, uavcan_protocol_param_Value_type_t data_type)
+void set_parameter_on_droneCAN_service(DroneCAN_service& droneCAN_service,
+                                       const char* parameter_name,
+                                       PARAM_VALUE_TYPE parameter_value,
+                                       uavcan_protocol_param_Value_type_t data_type,
+                                       bool is_read_only)
 {
-    uavcan_parameter system_parameter{};
+    uavcan_parameter_t system_parameter{};
+    system_parameter.is_read_only = is_read_only;
     strcpy((char*)system_parameter.name.data, parameter_name);
     system_parameter.name.len = strlen((char*)system_parameter.name.data);
     system_parameter.value.union_tag = data_type;
     switch (data_type) {
         case UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE:
             system_parameter.value.real_value = parameter_value;
+            system_parameter.max_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE;
+            system_parameter.max_value.real_value = 999999999;
             break;
         default:
             system_parameter.value.integer_value = parameter_value;
+            system_parameter.max_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE;
+            system_parameter.max_value.integer_value = 99999999;
             break;
     }
     droneCAN_service.add_parameter(system_parameter);
@@ -354,7 +525,7 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid
           .withMemoryBufferParameter("transfer", (unsigned char*)&canard_reception.rx_transfer, sizeof(CanardRxTransfer))
           .withOutputParameterReturning("msg", (const void*)&paramGetSet_request, sizeof(paramGetSet_request));
 
-    uavcan_parameter parameter_returned = droneCAN_service.get_parameter(paramGetSet_request.index);
+    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter(paramGetSet_request.index);
     STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (char*)parameter_returned.name.data);
 
     microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
