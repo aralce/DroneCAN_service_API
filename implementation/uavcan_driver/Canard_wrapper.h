@@ -1,5 +1,6 @@
 #pragma once
 #include "canard.h"
+#include <cstring>
 #include "../../DroneCAN_service_configuration.h"
 
 typedef struct {
@@ -73,8 +74,9 @@ public:
     }
 
     int16_t handle_rx_frame(CanardCANFrame& frame, uint64_t timestamp_usec) {
-        frame.id |= CANARD_CAN_FRAME_EFF;
-        return canardHandleRxFrame(&canard_instance, &frame, timestamp_usec);
+        memcpy(&this->frame, &frame, sizeof(CanardCANFrame));
+        this->frame.id |= CANARD_CAN_FRAME_EFF;
+        return canardHandleRxFrame(&canard_instance, &this->frame, timestamp_usec);
     }
 
     void release_rx_memory(CanardRxTransfer* rx_transfer) {
@@ -88,10 +90,11 @@ public:
     CanardPoolAllocatorStatistics get_pool_allocator_statistics() {
         return canardGetPoolAllocatorStatistics(&canard_instance);
     }
-
+    
 private:
     friend class Canard_spy;
     CanardInstance canard_instance;
+    CanardCANFrame frame{};
     static constexpr size_t buffer_size = LIBCANARD_ALLOCATION_BUFFER_IN_BYTES; 
       
     static void handle_reception_DUMMY(CanardInstance*, CanardRxTransfer*) {};

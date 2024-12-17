@@ -1,4 +1,5 @@
 #include "../DroneCAN_service_API.h"
+#include "Libraries/DroneCAN_service_API/implementation/uavcan_driver/canard.h"
 #include "uavcan_driver/uavcan_messages_used.h"
 #include "auxiliary_functions.h"
 #include <cstring>
@@ -37,7 +38,6 @@ bool should_accept_canard_reception(const CanardInstance* ins, uint64_t* out_dat
                                     uint16_t data_type_id, CanardTransferType transfer_type,
                                     uint8_t source_node_id)
 {
-
     switch(data_type_id) {
         case UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID:
             *out_data_type_signature = UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_SIGNATURE;
@@ -166,8 +166,6 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
         return false;
 }
 
-#define are_there_data_to_receive()  memcmp(&canard_frame, &no_data_frame, \
-                                            sizeof(no_data_frame)) != 0
 #define USECS_TO_MS(x) x/1000
 //Variable is not stored on stack due it is passed through reference.
 static CanardCANFrame no_data_frame{};
@@ -176,15 +174,24 @@ static CanardCANFrame canard_frame{};
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time)
 {
     // CanardCANFrame canard_frame{can_driver.read_frame()};
-    canard_frame = std::move(can_driver.read_frame());
-    if (are_there_data_to_receive())
+    const uint8_t MAX_FRAMES_READ = 100;
+    uint8_t frames_read = 0;
+    while (frames_read < MAX_FRAMES_READ)
     {
-        ms_on_last_rx = USECS_TO_MS(actual_time);
-        
-        uint8_t source_id = canard_frame.id & 0x7F; // only first 7 bits are used for source ID
-        process_nodeStatus_reception(source_id);
+        frames_read++;
+        bool are_there_data_to_receive = can_driver.read_frame(canard_frame);
+        if (are_there_data_to_receive)
+        {
+            ms_on_last_rx = USECS_TO_MS(actual_time);
 
-        canard.handle_rx_frame(canard_frame, actual_time);
+            uint8_t source_id = canard_frame.id & 0x7F; // only first 7 bits are used for source ID
+            process_nodeStatus_reception(source_id);
+            int16_t ret = canard.handle_rx_frame(canard_frame, actual_time);
+            if (ret < 0)
+                printf("RET: %d | service_id: %d | normal_id: %d\r\n", ret, (canard_frame.id >> 16) & 0xFF, (canard_frame.id >> 8) & 0xFFFF);
+        }
+        else
+            break;
     }
 }
 
@@ -212,6 +219,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     }
     else if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID)
     {
+        printf("PARAM_GET_SET\r\n");
         uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                    &paramGetSet_request);
 
@@ -230,6 +238,7 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
         }
 
         uavcan_protocol_param_GetSetResponse response = get_param_getSet(parameter_to_send);
+        
         if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
         {
             message_sender->send_response_message(response,

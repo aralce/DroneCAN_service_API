@@ -30,7 +30,9 @@ public:
      * This function read the frame from the CAN bus FIFO. It is expected there is some kind of
      * buffer available to store received frames.
      * 
+     * @param frame: frame_struct where is required to read.
+     *
      * @return An empty frame if there is no frame available. Return the read frame otherwise.
     */
-    virtual CanardCANFrame read_frame() = 0;
+    virtual bool read_frame(CanardCANFrame& frame) = 0;
 };
