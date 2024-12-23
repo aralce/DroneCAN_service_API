@@ -186,9 +186,7 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
 
             uint8_t source_id = canard_frame.id & 0x7F; // only first 7 bits are used for source ID
             process_nodeStatus_reception(source_id);
-            int16_t ret = canard.handle_rx_frame(canard_frame, actual_time);
-            if (ret < 0)
-                printf("RET: %d | service_id: %d | normal_id: %d\r\n", ret, (canard_frame.id >> 16) & 0xFF, (canard_frame.id >> 8) & 0xFFFF);
+            canard.handle_rx_frame(canard_frame, actual_time);
         }
         else
             break;
