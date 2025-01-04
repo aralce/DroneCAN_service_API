@@ -43,6 +43,7 @@ public:
 
     ~DroneCAN_service() {delete message_sender;};
 
+    //returns the milliseconds required until the next call.
     uint32_t run_pending_tasks(microseconds actual_time);
 
     bool is_CAN_bus_inactive(milliseconds to_consider_can_bus_inactive, milliseconds actual_time);
