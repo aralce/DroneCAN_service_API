@@ -168,7 +168,6 @@ bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_ti
 
 #define USECS_TO_MS(x) x/1000
 //Variable is not stored on stack due it is passed through reference.
-static CanardCANFrame no_data_frame{};
 static CanardCANFrame canard_frame{};
 
 void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_time)
