@@ -2,14 +2,23 @@
 #include <Canard_wrapper.h>
 #include <support/Canard_spy.h>
 #include <DroneCAN_service_configuration.h>
+#include <CAN_BUS_adaptor/CAN_bus_adaptor.h>
+
 #include <typeinfo>
 
 TEST_GROUP(Canard_wrapper)
 {
+    CanardCANFrame_comparator CanardCANFrame_t;
+    void setup()
+    {
+        mock().installComparator("CanardCANFrame", CanardCANFrame_t);
+    }
+    
     void teardown()
     {
         mock().checkExpectations();
         mock().clear();
+        mock().removeAllComparatorsAndCopiers();
     }
 };
 
@@ -125,12 +134,13 @@ TEST(Canard_wrapper, handle_rx_frame)
 {
     Canard canard = get_canard_instance();
 
-    CanardCANFrame canard_frame{};
+    CanardCANFrame canard_frame{.id = 67, .data = {1,2,3,4}, .data_len = 4};
     uint64_t TIMESTAMP_MICROSECONDS = 10000;
     int16_t ERROR_CODE = -99;
+
+    canard_frame.id = 67 | CANARD_CAN_FRAME_EFF; // The wrapper should apply this flag.
     mock().expectOneCall("canardHandleRxFrame")
-          .withPointerParameter("frame", (void*)&canard_frame)
-          .withUnsignedLongIntParameter("frame.id", canard_frame.id | CANARD_CAN_FRAME_EFF)
+          .withParameterOfType("CanardCANFrame","frame", (void*)&canard_frame)
           .withUnsignedLongLongIntParameter("timestamp_usec", TIMESTAMP_MICROSECONDS)
           .andReturnValue(ERROR_CODE);
 

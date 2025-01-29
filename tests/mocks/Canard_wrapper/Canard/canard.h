@@ -259,8 +259,7 @@ inline void canardPopTxQueue(CanardInstance* ins) {
 
 inline int16_t canardHandleRxFrame(CanardInstance* ins, CanardCANFrame* frame, uint64_t timestamp_usec) {
     mock().actualCall("canardHandleRxFrame")
-          .withPointerParameter("frame", (void*)frame)
-          .withUnsignedLongIntParameter("frame.id", frame->id)
+          .withParameterOfType("CanardCANFrame", "frame", (void*)frame)
           .withUnsignedLongLongIntParameter("timestamp_usec", timestamp_usec);
     return mock().returnIntValueOrDefault(0);
 }

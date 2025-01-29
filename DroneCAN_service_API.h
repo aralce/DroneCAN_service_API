@@ -67,8 +67,8 @@ public:
     void add_parameter(uavcan_parameter_t& parameter);
     void remove_parameter(uint8_t parameter_index_from_0);
     
-    uavcan_parameter_t get_parameter_by_name(const char* name);
-    uavcan_parameter_t get_parameter(uint8_t parameter_index_from_0);
+    bool get_parameter_by_name(const char* name, uavcan_parameter_t& param_to_get);
+    bool get_parameter(uint8_t parameter_index_from_0, uavcan_parameter_t& param_to_get);
     
     bool set_parameter_value_by_name(const char* name, void* pointer_to_value_to_set, uavcan_protocol_param_Value_type_t data_type);
     bool set_parameter_value_by_name(const char* name, bool value_to_set);

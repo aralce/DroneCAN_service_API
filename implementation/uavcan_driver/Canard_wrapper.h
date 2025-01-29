@@ -76,7 +76,7 @@ public:
     int16_t handle_rx_frame(CanardCANFrame& frame, uint64_t timestamp_usec) {
         memcpy(&this->frame, &frame, sizeof(CanardCANFrame));
         this->frame.id |= CANARD_CAN_FRAME_EFF;
-        return canardHandleRxFrame(&canard_instance, &this->frame, timestamp_usec);
+        return canardHandleRxFrame(&canard_instance, &(this->frame), timestamp_usec);
     }
 
     void release_rx_memory(CanardRxTransfer* rx_transfer) {

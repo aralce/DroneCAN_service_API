@@ -20,6 +20,7 @@ extern canard_reception_t canard_reception;
 TEST_GROUP(DroneCAN_service_API_general)
 {
     CanardCANFrame_comparator can_frame_comparator;
+    CanardCANFrame_copier can_frame_copier;
     Uavcan_protocol_param_GetSetResponse_comparator param_GetSetResponse_comparator;
     Uavcan_protocol_getNodeInfoResponse_comparator get_node_info_comparator;
     void setup()
@@ -27,6 +28,7 @@ TEST_GROUP(DroneCAN_service_API_general)
         memset(&canard_reception, 0, sizeof(canard_reception));
         is_there_canard_message_to_handle = false;
         mock().installComparator("CanardCANFrame", can_frame_comparator);
+        mock().installCopier("CanardCANFrame", can_frame_copier);
         mock().installComparator("uavcan_protocol_param_GetSetResponse", param_GetSetResponse_comparator);
         mock().installComparator("uavcan_protocol_GetNodeInfoResponse", get_node_info_comparator);
     }
@@ -55,12 +57,17 @@ WHEN_there_is_can_bus_data_to_read_THEN_sends_it_to_canard)
     can_frame.data_len = CAN_BUS_PACKET_SIZE;
 
     mock().expectOneCall("CAN_driver_interface->read_frame")
-          .andReturnValue((void*)&can_frame);
+          .withOutputParameterOfTypeReturning("CanardCANFrame", "frame", &can_frame) 
+          .andReturnValue(true);
 
     microseconds ACTUAL_TIME = 100;
     mock().expectOneCall("canard->handle_rx_frame")
           .withParameterOfType("CanardCANFrame", "can_frame", (const void*)&can_frame)
           .withUnsignedLongLongIntParameter("timestamp_usec", ACTUAL_TIME);
+
+    mock().expectOneCall("CAN_driver_interface->read_frame")
+          .ignoreOtherParameters()
+          .andReturnValue(false);
 
     droneCAN_service.run_pending_tasks(ACTUAL_TIME);
 }
@@ -71,9 +78,9 @@ WHEN_there_is_NO_can_bus_data_to_read_THEN_do_NOT_send_it_to_canard)
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();
 
-    CanardCANFrame can_frame{};
     mock().expectOneCall("CAN_driver_interface->read_frame")
-          .andReturnValue((void*)&can_frame);
+          .ignoreOtherParameters()
+          .andReturnValue(false);
 
     mock().expectNoCall("canard->handle_rx_frame");
     droneCAN_service.run_pending_tasks(0);
@@ -246,7 +253,8 @@ handle_paramGetSet_request_asking_for_valid_parameter) {
     const uavcan_protocol_param_Value_type_t UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER = UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY;
     CHECK_paramGetSet_request_is_decoded(REQUESTED_PARAMETER_INDEX, "", 0, UNION_TAG_WHEN_IS_ASKED_FOR_PARAMETER); 
     
-    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX);
+    uavcan_parameter_t parameter_returned;
+    droneCAN_service.get_parameter(REQUESTED_PARAMETER_INDEX, parameter_returned);
     const uint8_t* pointer_to_source_node_id = &canard_reception.source_node_id;
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response") 
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)&parameter_returned)
@@ -279,7 +287,8 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_par
                                          NEW_PARAMETER_VALUE,
                                          UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     
-    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME);
+    uavcan_parameter_t parameter_returned;
+    droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME, parameter_returned);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
 
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
@@ -308,7 +317,8 @@ handle_paramGetSet_request_asking_for_set_float_parameter)
                                          NEW_PARAMETER_VALUE,
                                          UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
 
-    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
+    uavcan_parameter_t parameter_returned;
+    droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME, parameter_returned);
     parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
@@ -336,7 +346,8 @@ when_a_read_only_param_is_tried_to_be_changed_THEN_do_not_change_value)
     CHECK_paramGetSet_request_is_decoded(PARAMETER_INDEX_DECODED, SYSTEM_PARAMETER_NAME,
                                          NEW_PARAMETER_VALUE,                                       UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE);
 
-    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME);
+    uavcan_parameter_t parameter_returned;
+    droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_NAME, parameter_returned);
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
           .withUnsignedIntParameter("destination_node_id", canard_reception.rx_transfer.source_node_id);
@@ -525,8 +536,9 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid
           .withMemoryBufferParameter("transfer", (unsigned char*)&canard_reception.rx_transfer, sizeof(CanardRxTransfer))
           .withOutputParameterReturning("msg", (const void*)&paramGetSet_request, sizeof(paramGetSet_request));
 
-    uavcan_parameter_t parameter_returned = droneCAN_service.get_parameter(paramGetSet_request.index);
-    STRCMP_EQUAL(NAME_FOR_INVALID_PARAMETER, (char*)parameter_returned.name.data);
+    uavcan_parameter_t parameter_returned;
+    bool is_valid = droneCAN_service.get_parameter(paramGetSet_request.index, parameter_returned);
+    CHECK_FALSE(is_valid);
 
     microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
@@ -624,7 +636,12 @@ static void set_multiple_nodeStatus_msg_received(DroneCAN_service& service,
 
         frame.id = sender_id;
         mock().expectOneCall("CAN_driver_interface->read_frame")
-              .andReturnValue((void*)&frame);
+              .withOutputParameterOfTypeReturning("CanardCANFrame", "frame", (void*)&frame)
+              .andReturnValue(true);
+
+        mock().expectOneCall("CAN_driver_interface->read_frame")
+              .ignoreOtherParameters()
+              .andReturnValue(false);
 
         microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
         service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
@@ -690,8 +707,14 @@ GIVEN_received_data_WHEN_time_for_inactive_is_reached_THEN_is_can_bus_inactive_r
 
     CanardCANFrame recieved_frame_different_from_empty{.id = 99, .data = {1,2,3}, .data_len = 3};
     mock().expectOneCall("CAN_driver_interface->read_frame")
-          .andReturnValue((void*)&recieved_frame_different_from_empty);
+          .withOutputParameterOfTypeReturning("CanardCANFrame", 
+                                              "frame", (void*)&recieved_frame_different_from_empty)
+          .andReturnValue(true);
     
+    mock().expectOneCall("CAN_driver_interface->read_frame")
+          .ignoreOtherParameters()
+          .andReturnValue(false);
+
     uint32_t ms_since_init = MS_TO_CONSIDER_CAN_BUS_INACTIVE - 1;
     droneCAN_service.run_pending_tasks(MS_TO_USECS(ms_since_init));
 

@@ -62,3 +62,62 @@ uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value_empty() {
     numeric_param_value.union_tag = UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY;
     return numeric_param_value;
 }
+
+void copy_uavcan_param_value(uavcan_protocol_param_Value& dest, uavcan_protocol_param_Value& src)
+{
+    dest.union_tag = src.union_tag;
+
+    switch(src.union_tag)
+    {
+        case UAVCAN_PROTOCOL_PARAM_VALUE_EMPTY:
+            dest.empty.dummy = 0;
+            break;
+        
+        case UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE:
+            dest.integer_value = src.integer_value;
+            break;
+
+        case UAVCAN_PROTOCOL_PARAM_VALUE_REAL_VALUE:
+            dest.real_value = src.real_value;
+            break;
+
+        case UAVCAN_PROTOCOL_PARAM_VALUE_BOOLEAN_VALUE:
+            dest.boolean_value = src.boolean_value;
+            break;
+
+        case UAVCAN_PROTOCOL_PARAM_VALUE_STRING_VALUE:
+            dest.string_value.len = src.string_value.len;
+            strncpy((char*)dest.string_value.data, (char*)src.string_value.data,
+                    sizeof(src.string_value.data));
+            break;
+
+        default:
+            dest.empty.dummy = 0;
+            break;
+    }
+}
+
+using numeric_value_t = uavcan_protocol_param_NumericValue;
+void copy_numeric_value(numeric_value_t& dest, numeric_value_t& src)
+{
+    dest.union_tag = src.union_tag;
+    
+    switch (src.union_tag)
+    {
+    case UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_EMPTY:
+        dest.empty.dummy = 0;
+        break;
+
+    case UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_INTEGER_VALUE:
+        dest.integer_value = src.integer_value;
+        break;
+
+    case UAVCAN_PROTOCOL_PARAM_NUMERICVALUE_REAL_VALUE:
+        dest.real_value = src.real_value;
+        break;
+
+    default:
+        dest.empty.dummy = 0;
+        break;
+    }
+}

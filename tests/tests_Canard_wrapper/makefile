@@ -40,6 +40,7 @@ create_build_folder:
 FILES = $(filter %.cpp, $(wildcard ./*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MAIN_FOLDER_DIR)*))
 FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DSDL_MESSAGES_DIR)*))
+FILES += $(filter %.cpp, $(wildcard $(TEST_MOCK_DIR)*))
 
 OBJECTS_TO_LINK = $(addprefix $(BUILD_OUTPUT_DIR), $(addsuffix .o, $(basename $(notdir $(FILES)))))
 

@@ -1,5 +1,4 @@
 #include "../DroneCAN_service_API.h"
-#include "Libraries/DroneCAN_service_API/implementation/uavcan_driver/canard.h"
 #include "uavcan_driver/uavcan_messages_used.h"
 #include "auxiliary_functions.h"
 #include <cstring>
@@ -80,6 +79,7 @@ bool DroneCAN_service::is_CAN_bus_inactive(milliseconds ms_to_consider_can_bus_i
         return true;
     return false;
 }
+
 
 bool is_time_to_execute(microseconds& last_time_executed, microseconds actual_time,
                         microseconds time_between_executions);
@@ -192,7 +192,8 @@ void DroneCAN_service::read_can_bus_data_when_is_available(microseconds actual_t
     }
 }
 
-static uavcan_protocol_param_GetSetResponse get_param_getSet(uavcan_parameter_t& param);
+using get_set_response_t = uavcan_protocol_param_GetSetResponse;
+static void  fill_getSet_response(const uavcan_parameter_t& param, get_set_response_t& dest);
 using param_request = uavcan_protocol_param_GetSetRequest;
 static bool is_param_write_operation(param_request& request);
 static bool is_write_on_param_valid(param_request& request, uavcan_parameter_t& param);
@@ -216,25 +217,21 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     }
     else if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID)
     {
-        printf("PARAM_GET_SET\r\n");
         uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                    &paramGetSet_request);
 
         uavcan_parameter_t parameter_to_send{};
         if (is_param_write_operation(paramGetSet_request))
         {
-            uavcan_parameter_t param = this->get_parameter_by_name((char*)paramGetSet_request.name.data);
-            parameter_to_send = std::move(param);
+            this->get_parameter_by_name((char*)paramGetSet_request.name.data, parameter_to_send);
             if (is_write_on_param_valid(paramGetSet_request, parameter_to_send))
                 parameter_to_send.value = paramGetSet_request.value;
         }
         else
-        {
-            uavcan_parameter_t param = this->get_parameter(paramGetSet_request.index);
-            parameter_to_send = std::move(param);
-        }
+            this->get_parameter(paramGetSet_request.index, parameter_to_send);
 
-        uavcan_protocol_param_GetSetResponse response = get_param_getSet(parameter_to_send);
+        uavcan_protocol_param_GetSetResponse response;
+        fill_getSet_response(parameter_to_send, response);
         
         if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
         {
@@ -245,17 +242,14 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     is_there_canard_message_to_handle = false;
 }
 
-static uavcan_protocol_param_GetSetResponse get_param_getSet(uavcan_parameter_t& param)
+static void  fill_getSet_response(const uavcan_parameter_t& param, get_set_response_t& dest)
 {
-    uavcan_protocol_param_GetSetResponse param_response{};
-    param_response.default_value = param.default_value;
-    param_response.max_value = param.max_value;
-    param_response.min_value = param.min_value;
-    param_response.value = param.value;
+    dest.default_value = param.default_value;
+    dest.max_value = param.max_value;
+    dest.min_value = param.min_value;
+    dest.value = param.value;
 
-    memcpy(&param_response.name, &param.name, sizeof(param.name));
-
-    return param_response;
+    memcpy(&dest.name, &param.name, sizeof(param.name));
 }
 
 static bool is_param_write_operation(param_request& request)
@@ -402,30 +396,47 @@ bool DroneCAN_service::set_parameter_value_by_name(const char* name, void* point
     }
 }
 
-uavcan_parameter_t DroneCAN_service::get_parameter_by_name(const char* name)
+static void copy_uavcan_parameter(uavcan_parameter_t& dest, uavcan_parameter_t& src);
+
+bool DroneCAN_service::get_parameter_by_name(const char* name, uavcan_parameter_t& param_to_get)
 {
     auto iterator = parameter_list.begin();
+    memset(&param_to_get, 0, sizeof(uavcan_parameter_t));
     while(iterator != parameter_list.end()) {
         if (strcmp((char*)iterator->name.data, name) == 0)
-            return *iterator;
+        {
+            copy_uavcan_parameter(param_to_get, *iterator);
+            return true;// param_to_get.default_value = pac/////here
+        }
         ++iterator;
     }
-    uavcan_parameter_t invalid_parameter;
-    strcpy((char*)invalid_parameter.name.data, NAME_FOR_INVALID_PARAMETER);
-    return invalid_parameter;
+
+    return false;
 }
 
-uavcan_parameter_t DroneCAN_service::get_parameter(uint8_t parameter_index_from_0)
+bool DroneCAN_service::get_parameter(uint8_t parameter_index_from_0,
+                                     uavcan_parameter_t& param_to_get)
 {
+    memset(&param_to_get, 0, sizeof(uavcan_parameter_t));
     if (parameter_list.empty() || parameter_index_from_0 >= parameter_list.size())
-    {
-        uavcan_parameter_t invalid_param;
-        strcpy((char*)invalid_param.name.data, NAME_FOR_INVALID_PARAMETER);
-        return invalid_param;
-    }
+        return false;
+
     auto iterator = parameter_list.begin();
     std::advance(iterator, parameter_index_from_0);
-    return *iterator;
+
+    copy_uavcan_parameter(param_to_get, *iterator);
+    return true;
+}
+
+static void copy_uavcan_parameter(uavcan_parameter_t& dest, uavcan_parameter_t& src)
+{
+    copy_uavcan_param_value(dest.value, src.value);
+    copy_uavcan_param_value(dest.default_value, src.default_value);
+    copy_numeric_value(dest.max_value, src.max_value);
+    copy_numeric_value(dest.min_value, src.min_value);
+    memcpy(dest.name.data, src.name.data, sizeof(src.name.data));
+    dest.name.len = src.name.len;
+    dest.is_read_only = src.is_read_only;
 }
 
 bool DroneCAN_service::set_parameter_value_by_name(const char* name, bool value_to_set)
