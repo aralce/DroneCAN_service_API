@@ -1,4 +1,5 @@
 #include "../DroneCAN_service_API.h"
+#include "Libraries/DroneCAN_service_API/implementation/uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo_res.h"
 #include "uavcan_driver/uavcan_messages_used.h"
 #include "auxiliary_functions.h"
 #include <cstring>
@@ -20,7 +21,7 @@ typedef struct
     uint8_t source_node_id;
 }canard_reception_t;
 
-canard_reception_t canard_reception;
+canard_reception_t canard_reception = {0};
 bool is_there_canard_message_to_handle = false;
 
 void handle_canard_reception(CanardInstance* ins, CanardRxTransfer* transfer)
@@ -204,15 +205,18 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
     if (is_there_canard_message_to_handle == false)
         return;
     
-    //Variables are not stored on stack due they are passed by reference
-    static uavcan_protocol_param_GetSetRequest paramGetSet_request{};
+    // //Variables are not stored on stack due they are passed by reference
+    static uavcan_protocol_param_GetSetRequest paramGetSet_request;
+    memset(&paramGetSet_request, 0, sizeof(uavcan_protocol_param_GetSetRequest));
 
     if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_GETNODEINFO_REQUEST_ID)
     {
         this->nodeInfo.status = this->nodeStatus_struct;
-        // strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
-        // get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
-        message_sender->send_response_message(this->nodeInfo,
+    //     // strcpy((char*)get_node_info_response.name.data, DRONECAN_NODE_NAME);
+    //     // get_node_info_response.name.len = strlen(DRONECAN_NODE_NAME);
+        
+        static uavcan_protocol_GetNodeInfoResponse nodeInfo_response = this->nodeInfo; //Copy to not send a private variable to the function.
+        message_sender->send_response_message(nodeInfo_response,
                                               canard_reception.source_node_id);
     }
     else if(canard_reception.rx_transfer.data_type_id == UAVCAN_PROTOCOL_PARAM_GETSET_REQUEST_ID)
@@ -220,34 +224,41 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
         uavcan_protocol_param_GetSetRequest_decode(&canard_reception.rx_transfer,
                                                    &paramGetSet_request);
 
-        uavcan_parameter_t parameter_to_send{};
+        uavcan_parameter_t parameter_to_send;
+        memset(&parameter_to_send, 0, sizeof(uavcan_parameter_t));
+        bool is_param_valid = false;
         if (is_param_write_operation(paramGetSet_request))
         {
-            this->get_parameter_by_name((char*)paramGetSet_request.name.data, parameter_to_send);
+            is_param_valid = this->get_parameter_by_name((char*)paramGetSet_request.name.data, parameter_to_send);
             if (is_write_on_param_valid(paramGetSet_request, parameter_to_send))
                 parameter_to_send.value = paramGetSet_request.value;
         }
         else
-            this->get_parameter(paramGetSet_request.index, parameter_to_send);
+            is_param_valid = this->get_parameter(paramGetSet_request.index, parameter_to_send);
 
         uavcan_protocol_param_GetSetResponse response;
-        fill_getSet_response(parameter_to_send, response);
+        memset(&response, 0, sizeof(uavcan_protocol_param_GetSetResponse));
         
-        if (strcmp(NAME_FOR_INVALID_PARAMETER, (char*)parameter_to_send.name.data) != 0)
+        if (is_param_valid)
         {
-            message_sender->send_response_message(response,
-                                                  canard_reception.source_node_id);
+            fill_getSet_response(parameter_to_send, response);
         }
+        message_sender->send_response_message(response,
+                                              canard_reception.source_node_id);
     }
     is_there_canard_message_to_handle = false;
 }
 
 static void  fill_getSet_response(const uavcan_parameter_t& param, get_set_response_t& dest)
 {
-    dest.default_value = param.default_value;
-    dest.max_value = param.max_value;
-    dest.min_value = param.min_value;
-    dest.value = param.value;
+    // dest.default_value = param.default_value;
+    copy_uavcan_param_value(dest.default_value, param.default_value);
+    // dest.max_value = param.max_value;
+    copy_numeric_value(dest.max_value, param.max_value);
+    // dest.min_value = param.min_value;
+    copy_numeric_value(dest.min_value, param.min_value);
+    // dest.value = param.value;
+    copy_uavcan_param_value(dest.value, param.value);
 
     memcpy(&dest.name, &param.name, sizeof(param.name));
 }

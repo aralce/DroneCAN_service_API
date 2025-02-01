@@ -40,6 +40,8 @@ void DroneCAN_message_sender::try_send_response_message_with_canard(uint8_t dest
 void DroneCAN_message_sender::send_pending_CAN_frames() {
     for (; can_bus_frames_to_send > 0; --can_bus_frames_to_send) {
         CanardCANFrame* frame_to_send = (CanardCANFrame*)_canard.peekTxQueue();
+        if (frame_to_send == NULL)
+            return;
         _canard.popTxQueue();
         try_send_CAN_bus_frame(*frame_to_send);
     }

@@ -20,9 +20,9 @@ uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value(float valu
 
 uavcan_protocol_param_NumericValue package_uavcan_param_numeric_value_empty();
 
-void copy_uavcan_param_value(uavcan_protocol_param_Value& dest, uavcan_protocol_param_Value& src);
+void copy_uavcan_param_value(uavcan_protocol_param_Value& dest, const uavcan_protocol_param_Value& src);
 
 using numeric_value_t = uavcan_protocol_param_NumericValue;
-void copy_numeric_value(numeric_value_t& dest, numeric_value_t& src);
+void copy_numeric_value(numeric_value_t& dest, const numeric_value_t& src);
 
 #endif // AUXILIARY_FUNCTIONS_H_
