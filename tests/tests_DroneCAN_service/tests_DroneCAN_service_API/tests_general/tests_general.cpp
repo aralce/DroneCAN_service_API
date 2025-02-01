@@ -287,9 +287,9 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_par
                                          NEW_PARAMETER_VALUE,
                                          UAVCAN_PROTOCOL_PARAM_VALUE_INTEGER_VALUE);
     
-    uavcan_parameter_t parameter_returned;
+    static uavcan_parameter_t parameter_returned;
     droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME, parameter_returned);
-    parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE);
+    parameter_returned.value = package_uavcan_param_value(NEW_PARAMETER_VALUE); //THIS IS WRONG!!!
 
     mock().expectOneCall("DroneCAN_message_sender->send_response_message_with_param_response")
           .withParameterOfType("uavcan_protocol_param_GetSetResponse", "param_response", (const void*)(uavcan_protocol_param_GetSetResponse*)&parameter_returned)
@@ -299,6 +299,10 @@ TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_set_par
 
     const microseconds ACTUAL_TIME_DOES_NOT_MATTER = 0;
     droneCAN_service.run_pending_tasks(ACTUAL_TIME_DOES_NOT_MATTER);
+
+    droneCAN_service.get_parameter_by_name(SYSTEM_PARAMETER_TO_CHANGE_NAME, parameter_returned);
+    CHECK_EQUAL(NEW_PARAMETER_VALUE, parameter_returned.value.integer_value);
+
 }
 
 TEST(DroneCAN_service_API_general,
@@ -523,7 +527,8 @@ void CHECK_paramGetSet_request_is_decoded(uint16_t requested_parameter_index, co
 }
 
 //The rx_transfer is passed by copy
-TEST(DroneCAN_service_API_general, handle_paramGetSet_request_asking_for_invalid_parameter)
+TEST(DroneCAN_service_API_general,
+handle_paramGetSet_request_asking_for_invalid_parameter)
 {
     DroneCAN_service droneCAN_service = get_droneCAN_instance_omiting_mock_calls();
     mock().ignoreOtherCalls();

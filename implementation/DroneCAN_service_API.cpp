@@ -1,5 +1,4 @@
 #include "../DroneCAN_service_API.h"
-#include "Libraries/DroneCAN_service_API/implementation/uavcan_driver/uavcan_messages/uavcan.protocol.GetNodeInfo_res.h"
 #include "uavcan_driver/uavcan_messages_used.h"
 #include "auxiliary_functions.h"
 #include <cstring>
@@ -231,7 +230,12 @@ void DroneCAN_service::handle_incoming_message(Canard& canard,
         {
             is_param_valid = this->get_parameter_by_name((char*)paramGetSet_request.name.data, parameter_to_send);
             if (is_write_on_param_valid(paramGetSet_request, parameter_to_send))
+            {
                 parameter_to_send.value = paramGetSet_request.value;
+                this->set_parameter_value_by_name((char*)paramGetSet_request.name.data,
+                                                  &paramGetSet_request.value.real_value, //must point to the union
+                                                  paramGetSet_request.value.union_tag);
+            }
         }
         else
             is_param_valid = this->get_parameter(paramGetSet_request.index, parameter_to_send);
